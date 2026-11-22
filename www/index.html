@@ -3208,7 +3208,12 @@ class BigWar{
     else { a.tx=to.x; a.ty=to.y; }                            // tới điểm bất kỳ
     from.count=0; this.armies.push(a); return a;
   }
-  tapScreen(sx,sy){ // menu lệnh > rút lui > thoát zoom > thông báo > nút 🪤 > thanh dẫn đường
+  tapScreen(sx,sy){ // nút 📣 > menu lệnh > rút lui > thoát zoom > thông báo > nút 🪤 > bản đồ nhỏ
+    const hit=(r)=>r&&sx>=r.x&&sx<=r.x+r.w&&sy>=r.y&&sy<=r.y+r.h;
+    if(this.rallyOpen&&this._rallyRects){ for(const r of this._rallyRects){ if(hit(r)){ this.rallyOpen=false;
+        if(r.n){ this.rallyPick=r.n; this.menu=null; this.sel=null; this.selA=null; this.selG=null; } audio.click(); return true; } }
+      this.rallyOpen=false; return true; }
+    if(hit(this._rallyBtn)){ if(this.rallyPick){ this.rallyPick=0; } else { this.rallyOpen=true; this.menu=null; } audio.click(); return true; }
     if(this.menu&&this._menuRects){ for(const r of this._menuRects){ if(sx>=r.x&&sx<=r.x+r.w&&sy>=r.y&&sy<=r.y+r.h){ this.menuPick(r.id); return true; } }
       this.menu=null; this.sel=null; this.selA=null; this.selG=null; return true; } // chạm ngoài menu: đóng menu + bỏ chọn
     const rb=this._retreatBtn;
@@ -3236,11 +3241,12 @@ class BigWar{
       return true; }
     const o=this.obar; if(!o) return false;
     if(sx<o.ox||sx>o.ox+o.ow||sy<o.oy||sy>o.oy+o.oh) return false;
-    const k=(sx-o.ox-6)/(o.ow-12); const viewW=(this.lastVw||1200)/(this.scale||1);
-    this.camX=Math.max(0,Math.min(BW.W-viewW, k*BW.W-viewW/2)); this.camDrag=null; this.jumpT=null; this.focusB=null; return true;
+    const k=(sx-o.ox-6)/(o.ow-12), ky=(sy-o.oy-4)/(o.oh-8); const viewW=(this.lastVw||1200)/(this.scale||1), viewH=(this.lastVh||600)/(this.scale||1);
+    this.camX=Math.max(0,Math.min(BW.W-viewW, k*BW.W-viewW/2)); this.camY=Math.max(0,Math.min(Math.max(0,BW.H-viewH), ky*BW.H-viewH/2)); this.revealHud&&this.revealHud(); this.camDrag=null; this.jumpT=null; this.focusB=null; return true;
   }
   tap(wx,wy){
     if(this.over) return;
+    if(this.rallyPick){ const N=this.rallyPick; this.rallyPick=0; this.rallyCall(N,wx,wy); return; } // đang chờ chọn điểm tập kết
     if(this.p2p==='guest'&&typeof P2P!=='undefined') P2P.guestTap(wx,wy);
     const F=this.localFid;
     if(this.menu){ this.menu=null; } // chạm ra ngoài menu là đóng
@@ -3287,9 +3293,7 @@ class BigWar{
       if(bA.owner===F){ this.selA=bA; this.sel=null; audio.click(); this._dblChk(bA,wx,wy); }
       else { this.selA=this.sel=null; this.selG=null; }
       return; }
-    if(!best){ this.sel=null; this.selA=null;
-      this.menu={wx,wy,tgtArmy:null,tgtNode:null,src:{kind:'none'},opts:[{id:'rally5',s:'📣 Gọi 5 trại gần nhất'},{id:'rally10',s:'📣 Gọi 10 trại gần nhất'},{id:'rallyAll',s:'🚩 TỔNG ĐỘNG VIÊN (tất cả về đây)'},{id:'cancel',s:'✖ Thôi'}]};
-      return; }
+    if(!best){ this.sel=null; this.selA=null; return; }
     if(best.owner===F && best.count>0){ this.sel=best; this.selA=null; audio.click(); }
     else if(best.owner!==F && best.owner!==2 && !this.visNow(best)){ this.sel=null; this.selA=null; this.startScout(best); }
     else if(best.owner===2 && !this.visNow(best) && best.count>0){ this.sel=null; this.selA=null; this.startScout(best); }
@@ -4196,10 +4200,13 @@ class BigWar{
     const tot=Math.max(1,my+en); c.fillStyle='#3b82f6'; rr(c,vw/2-w2/2+8,27,(w2-16)*my/tot,7,3); c.fill();
     c.fillStyle='#ef4444'; rr(c,vw/2-w2/2+8+(w2-16)*my/tot,27,(w2-16)*en/tot,7,3); c.fill();
     c.font='800 13px "Baloo 2",system-ui'; c.textAlign='center'; c.fillStyle='#fff';
-    c.fillText((this.royale? `🌏 Còn ${new Set(this.nodes.filter(n=>n.camp&&n.owner!==2).map(n=>n.owner)).size} nước` : `🔥 Ải ${this.lv}`)+` · 🗺️ ${this.mapName.length>13?this.mapName.slice(0,12)+'…':this.mapName}`, vw/2, 22);
-    { const cap=this.supplyCap(F); c.textAlign='left'; c.fillStyle= my>cap?'#ff8a8a': my>=cap*0.95?'#ffd54a':'#93c5fd';
-      c.fillText(`${my}/${cap}`, vw/2-w2/2+9, 22); } c.globalAlpha=1;
-    c.textAlign='right'; c.fillStyle='#fca5a5'; c.fillText((unk?'~':'')+Math.round(en)+(unk?'?':''), vw/2+w2/2-9, 22);
+    { const cap=this.supplyCap(F); const t1=`⚔️${my}/${cap}`, t2=' · '+(this.royale? `🌏 ${new Set(this.nodes.filter(n=>n.camp&&n.owner!==2).map(n=>n.owner)).size} nước` : `🔥 Ải ${this.lv}`)+` · ${this.mapName.length>11?this.mapName.slice(0,10)+'…':this.mapName}`;
+      const enT=(unk?'~':'')+Math.round(en)+(unk?'?':''); c.font='800 13px "Baloo 2",system-ui'; const enW=c.measureText(enT).width+10;
+      let fs=13; c.font=`800 ${fs}px "Baloo 2",system-ui`; while(fs>9&&c.measureText(t1+t2).width>w2-16-enW){ fs--; c.font=`800 ${fs}px "Baloo 2",system-ui`; }
+      const w1=c.measureText(t1).width, wt=w1+c.measureText(t2).width, x0=vw/2-w2/2+9; c.textAlign='left';
+      c.fillStyle= my>cap?'#ff8a8a': my>=cap*0.95?'#ffd54a':'#93c5fd'; c.fillText(t1,x0,22); c.fillStyle='#fff'; c.fillText(t2,x0+w1,22); }
+    c.globalAlpha=1;
+    c.textAlign='right'; c.font='800 13px "Baloo 2",system-ui'; c.fillStyle='#fca5a5'; c.fillText((unk?'~':'')+Math.round(en)+(unk?'?':''), vw/2+w2/2-9, 22);
     c.textAlign='center';
     // thanh dẫn đường bản đồ
     if(this.sel&&this.canAmbush(this.sel)){
@@ -4209,13 +4216,14 @@ class BigWar{
       c.font='900 21px "Baloo 2",system-ui'; c.textAlign='center'; c.fillStyle=this.sel.ambush?'#3a2405':'#ffd54a';
       c.fillText(this.sel.ambush?'🪤 ĐANG MAI PHỤC':'🪤 PHỤC KÍCH x'+this.ambushMult(this.sel).toFixed(1), bx+bw2/2, by+33);
     } else this._ambBtn=null;
-    { const ow=Math.min(430,vw*0.4), oh=36, ox=vw-ow-12, oy=vh-oh-10; this.obar={ox,oy,ow,oh};
+    { const ow=Math.min(240,vw*0.25), oh=Math.max(28,Math.round(ow*BW.H/BW.W)+8), ox=vw-ow-10, oy=8; this.obar={ox,oy,ow,oh}; c.globalAlpha=Math.max(ha,0.35);
       c.fillStyle='rgba(25,15,45,0.75)'; rr(c,ox,oy,ow,oh,10); c.fill(); c.strokeStyle='rgba(255,255,255,0.2)'; c.lineWidth=1.5; rr(c,ox,oy,ow,oh,10); c.stroke();
       for(const n of this.nodes){ if(n.count<=0&&!n.camp) continue; if(n.owner!==F&&!n.camp&&!this.visNow(n)&&!n.known&&!this.visAt(n.x,n.y)) continue; const col= n.owner===F? '#3b82f6': n.owner!==2? BW.facPal(n.owner).color : (n.eco? (n.eco==='farm'?'#eab308': n.eco==='granary'?'#8bc34a':'#60a5fa') :'#cbd5e1');
-        const px=ox+6+(n.x/BW.W)*(ow-12), py=oy+oh/2+(n.y/BW.H-0.5)*(oh-14);
-        c.fillStyle=col; c.beginPath(); c.arc(px,py,n.camp?4.5:(n.eco?3.5:2.5),0,7); c.fill(); }
+        const px=ox+6+(n.x/BW.W)*(ow-12), py=oy+4+(n.y/BW.H)*(oh-8);
+        c.fillStyle=col; c.beginPath(); c.arc(px,py,n.camp?3:(n.eco?2.2:1.6),0,7); c.fill(); }
       const scale2=this.scale||1; const viewW=vw/scale2;
-      c.strokeStyle='#fff'; c.lineWidth=2; rr(c,ox+6+(this.camX/BW.W)*(ow-12),oy+3,Math.max(14,(viewW/BW.W)*(ow-12)),oh-6,6); c.stroke(); }
+      const viewH=(this.lastVh||600)/scale2;
+      c.strokeStyle='#fff'; c.lineWidth=2; rr(c,ox+6+(this.camX/BW.W)*(ow-12),oy+4+(this.camY/BW.H)*(oh-8),Math.max(10,(viewW/BW.W)*(ow-12)),Math.max(8,Math.min(oh-8,(viewH/BW.H)*(oh-8))),4); c.stroke(); c.globalAlpha=1; }
     // 🔔 THÔNG BÁO chạm để nhảy tới nơi xảy ra
     this._noteRects=[];
     { let ny=52; c.textAlign='left';
@@ -4234,7 +4242,7 @@ class BigWar{
         c.font='900 30px "Baloo 2",system-ui'; c.textAlign='center'; c.fillStyle='#ffe9c9'; c.fillText(lb,bx+bs/2,by+34);
         this._zBtns.push({x:bx,y:by,w:bs,h:bs,dir}); }); }
     // 🔍 nút thoát zoom
-    if(this.zoomTgt>1.05){ const bw2=150,bh=44,bx=vw-bw2-12,by=56; this._zoomBtn={x:bx,y:by,w:bw2,h:bh}; c.globalAlpha=ha;
+    if(this.zoomTgt>1.05){ const bw2=150,bh=40,bx=vw-bw2-12,by=(this.obar?this.obar.oy+this.obar.oh+8:56); this._zoomBtn={x:bx,y:by,w:bw2,h:bh}; c.globalAlpha=ha;
       c.fillStyle='rgba(30,24,54,0.88)'; c.strokeStyle='#93c5fd'; c.lineWidth=2.5; rr(c,bx,by,bw2,bh,12); c.fill(); c.stroke();
       c.font='900 18px "Baloo 2",system-ui'; c.fillStyle='#bfdbfe'; c.fillText('🔍 TOÀN CỤC',bx+bw2/2,by+29); c.globalAlpha=1; }
     else this._zoomBtn=null;
@@ -4245,12 +4253,26 @@ class BigWar{
         if(myArm){ const bw2=170,bh=48,bx=vw/2-bw2/2,by=vh-bh-64; this._retreatBtn={x:bx,y:by,w:bw2,h:bh,b};
           c.fillStyle='rgba(120,30,30,0.92)'; c.strokeStyle='#ffd54a'; c.lineWidth=3; rr(c,bx,by,bw2,bh,13); c.fill(); c.stroke();
           c.font='900 20px "Baloo 2",system-ui'; c.fillStyle='#ffe9c9'; c.fillText('🏳️ RÚT LUI',bx+bw2/2,by+31); } } }
+    // 📣 NÚT GỌI QUÂN cố định ở mép trái (trên nút phục kích)
+    { const bs=48, bx=12, by=vh-bs-76; this._rallyBtn={x:bx,y:by,w:bs,h:bs};
+      c.globalAlpha=this.rallyPick||this.rallyOpen?1:0.85; c.fillStyle=this.rallyPick?'rgba(255,213,74,0.95)':'rgba(30,24,54,0.85)'; c.strokeStyle='rgba(255,213,74,0.8)'; c.lineWidth=2;
+      rr(c,bx,by,bs,bs,24); c.fill(); c.stroke(); c.textAlign='center'; if(this.rallyPick){ c.font='900 26px "Baloo 2",system-ui'; c.fillStyle='#3a2405'; c.fillText('✕',bx+bs/2,by+34); } else { c.font='24px system-ui'; c.fillText('📣',bx+bs/2,by+33); } c.globalAlpha=1;
+      this._rallyRects=[];
+      if(this.rallyOpen){ const opts=[[5,'📣 Gọi 5 trại gần nhất'],[10,'📣 Gọi 10 trại gần nhất'],[Infinity,'🚩 Tổng động viên'],[0,'✖ Thôi']];
+        const mw=230, ih=42, mh=opts.length*ih+10, mx=bx+bs+8, my=Math.max(50,by+bs-mh);
+        c.fillStyle='rgba(25,15,45,0.95)'; rr(c,mx,my,mw,mh,12); c.fill(); c.strokeStyle='#ffd54a'; c.lineWidth=2; rr(c,mx,my,mw,mh,12); c.stroke(); c.textAlign='left';
+        opts.forEach(([n,t],i)=>{ const oy=my+5+i*ih; c.fillStyle=i%2?'rgba(255,255,255,0.04)':'rgba(255,255,255,0.08)'; rr(c,mx+5,oy,mw-10,ih-5,9); c.fill();
+          c.font='800 16px "Baloo 2",system-ui'; c.fillStyle=n?'#ffe9c9':'#f6b1a4'; c.fillText(t,mx+14,oy+25); this._rallyRects.push({x:mx+5,y:oy,w:mw-10,h:ih-5,n}); });
+        c.textAlign='center'; }
+      if(this.rallyPick){ const t=`📍 Chạm điểm tập kết (${this.rallyPick===Infinity?'tổng động viên':'gọi '+this.rallyPick+' trại'}) — chạm ✖ để hủy`;
+        c.font='800 15px "Baloo 2",system-ui'; const tw=c.measureText(t).width+24; c.fillStyle='rgba(25,15,45,0.9)'; rr(c,vw/2-tw/2,46,tw,30,9); c.fill();
+        c.fillStyle='#ffd54a'; c.fillText(t,vw/2,66); } }
     // 📋 MENU LỆNH ngữ cảnh
     this._menuRects=[];
     if(this.menu&&!this.autoMenu){ const m=this.menu;
       const sc2=this.scale||1; let mx=(m.wx-this.camX)*sc2, my2=(m.wy-this.camY)*sc2;
       const mw=250, ih=46, mh=m.opts.length*ih+14;
-      mx=Math.max(10,Math.min(vw-mw-10,mx+30)); my2=Math.max(46,Math.min(vh-mh-10,my2-mh/2));
+      mx=Math.max(10,Math.min(vw-mw-66,mx+30)); my2=Math.max(46,Math.min(vh-mh-10,my2-mh/2));
       c.fillStyle='rgba(25,15,45,0.95)'; rr(c,mx,my2,mw,mh,14); c.fill();
       c.strokeStyle='#ffd54a'; c.lineWidth=2.5; rr(c,mx,my2,mw,mh,14); c.stroke();
       c.textAlign='left';
@@ -4261,6 +4283,7 @@ class BigWar{
       c.textAlign='center'; }
     if(!this.sel && this.time<9){ const a2=0.6+0.4*Math.sin(tm*4); c.globalAlpha=a2; c.font='800 16px "Baloo 2",system-ui'; c.lineWidth=5; c.strokeStyle='#2a1a12';
       const s='Chạm đạo XANH rồi chạm MỌI NƠI: đất trống = đóng quân, quân địch = truy kích. Tới rừng/thung lũng/bến sông là TỰ MAI PHỤC x2–x10. Quân số địch luôn ẩn — 🕵️ DO THÁM!';
+      let fz=16; while(fz>9&&c.measureText(s).width>vw-130){ fz--; c.font=`800 ${fz}px "Baloo 2",system-ui`; }
       c.strokeText(s,vw/2,vh-16); c.fillStyle='#ffe27a'; c.fillText(s,vw/2,vh-16); c.globalAlpha=1; }
   }
 }
