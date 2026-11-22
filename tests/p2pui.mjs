@@ -1,0 +1,30 @@
+// v2.7: P2P qua NÚT MENU (Pixel 7 + iPhone), 2 máy trên cùng WiFi, ghép trận và đánh thử
+import { chromium, devices } from 'playwright';
+const b=await chromium.launch();
+const mk=async(dn)=>{ const {defaultBrowserType,...o}=devices[dn]; const ctx=await b.newContext(o); const p=await ctx.newPage(); p.errs=[]; p.on('pageerror',e=>p.errs.push(e.message)); await p.goto('http://localhost:8766/index.html'); await p.waitForTimeout(1200); return p; };
+const tapEl=async(pg,id)=>{ const r=await pg.evaluate((id)=>{const r2=document.getElementById(id).getBoundingClientRect();return [r2.x+r2.width/2,r2.y+r2.height/2];},id); await pg.touchscreen.tap(r[0],r[1]); await pg.waitForTimeout(400); };
+const H=await mk('Pixel 7 landscape'), G2=await mk('iPhone 14 Pro landscape');
+// 1) bấm nút 📶 P2P trên menu phải mở màn P2P
+await tapEl(H,'bP2P');
+const vis=await H.evaluate(()=>!document.getElementById('p2p').classList.contains('hidden'));
+console.log('menu P2P mở được màn P2P:', vis);
+await H.locator('#p2pHost').tap(); await H.waitForTimeout(400);
+await H.waitForFunction(()=>document.getElementById('p2pOut').value.length>50,{timeout:20000});
+const offer=await H.evaluate(()=>document.getElementById('p2pOut').value);
+await tapEl(G2,'bP2P'); await G2.locator('#p2pJoin').tap(); await G2.waitForTimeout(400);
+await G2.evaluate((v)=>{ document.getElementById('p2pIn').value=v; },offer); await G2.locator('#p2pGo').tap(); await G2.waitForTimeout(400);
+await G2.waitForFunction(()=>document.getElementById('p2pOut').value.length>50,{timeout:20000});
+const ans=await G2.evaluate(()=>document.getElementById('p2pOut').value);
+await H.evaluate((v)=>{ document.getElementById('p2pIn').value=v; },ans); await H.locator('#p2pGo').tap(); await H.waitForTimeout(400);
+await H.waitForFunction(()=>__ltm.bw&&__ltm.bw.cfg&&__ltm.bw.cfg.p2p,{timeout:25000}).catch(()=>{});
+await G2.waitForFunction(()=>__ltm.bw&&__ltm.bw.cfg&&__ltm.bw.cfg.p2p,{timeout:25000}).catch(()=>{});
+await H.waitForTimeout(2000);
+const hs=await H.evaluate(()=>({trận:!!__ltm.bw, conn:P2P.connected, t:__ltm.bw&&__ltm.bw.time}));
+const gs=await G2.evaluate(()=>({trận:!!__ltm.bw, conn:P2P.connected, t:__ltm.bw&&__ltm.bw.time}));
+console.log('HOST', JSON.stringify(hs)); console.log('GUEST', JSON.stringify(gs));
+const h1=await H.evaluate(()=>__ltm.bw.time); await H.waitForTimeout(1500); const h2=await H.evaluate(()=>__ltm.bw.time);
+const g1=await G2.evaluate(()=>__ltm.bw.time); await G2.waitForTimeout(1500); const g2=await G2.evaluate(()=>__ltm.bw.time);
+console.log('đồng hồ host chạy:', (h2-h1).toFixed(2)+'s/1.5s', '| guest chạy:', (g2-g1).toFixed(2)+'s/1.5s');
+await H.screenshot({path:'/tmp/p2p_host.png'}); await G2.screenshot({path:'/tmp/p2p_guest.png'});
+console.log('errors H', H.errs.length?H.errs:'none', '| G', G2.errs.length?G2.errs:'none');
+await b.close();
