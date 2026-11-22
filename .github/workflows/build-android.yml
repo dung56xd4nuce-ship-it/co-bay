@@ -1,0 +1,44 @@
+name: Build Android APK
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 21 }
+      - uses: android-actions/setup-android@v3
+      - name: Install deps & sync
+        run: |
+          npm install
+          npx cap sync android
+      - name: Build debug APK (cài trực tiếp) + release AAB (nộp Google Play)
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug bundleRelease --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LoanTheMeme-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LoanTheMeme-release-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
+      - name: Publish APK to GitHub Release (link tải công khai)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk LoanTheMeme-v2.6.apk
+          gh release create ltm-v2.6 --title "Loạn Thế Meme v2.6" \
+            --notes "APK Android cài trực tiếp. Tải LoanTheMeme-v2.6.apk bên dưới → mở file → cho phép cài từ nguồn không xác định → chơi." \
+            --target "$GITHUB_SHA" || true
+          gh release upload ltm-v2.6 LoanTheMeme-v2.6.apk --clobber

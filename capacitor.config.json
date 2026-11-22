@@ -1,0 +1,9 @@
+{
+  "appId": "com.dungnt.loanthememe",
+  "appName": "Loan The Meme",
+  "webDir": "www",
+  "backgroundColor": "#2a1a12",
+  "android": { "allowMixedContent": false },
+  "ios": { "contentInset": "never" },
+  "plugins": { "SplashScreen": { "backgroundColor": "#2a1a12", "launchShowDuration": 800 } }
+}

@@ -1,0 +1,19 @@
+{
+  "name": "loan-the-meme",
+  "version": "2.1.0",
+  "description": "Loan The Meme — chibi real-time war strategy game",
+  "private": true,
+  "scripts": {
+    "sync": "cap sync",
+    "android": "cap open android",
+    "ios": "cap open ios"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.6.2"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/core": "^8.6.2",
+    "@capacitor/ios": "^8.6.2"
+  }
+}
