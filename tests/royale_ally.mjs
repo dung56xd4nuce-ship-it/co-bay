@@ -8,13 +8,12 @@ const r=await p.evaluate(()=>{
   const mine=bw.nodes.find(n=>n.owner===0&&n.camp); const camp=bw.nodes.find(n=>n.camp&&n.owner>=3&&!bw.allied(0,n.owner));
   bw.sel=mine; bw.tap(camp.x,camp.y); const ops1=bw.menu? bw.menu.opts.map(o=>o.id):[];
   const before=bw.allied(0,camp.owner); bw.menuPick('ally'); const after=bw.allied(0,camp.owner);
-  const note1=bw.notes.map(n=>n.text);
+  const note1=bw.notes.map(n=>n.text); const foeOk=after? !bw.isFoe(0,camp.owner) : true;
   // hủy
   bw.sel=mine; bw.tap(camp.x,camp.y); const ops2=bw.menu? bw.menu.opts.map(o=>o.id):[];
   if(after){ bw.menuPick('unally'); }
   const cleared=!bw.allied(0,camp.owner);
   // allies shouldn't be foes
-  const foeOk=!bw.isFoe(0,camp.owner) || !after;
   return {ops1,before,after,ops2,cleared,foeOk,note1};
 });
 console.log(JSON.stringify(r)); console.log('errors', errs.length?errs:'none');

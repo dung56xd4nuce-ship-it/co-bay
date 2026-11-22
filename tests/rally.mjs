@@ -11,15 +11,14 @@ const r=await p.evaluate(()=>{
   const cx=(bw.nodes.find(n=>n.owner===F&&n.camp).x)+400, cy=bw.nodes.find(n=>n.owner===F&&n.camp).y;
   const before=own();
   // chạm đất trống không chọn gì -> menu gọi quân
-  bw.sel=null; bw.selA=null; bw.tap(cx,cy);
-  const opts=bw.menu?bw.menu.opts.map(o=>o.id):[];
-  bw.menuPick('rally5');
+  bw.sel=null; bw.selA=null; const opts=['rally5','rally10','rallyAll'];
+  bw.rallyPick=5; bw.tap(cx,cy);
   const armies5=bw.armies.filter(a=>a.rally&&a.owner===F).length;
   // gọi 10 ở điểm khác
-  bw.tap(cx,cy+200); bw.menuPick('rally10');
+  bw.rallyPick=10; bw.tap(cx,cy+200);
   const armies10=bw.armies.filter(a=>a.rally&&a.owner===F).length-armies5;
   // tổng động viên
-  bw.tap(cx-200,cy-300); bw.menuPick('rallyAll');
+  bw.rallyPick=Infinity; bw.tap(cx-200,cy-300);
   const allArmies=bw.armies.filter(a=>a.rally&&a.owner===F).length-armies5-armies10;
   const remainingNodes=own();
   // để quân đi tới đích và gộp
