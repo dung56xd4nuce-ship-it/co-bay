@@ -8,7 +8,7 @@ const tapId=async(p,id)=>{ const r=await p.evaluate((id)=>{const r=document.getE
 let ctx=await chromium.launchPersistentContext(dir,o); let p=ctx.pages()[0]||await ctx.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message));
 await p.goto('http://localhost:8766/index.html'); await p.waitForTimeout(1000);
 await tapId(p,'bBW'); const hidden1=await p.evaluate(()=>getComputedStyle(document.getElementById('bBossContinue')).display==='none');
-await tapId(p,'bBossRoyale'); await p.waitForTimeout(800);
+await tapId(p,'bBossRoyale'); await p.waitForTimeout(500); await tapId(p,'civGo'); await p.waitForTimeout(800);   // v5.0: qua màn chọn nước
 const s1=await p.evaluate(()=>{ const bw=__ltm.bw; bw.intro=null; for(let i=0;i<600;i++) bw.update(0.1); __ltm.G.paused=true;
   const own0=bw.nodes.filter(n=>n.owner===0).length; bw.setAlly(0,5,true);
   __ltm.royaleSave(); return {t:Math.round(bw.time), nodes:bw.nodes.length, mine:own0, power:Math.round(bw.myPower(0)), armies:bw.armies.length, battles:bw.battles.filter(b=>!b.done).length, allies:bw.allies.size, map:bw.mapName}; });

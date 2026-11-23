@@ -9,7 +9,7 @@ const el=async(id)=>p.evaluate((id)=>{const r=document.getElementById(id).getBou
 const shot=async(n)=>p.screenshot({path:`/tmp/hp_${tag}_${n}.png`});
 const {width:W,height:H}=p.viewportSize(); const log=[];
 // vào Quần Hùng qua menu
-await T(...await el('bBW')); await T(...await el('bBossRoyale'),800); await p.waitForTimeout(5000); // cảnh mở đầu
+await T(...await el('bBW')); await T(...await el('bBossRoyale'),800); await T(...await el('civGo'),800); await p.waitForTimeout(5000); // màn chọn nước (v5.0) → Start → cảnh mở đầu
 await shot('1_vao_tran');
 const L=await p.evaluate(()=>{const bw=__ltm.bw; return {rally:bw._rallyBtn, mini:bw.obar, z:bw._zBtns.map(r=>({x:r.x,y:r.y,w:r.w,h:r.h}))};});
 log.push('layout '+JSON.stringify(L));

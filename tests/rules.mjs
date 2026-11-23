@@ -1,5 +1,7 @@
 // Kiểm chứng các tình huống mục 11 ở mức luật
 import fs from 'fs';
+// lõi Đại Chiến = 09_bigwar + các phần nối dài (địa hình/đường đi, văn minh)
+const BWSRC=['09_bigwar.js','09a_terrain.js','09c_civ.js','09d_supply.js'].filter(f=>fs.existsSync('src/'+f)).map(f=>fs.readFileSync('src/'+f,'utf8')).join('\n');
 const src = ['01_config.js','02_map.js','03_sim.js','04_ai.js'].map(f=>fs.readFileSync('src/'+f,'utf8')).join('\n');
 const M = new Function(src+'\nreturn {World, levelConfig, miniConfig, T, RULES, UNIT, NEUTRAL, PASSABLE};')();
 const {World, levelConfig, miniConfig, T, RULES, NEUTRAL, PASSABLE, UNIT}=M;
@@ -246,7 +248,7 @@ console.log(`\n${pass} đạt, ${fail} chưa đạt`);
 }
 // 15. Đại Chiến lấn đất
 { const M2 = new Function('const audio=new Proxy({},{get:()=>()=>{}});const ArtImages={};const makeUnitSprite=()=>null;const recolorUnit=()=>null;const rr=()=>{};\n'
-    + fs.readFileSync('src/01_config.js','utf8') + fs.readFileSync('src/02_map.js','utf8') + fs.readFileSync('src/09_bigwar.js','utf8')
+    + fs.readFileSync('src/01_config.js','utf8') + fs.readFileSync('src/02_map.js','utf8') + BWSRC
     + '\nreturn {BigWar, bwResolve, BW, BW_LEVELS};')();
   const {BigWar, bwResolve, BW, BW_LEVELS}=M2;
   const [a1,b1]=bwResolve('archer',1000,'spear',1000);
@@ -275,7 +277,7 @@ console.log(`\n${pass} đạt, ${fail} chưa đạt`);
   ok(bw2.armies.filter(a=>a.owner===1).length>=1, 'Quân ta áp sát: AI địch xuất quân phản công');
 }
 { const M3 = new Function('const audio=new Proxy({},{get:()=>()=>{}});const ArtImages={};const makeUnitSprite=()=>null;const recolorUnit=()=>null;const rr=()=>{};\n'
-    + fs.readFileSync('src/01_config.js','utf8') + fs.readFileSync('src/02_map.js','utf8') + fs.readFileSync('src/09_bigwar.js','utf8')
+    + fs.readFileSync('src/01_config.js','utf8') + fs.readFileSync('src/02_map.js','utf8') + BWSRC
     + '\nreturn {BigWar};')();
   const bw=new M3.BigWar(1);
   const neu=bw.nodes.find(n=>n.owner===2); neu.count=1000; neu.type='spear';
@@ -287,7 +289,7 @@ console.log(`\n${pass} đạt, ${fail} chưa đạt`);
 }
 // 16. Đại Chiến v2: kinh tế & AI sống
 { const M4 = new Function('const audio=new Proxy({},{get:()=>()=>{}});const ArtImages={};const makeUnitSprite=()=>null;const recolorUnit=()=>null;const rr=()=>{};\n'
-    + fs.readFileSync('src/01_config.js','utf8') + fs.readFileSync('src/02_map.js','utf8') + fs.readFileSync('src/09_bigwar.js','utf8')
+    + fs.readFileSync('src/01_config.js','utf8') + fs.readFileSync('src/02_map.js','utf8') + BWSRC
     + '\nreturn {BigWar, bwResolve, BW};')();
   const {BigWar, bwResolve, BW}=M4;
   const bw=new BigWar(1);
@@ -321,7 +323,7 @@ console.log(`\n${pass} đạt, ${fail} chưa đạt`);
 // ============ v0.9: ĐỊA HÌNH + SƯƠNG MÙ + DO THÁM ============
 {
   const M4 = new Function("const audio=new Proxy({},{get:()=>()=>{}});const ArtImages={};const makeUnitSprite=()=>null;const recolorUnit=()=>null;const rr=()=>{};\n"
-    + fs.readFileSync('src/01_config.js','utf8') + fs.readFileSync('src/02_map.js','utf8') + fs.readFileSync('src/09_bigwar.js','utf8')
+    + fs.readFileSync('src/01_config.js','utf8') + fs.readFileSync('src/02_map.js','utf8') + BWSRC
     + '\nreturn {BigWar, bwResolve, BW};')();
   const {BigWar, bwResolve, BW}=M4;
   // khắc chế theo địa hình: đồng bằng kỵ > bộ binh; rừng thì NGƯỢC LẠI bộ binh > kỵ
@@ -367,7 +369,7 @@ console.log(`\n${pass} đạt, ${fail} chưa đạt`);
 // ============ v1.0: ẨN QUÂN SỐ + PHỤC KÍCH + CÔNG SỰ + ĐÁNH MỌI NƠI ============
 {
   const M5 = new Function("const audio=new Proxy({},{get:()=>()=>{}});const ArtImages={};const makeUnitSprite=()=>null;const recolorUnit=()=>null;const rr=()=>{};\n"
-    + fs.readFileSync('src/01_config.js','utf8') + fs.readFileSync('src/02_map.js','utf8') + fs.readFileSync('src/09_bigwar.js','utf8')
+    + fs.readFileSync('src/01_config.js','utf8') + fs.readFileSync('src/02_map.js','utf8') + BWSRC
     + '\nreturn {BigWar, bwResolve, BW};')();
   const {BigWar, bwResolve, BW}=M5;
   const bw=new BigWar(2); bw._updateVision();
@@ -394,7 +396,7 @@ console.log(`\n${pass} đạt, ${fail} chưa đạt`);
   const [o2]=bwResolve('saber',1200,'spear',1000,bw3.defMul({ter:'plain',struct:'fort',type:'spear'}),'plain');
   ok(o1>0&&o2===0, '🏰 1200 đao thắng 1000 giáo ngoài đồng nhưng CÔNG THÀNH LŨY thì thua');
   // 4) phục kích
-  const fNode={ter:'forest',type:'spear',owner:0,count:500,camp:false}; 
+  const fNode={ter:'forest',type:'spear',owner:2,count:500,camp:false};   /* phe trung lập: không dính thế mạnh mai phục riêng của nền văn minh nào (nước người chơi được chọn ngẫu nhiên) */
   ok(Math.abs(bw3.ambushMult(fNode)-6)<0.01, '🪤 Bộ binh mai phục trong rừng = x6');
   ok(Math.abs(bw3.ambushMult({ter:'valley',type:'cavalry'})-6)<0.01 && Math.abs(bw3.ambushMult({ter:'river',type:'archer'})-6)<0.01, '🪤 Kỵ phục thung lũng x6, cung phục bến sông x6');
   ok(bw3.ambushMult({ter:'forest',type:'shield'})>=2 && bw3.ambushMult({ter:'forest',type:'cavalry'})<=10, '🪤 Mọi mức phục kích nằm trong x2–x10');
@@ -415,7 +417,7 @@ console.log(`\n${pass} đạt, ${fail} chưa đạt`);
 // ============ v1.1: DÃ CHIẾN — ĐÁNH & PHỤC KÍCH MỌI NƠI ============
 {
   const M6 = new Function("const audio=new Proxy({},{get:()=>()=>{}});const ArtImages={};const makeUnitSprite=()=>null;const recolorUnit=()=>null;const rr=()=>{};\n"
-    + fs.readFileSync('src/01_config.js','utf8') + fs.readFileSync('src/02_map.js','utf8') + fs.readFileSync('src/09_bigwar.js','utf8')
+    + fs.readFileSync('src/01_config.js','utf8') + fs.readFileSync('src/02_map.js','utf8') + BWSRC
     + '\nreturn {BigWar, bwResolve, BW};')();
   const {BigWar, BW}=M6;
   // 1) gửi quân tới ĐIỂM BẤT KỲ -> tới nơi tự đóng trại; nếu là rừng thì TỰ MAI PHỤC
@@ -448,15 +450,51 @@ console.log(`\n${pass} đạt, ${fail} chưa đạt`);
   ok(!A.done&&B.done, '⚔️ Đồng bằng: 1000 kỵ thắng 950 giáo trong dã chiến (kỵ khắc bộ binh)');
   // cùng cặp trong rừng thì kỵ thua
   const bw3=new BigWar(1,{classic:true}); bw3._updateVision();
-  let fx3=null; outer3: for(let x=400;x<BW.W;x+=60) for(let y=240;y<BW.H-80;y+=60){ if(bw3.terAt(x,y)==='forest'&&Math.abs(x-bw3.riverX(y))>300){ fx3=[x,y]; break outer3; } }
-  const A3={owner:0,type:'cavalry',count:1000,x:fx3[0]-30,y:fx3[1],to:-1,tx:fx3[0]+30,ty:fx3[1],trail:0};
-  const B3={owner:1,type:'spear',count:950,x:fx3[0]+30,y:fx3[1],to:-1,tx:fx3[0]-30,ty:fx3[1],trail:0};
+  let fx3=null; outer3: for(let x=400;x<BW.W;x+=20) for(let y=240;y<BW.H-80;y+=20){ if(bw3.terAt(x,y)==='forest'&&bw3.terAt(x-50,y)==='plain'&&Math.abs(x-bw3.riverX(y))>300){ fx3=[x,y]; break outer3; } }
+  const A3={owner:0,type:'cavalry',count:1000,x:fx3[0]-50,y:fx3[1],to:-1,tx:fx3[0]-50,ty:fx3[1],trail:0,camped:true,food:100};
+  const B3={owner:1,type:'spear',count:950,x:fx3[0],y:fx3[1],to:-1,tx:fx3[0],ty:fx3[1],trail:0,camped:true,food:100};
   bw3.armies.push(A3,B3); st=0; while(!A3.done&&!B3.done&&st++<60*60) bw3.update(1/60);
-  ok(A3.done&&!B3.done, '🌲 Cùng cặp quân đó gặp nhau trong RỪNG thì kỵ thua giáo');
+  ok(A3.done&&!B3.done, '🌲 Cùng cặp quân đó nhưng giáo giữ trong RỪNG (kỵ đánh từ bìa rừng) thì kỵ thua giáo');
+  { // LUẬT MỚI: kỵ binh và đại quân không vào được rừng/núi — bộ binh thì vào được
+    const bw5=new BigWar(1,{classic:true,civ:'rome'}); bw5._updateVision(); bw5.aiTurn=()=>{};
+    const deepIn=(a)=>[[0,0],[45,0],[-45,0],[0,45],[0,-45]].every(([dx,dy])=>bw5.terAt(a.x+dx,a.y+dy)==='forest'); // lọt hẳn vào trong rừng (không tính sượt mép)
+    let deep=null; outer5: for(let x=400;x<BW.W;x+=20) for(let y=240;y<BW.H-80;y+=20){ let all=true; for(const [dx,dy] of [[0,0],[70,0],[-70,0],[0,70],[0,-70]]) if(bw5.terAt(x+dx,y+dy)!=='forest') all=false; if(all){ deep=[x,y]; break outer5; } }
+    const c0=bw5.nodes[0]; const mk5=(type,count)=>({owner:0,type,count,x:c0.x+40,y:c0.y,to:-1,tx:deep[0],ty:deep[1],trail:0,food:100});
+    const cav=mk5('cavalry',300), big=mk5('spear',2600), foot=mk5('spear',300); bw5.armies.push(cav,big,foot);
+    let inCav=0,inBig=0; st=0; while(st++<200*30&&!(cav.camped&&big.camped&&foot.camped)){ bw5.update(1/30); for(const a of bw5.armies) a.food=100; big.count=Math.max(big.count,2600);
+      if(deepIn(cav)) inCav++; if(deepIn(big)) inBig++; }
+    ok(foot.camped&&Math.hypot(foot.x-deep[0],foot.y-deep[1])<5, '🌲 Bộ binh nhỏ đi được vào GIỮA RỪNG');
+    ok(cav.camped&&inCav===0&&bw5.terAt(cav.x,cav.y)!=='forest'&&Math.hypot(cav.x-deep[0],cav.y-deep[1])>40, '🐎 KỴ BINH không vào rừng: dừng ở bìa rừng');
+    ok(big.camped&&inBig===0&&bw5.terAt(big.x,big.y)!=='forest', '🚩 ĐẠI QUÂN (≥2000) không vào rừng: dừng ở bìa rừng');
+    { // thế mạnh văn minh: Đại Việt đi rừng thạo — đại quân BỘ BINH vào được rừng, kỵ binh thì vẫn không
+      const bw6=new BigWar(1,{classic:true,civ:'daiviet'}); bw6._updateVision(); bw6.aiTurn=()=>{}; const c6=bw6.nodes[0];
+      let d6=null; o6: for(let x=400;x<BW.W;x+=20) for(let y=240;y<BW.H-80;y+=20){ if([[0,0],[70,0],[-70,0],[0,70],[0,-70]].every(([dx,dy])=>bw6.terAt(x+dx,y+dy)==='forest')){ d6=[x,y]; break o6; } }
+      const big6={owner:0,type:'spear',count:2600,x:c6.x+40,y:c6.y,to:-1,tx:d6[0],ty:d6[1],trail:0,food:100}, cav6={owner:0,type:'cavalry',count:300,x:c6.x+40,y:c6.y,to:-1,tx:d6[0],ty:d6[1],trail:0,food:100}; bw6.armies.push(big6,cav6);
+      let st6=0; while(st6++<200*30&&!(big6.camped&&cav6.camped)){ bw6.update(1/30); big6.food=cav6.food=100; big6.count=Math.max(big6.count,2600); }
+      ok(bw6.civOf(0).id==='daiviet'&&big6.camped&&Math.hypot(big6.x-d6[0],big6.y-d6[1])<5&&bw6.terAt(cav6.x,cav6.y)!=='forest', '🐉 Đại Việt (đi rừng thạo): đại quân bộ binh vào được GIỮA RỪNG, kỵ binh vẫn dừng ở bìa');
+      ok(bw6.nodes[0].type==='spear'&&bw6.civOf(1)&&bw6.civOf(1).id!=='daiviet', '🏛️ Trại của Đại Việt sinh GIÁO BINH (binh chủng sở trường); đối thủ là nền văn minh khác');
+      const b1=new BigWar(3,{civ:'mongol'}), b2=new BigWar(3,{civ:'mongol'});
+      ok(b1.civOf(0).id==='mongol'&&b1.nodes[0].type==='cavalry'&&b1.civOf(1).id===b2.civOf(1).id, '🏛️ Chọn Mông Cổ: trại sinh KỴ BINH; đối thủ của ải cố định (không đổi giữa các lần vào)');
+      const rr1=new BigWar(5,{royale:36,seed:77,civ:'rome'}); const ids=Object.values(rr1.civs).map(c=>c.id);
+      ok(ids.length===37&&new Set(ids).size===37&&rr1.civOf(0).id==='rome', `🌏 Quần Hùng: 37 nước là 37 nền văn minh KHÁC NHAU (${new Set(ids).size}), ta là La Mã`);
+      const e1=rr1.civAtk(0,'shield','plain'), e2=rr1.civAtk(0,'spear','plain');
+      ok(e1>1.1&&e2===1, `⚔️ Binh chủng sở trường đánh mạnh hơn (khiên La Mã ×${e1.toFixed(2)}, loại khác ×${e2})`);
+    }
+    ok(bw5.mvProfile(cav)==='H'&&bw5.mvProfile(big)==='H'&&bw5.mvProfile(foot)==='F'&&bw5.mvProfile({type:'assassin',count:300,owner:0})==='R', '🧭 Lớp di chuyển: kỵ/đại quân = H, bộ binh = F, đột kích = R');
+    // sông: chỉ qua ở bến
+    const far=bw5.nodes.filter(n=>(n.x<bw5.riverX(n.y))!==(c0.x<bw5.riverX(c0.y))).sort((a,b)=>Math.hypot(a.x-c0.x,a.y-c0.y)-Math.hypot(b.x-c0.x,b.y-c0.y))[0];
+    const P=bw5.findPath('H',c0.x,c0.y,far.x,far.y); let wet=0, ford=0; let px2=c0.x, py2=c0.y;
+    for(const q of P.pts){ const d=Math.hypot(q[0]-px2,q[1]-py2), k=Math.max(1,Math.ceil(d/15)); for(let i=1;i<=k;i++){ const x=px2+(q[0]-px2)*i/k, y=py2+(q[1]-py2)*i/k; if(Math.abs(x-bw5.riverX(y))<40){ if(bw5.nearBridge(x,y,BW.fordR+40)) ford++; else wet++; } } px2=q[0]; py2=q[1]; }
+    ok(P.ok&&ford>0&&wet===0, `🌊 Sang bờ bên kia: đường đi chỉ vượt sông ở BẾN (qua bến ${ford} bước, lội nước sâu ${wet})`);
+    // mọi cứ điểm đều có đường cái cho kỵ binh/đại quân tới
+    let unreach=0; for(const n of bw5.nodes){ if(!bw5.findPath('H',c0.x,c0.y,n.x,n.y).ok) unreach++; }
+    ok(unreach===0, `🛣️ Kỵ binh/đại quân tới được MỌI cứ điểm bằng đường cái (không tới được: ${unreach})`);
+  }
   // 4) truy kích: chọn đạo quân ta rồi chạm đạo quân địch
   const bw4=new BigWar(1,{classic:true}); bw4._updateVision();
   const s4=bw4.nodes.find(n=>n.owner===0&&n.count>0); s4.count=2000; s4.type='cavalry';
-  const run={owner:1,type:'archer',count:300,x:s4.x+300,y:s4.y,to:-1,tx:s4.x+320,ty:s4.y,trail:0};
+  const r4=bw4.roads.find(r=>r.a===s4.id||r.b===s4.id), o4=r4.a===s4.id? [r4.x2,r4.y2] : [r4.x1,r4.y1], l4=Math.hypot(o4[0]-s4.x,o4[1]-s4.y), q4=Math.min(0.9,300/l4); // mục tiêu chạy dọc đường cái
+  const run={owner:1,type:'archer',count:300,x:s4.x+(o4[0]-s4.x)*q4,y:s4.y+(o4[1]-s4.y)*q4,to:-1,tx:s4.x+(o4[0]-s4.x)*Math.min(0.97,q4+0.07),ty:s4.y+(o4[1]-s4.y)*Math.min(0.97,q4+0.07),trail:0};
   bw4.armies.push(run);
   bw4.sel=s4; bw4.tap(run.x,run.y);
   const hunter=bw4.armies.find(a=>a.owner===0);
@@ -468,7 +506,7 @@ console.log(`\n${pass} đạt, ${fail} chưa đạt`);
 // ============ v1.2: TẦM NHÌN ĐỐI XỨNG + NHÓM MAI PHỤC + FIX CHỌN ============
 {
   const M7 = new Function("const audio=new Proxy({},{get:()=>()=>{}});const ArtImages={};const makeUnitSprite=()=>null;const recolorUnit=()=>null;const rr=()=>{};\n"
-    + fs.readFileSync('src/01_config.js','utf8') + fs.readFileSync('src/02_map.js','utf8') + fs.readFileSync('src/09_bigwar.js','utf8')
+    + fs.readFileSync('src/01_config.js','utf8') + fs.readFileSync('src/02_map.js','utf8') + BWSRC
     + '\nreturn {BigWar, BW};')();
   const {BigWar, BW}=M7;
   const bw=new BigWar(2); bw._updateVision();
@@ -499,18 +537,19 @@ console.log(`\n${pass} đạt, ${fail} chưa đạt`);
   ok([fa,g2,g3].every(a=>!a.camped&&a.to===-1), '👥 Một chạm điều cả cụm cùng hành quân');
   // vùng đánh úp nới rộng: địch cách 180px vẫn bị vồ
   const bw3=new BigWar(1,{classic:true}); bw3._updateVision(); bw3.armies.length=0; bw3.nextAI=1e9; bw3.nextWave=1e9;
-  let fx=null; outer: for(let x=300;x<BW.W;x+=50) for(let y=230;y<BW.H-80;y+=50){ if(bw3.terAt(x,y)==='forest'){ fx=[x,y]; break outer; } }
+  let fx=null, rd=null; outer: for(const r of bw3.roads){ if(r.a==null||r.b==null) continue; const L=Math.hypot(r.x2-r.x1,r.y2-r.y1); if(L<360) continue; const ux=(r.x2-r.x1)/L, uy=(r.y2-r.y1)/L;
+      for(const f of [0.5,0.4,0.6]) for(const off of [130,-130,150,-150]){ const x=r.x1+ux*L*f-uy*off, y=r.y1+uy*L*f+ux*off; if(bw3.terAt(x,y)==='forest'&&!bw3.nodes.some(n=>Math.hypot(n.x-x,n.y-y)<260)){ fx=[x,y]; rd=r; break outer; } } }
   const trap={owner:0,type:'spear',count:400,x:fx[0],y:fx[1],to:-1,trail:0,camped:true,ambush:true};
-  const vic={owner:1,type:'cavalry',count:900,x:fx[0]-700,y:fx[1]+170,to:-1,tx:fx[0]+700,ty:fx[1]+170,trail:0};
+  const vic={owner:1,type:'cavalry',count:900,x:rd.x1,y:rd.y1,to:rd.b,trail:0}; bw3.nodes[rd.b].owner=1; bw3.nodes[rd.b].count=50; bw3.nodes[rd.a].count=0; // kỵ binh đi DỌC ĐƯỜNG CÁI ngang qua ổ phục trong rừng
   bw3.armies.push(trap,vic);
   let st=0; while(!vic.done&&st++<120*60) bw3.update(1/60);
-  ok(vic.done&&trap.count>0, '🪤 Vùng vồ mồi rộng hơn: địch đi cách ~170px vẫn bị đánh úp');
+  ok(vic.done&&vic.count<=0&&trap.count>0&&bw3.nodes[rd.b].owner===1, '🪤 Phục binh trong rừng ven đường: kỵ binh địch đi trên đường cái cách ~130px vẫn bị đánh úp');
 }
 
 // ============ v2.0: TRẬN THEO THỜI GIAN + LƯƠNG THẢO + BAO VÂY + QUẦN HÙNG + MENU LỆNH ============
 {
   const M8 = new Function("const audio=new Proxy({},{get:()=>()=>{}});const ArtImages={};const makeUnitSprite=()=>null;const recolorUnit=()=>null;const rr=()=>{};\n"
-    + fs.readFileSync('src/01_config.js','utf8') + fs.readFileSync('src/02_map.js','utf8') + fs.readFileSync('src/09_bigwar.js','utf8')
+    + fs.readFileSync('src/01_config.js','utf8') + fs.readFileSync('src/02_map.js','utf8') + BWSRC
     + '\nreturn {BigWar, bwResolve, BW};')();
   const {BigWar, BW}=M8;
   const mk=(cfg)=>{ const bw=new BigWar(2,cfg); bw.nextAI=1e9; bw.nextAiScout=1e9; bw.nextWaveF={1:1e9}; bw._updateVision(); return bw; };
@@ -551,10 +590,11 @@ console.log(`\n${pass} đạt, ${fail} chưa đạt`);
   { const bw=mk(); bw.armies.length=0; bw.battles.length=0;
     const A={owner:0,type:'spear',count:400,x:BW.W*0.45,y:260,to:-1,trail:0,camped:true,food:10};
     bw.armies.push(A);
-    // không node ta gần -> không được tiếp tế
+    // hậu phương bị vây, kho trống -> không có đội vận lương nào -> đói rồi tan rã
     for(const n of bw.nodes) if(n.owner===0){ n.x=100; n.y=1000; }
-    let st=0; while(!A.done&&st++<400) bw.update(BW.ecoEvery);
-    ok(A.done, '🌾 Hết lương + không được tiếp tế → đạo quân TAN RÃ');
+    const cr0=BW.food.cvRange; BW.food.cvRange=600;   // đạo quân ở ngoài tầm mọi kho lương của ta
+    let st=0; while(!A.done&&st++<400) bw.update(BW.ecoEvery); BW.food.cvRange=cr0;
+    ok(A.done&&bw.convoys.length===0, '🌾 Hết lương + ngoài tầm tiếp tế (không xe lương nào tới) → đạo quân TAN RÃ');
     const bw2=mk(); bw2.armies.length=0; bw2.battles.length=0;
     const W1={owner:0,type:'cavalry',count:2000,x:2000,y:600,to:-1,tx:BW.W*0.45+1,ty:BW.H*0.5,trail:0,food:20};
     const L1={owner:1,type:'archer',count:300,x:BW.W*0.45+40,y:BW.H*0.5,to:-1,tx:BW.W*0.45-1,ty:BW.H*0.5,trail:0,food:90};
@@ -562,10 +602,69 @@ console.log(`\n${pass} đạt, ${fail} chưa đạt`);
     bw2.armies.push(W1,L1); let st2=0;
     while((!bw2.battles.length||bw2.battles.some(b=>!b.done))&&st2++<3000) bw2.update(1/30);
     ok(W1.food>20, `🌾 Thắng trận CƯỚP LƯƠNG bên thua (lương ${Math.round(20)} → ${Math.round(W1.food)})`);
-    // tiêu hao theo quân số: đạo to đói nhanh hơn
-    const d1=BW.food.drainBase+100/BW.food.drainPer, d2=BW.food.drainBase+5000/BW.food.drainPer;
-    ok(d2>d1*2, `🌾 Đạo 5000 quân ngốn lương gấp ${(d2/d1).toFixed(1)} lần đạo 100 quân`);
+    // v5.0: bao lương tính theo THỜI GIAN hành quân — đại quân không còn "đi vài chục giây là đói"
+    const d1=bw.foodDrain({owner:0,count:100}), d2=bw.foodDrain({owner:0,count:10000}), d3=bw.foodDrain({owner:0,count:100000});
+    ok(d2<d1*1.4&&d3<d1*1.7&&d2>d1, `🌾 Mỗi nhịp đạo 100 quân hao ${d1.toFixed(1)}%, đạo 10 000 hao ${d2.toFixed(1)}%, đạo 100 000 hao ${d3.toFixed(1)}% (trước đây đạo 10 000 hao 27%/nhịp)`);
+    ok(bw.packT({count:500})>=145&&bw.packT({count:10000})>=115&&bw.packT({count:100000})>=95, `🌾 Bao lương đầy đủ cho ${Math.round(bw.packT({count:500}))}s hành quân (500 quân) · ${Math.round(bw.packT({count:10000}))}s (10 000) · ${Math.round(bw.packT({count:100000}))}s (100 000)`);
   }
+  // 3b) v5.0 — ĐẠI QUÂN: chuẩn bị lương lâu hơn, đi chậm hơn, đi xa không tan rã; ĐỘI VẬN LƯƠNG tiếp tế, bị chặn thì mất
+  { const bw=mk(); bw.armies.length=0; bw.battles.length=0; bw.aiTurn=()=>{}; bw.supplyCap=()=>1e9;
+    const p05=bw.prepTime(500,40), p2=bw.prepTime(2000,40), p10=bw.prepTime(10000,40), p50=bw.prepTime(50000,40);
+    ok(p05===0&&p2>=1&&p2<=2.5&&p10>=6&&p10<=8.5&&p50>=20&&p50<=26, `🌾 Chuẩn bị lương: 500 quân ${p05}s · 2 000 quân ${p2.toFixed(1)}s · 10 000 quân ${p10.toFixed(1)}s · 50 000 quân ${p50.toFixed(1)}s`);
+    ok(bw.prepTime(10000,40,true)<p10*0.55&&bw.prepTime(10000,5)<p10*0.7, `🌾 Kho tại chỗ đầy lương thì chuẩn bị nhanh gấp đôi (${bw.prepTime(10000,40,true).toFixed(1)}s); chặng ngắn chuẩn bị ít hơn (${bw.prepTime(10000,5).toFixed(1)}s)`);
+    ok(Math.abs(BW.sizeSpd(500)-1)<1e-9&&BW.sizeSpd(2000)<0.92&&BW.sizeSpd(10000)<0.74&&BW.sizeSpd(10000)>0.62&&BW.sizeSpd(100000)>0.5, `🐢 Tốc độ theo quân số: 2 000 quân ${Math.round(BW.sizeSpd(2000)*100)}% · 10 000 quân ${Math.round(BW.sizeSpd(10000)*100)}% · 100 000 quân ${Math.round(BW.sizeSpd(100000)*100)}%`);
+    // xuất quân thật: đạo nhỏ đi ngay; đại quân đứng trước cổng gom lương rồi mới đi, đi chậm hơn, tới nơi nguyên vẹn
+    const cap=bw.nodes.find(n=>n.camp&&n.owner===0); const far=bw.nodes.filter(n=>n.owner===2&&!n.camp&&!n.eco).sort((a,b)=>Math.hypot(b.x-cap.x,b.y-cap.y)-Math.hypot(a.x-cap.x,a.y-cap.y))[0]; far.count=1;
+    for(const n of bw.nodes){ n.ambush=false; if(n.owner===1) n.count=Math.min(n.count,1); }
+    const run=(N)=>{ cap.count=N; cap.type='swordsman'; cap.food=0; const a=bw.send(cap,far); const x0=a.x,y0=a.y, prep=a.prep||0; let tMove=null, t=0, minF=100;
+      while(!a.done&&a.count>0&&t<600){ bw.update(0.05); t+=0.05; if(tMove==null&&Math.hypot(a.x-x0,a.y-y0)>4) tMove=t; minF=Math.min(minF,a.food??100); }
+      const left=a.done? far.count : a.count; far.owner=2; far.count=1; far.type='spear'; return {prep,tMove,t,left,minF}; };
+    const s=run(500), b=run(10000), h=run(40000);
+    ok(s.prep===0&&s.tMove<0.2, `🚶 Đạo 500 quân: nhận lệnh là đi ngay (${s.tMove.toFixed(2)}s)`);
+    ok(b.prep>5&&Math.abs(b.tMove-b.prep)<0.3, `🌾 Đạo 10 000 quân: đứng gom lương ${b.prep.toFixed(1)}s rồi mới rời cổng (nhúc nhích ở giây ${b.tMove.toFixed(1)})`);
+    ok((b.t-b.prep)>(s.t-s.prep)*1.25&&(h.t-h.prep)>(b.t-b.prep)*1.08, `🐢 Cùng quãng đường: 500 quân đi ${Math.round(s.t)}s · 10 000 quân đi ${Math.round(b.t-b.prep)}s (+${Math.round(b.prep)}s chuẩn bị) · 40 000 quân đi ${Math.round(h.t-h.prep)}s (+${Math.round(h.prep)}s)`);
+    ok(b.left>=10000&&h.left>=40000&&b.minF>30, `🌾 Đại quân đi hết chiều dài bản đồ KHÔNG hao một lính nào vì đói (10 000 → ${Math.round(b.left)}, 40 000 → ${Math.round(h.left)}; lương thấp nhất ${Math.round(b.minF)}%)`);
+    // địch tới trong lúc đang gom lương: quay vào giữ thành
+    cap.count=6000; cap.type='spear'; cap.food=0; const pa=bw.send(cap,far); const en={owner:1,type:'spear',count:300,x:cap.x+200,y:cap.y,from:-1,to:cap.id,trail:0,food:100}; bw.armies.push(en);
+    let t3=0; while(!en.done&&t3<20){ bw.update(0.05); t3+=0.05; if(en.btl) break; }
+    ok(pa.done&&cap.owner===0&&(cap.count>=5000||cap.btl), `🛡️ Địch tới lúc quân còn đang chuẩn bị lương → huỷ lệnh, ${Math.round(cap.count)} quân quay vào giữ thành (thành không mất oan)`);
+  }
+  { // ĐỘI VẬN LƯƠNG
+    const bw=mk(); bw.armies.length=0; bw.battles.length=0; bw.aiTurn=()=>{}; bw.supplyCap=()=>1e9; for(const n of bw.nodes){ n.ambush=false; if(n.owner===1) n.count=Math.min(n.count,1); }
+    const cap=bw.nodes.find(n=>n.camp&&n.owner===0); for(const n of bw.nodes) if(n.owner===0) n.food=0; cap.food=400;
+    let spot=null; for(const gap of [420,300,230]){ for(let r=1300;r<3600&&!spot;r+=100) for(let an=0;an<6.28;an+=0.15){ const x=cap.x+Math.cos(an)*r, y=cap.y+Math.sin(an)*r; if(x<200||y<260||x>BW.W-200||y>BW.H-120) continue; if(bw.terAt(x,y)==='plain'&&!bw.nodes.some(n=>Math.hypot(n.x-x,n.y-y)<gap)&&bw.findPath('F',cap.x,cap.y,x,y).ok){ spot=[x,y]; break; } } if(spot) break; }
+    const A={owner:0,type:'spear',count:3000,x:spot[0],y:spot[1],to:-1,tx:spot[0],ty:spot[1],trail:0,camped:true,food:30}; bw.armies.push(A);
+    bw.update(BW.ecoEvery); const cv=bw.convoys[0], stock1=cap.food;
+    ok(!!cv&&cv.to===A&&cv.from===cap.id&&stock1<400&&A._cv, `🐂 Đạo quân đóng xa ${Math.round(Math.hypot(spot[0]-cap.x,spot[1]-cap.y))}px còn 30% lương → kinh đô cho ĐỘI VẬN LƯƠNG lên đường (kho ${400} → ${Math.round(stock1)})`);
+    let t=0, x0=cv?cv.x:0; while(bw.convoys.length&&t<120){ bw.update(0.05); t+=0.05; }
+    ok(bw.convoys.length===0&&A.food>85&&A.count===3000, `🐂 Xe lương tới nơi sau ${Math.round(t)}s: lương đạo quân lên ${Math.round(A.food)}%, không ai đào ngũ`);
+    // bị chặn cướp
+    A.food=20; A._cvT=0; cap.food=400; bw.update(BW.ecoEvery); const cv2=bw.convoys[0]; let t2=0; while(bw.convoys.length&&t2<4){ bw.update(0.05); t2+=0.05; }
+    const R={owner:1,type:'cavalry',count:200,x:cv2.x+20,y:cv2.y,to:-1,tx:cv2.x+20,ty:cv2.y,trail:0,camped:true,food:40}; bw.armies.push(R); const f0=A.food; bw.update(0.05);
+    ok(bw.convoys.length===0&&R.food>40&&A.food<=f0+0.01, `🐂 Quân địch áp sát đoàn xe → CƯỚP LƯƠNG (địch ${40} → ${Math.round(R.food)}%), đạo quân ta không nhận được gì`);
+    // lưu → mở lại: xe lương đang đi vẫn còn và giao được
+    R.done=true; R.count=0; bw.armies=bw.armies.filter(a=>!a.done); A.food=25; A._cvT=0; A._cv=0; cap.food=400; bw.update(BW.ecoEvery); for(let k=0;k<40;k++) bw.update(0.05);
+    const sv=JSON.parse(JSON.stringify(bw.saveState())); const bwL=mk(); bwL.loadState(sv); bwL.aiTurn=()=>{}; bwL.supplyCap=()=>1e9;
+    const A2=bwL.armies.find(a=>a.owner===0&&a.count===3000); let t4=0; while(bwL.convoys.length&&t4<120){ bwL.update(0.05); t4+=0.05; }
+    ok(sv.convoys.length===1&&!!A2&&bwL.convoys.length===0&&A2.food>80, `💾 Lưu ván lúc xe lương đang đi → mở lại xe vẫn chạy tiếp và giao lương (${Math.round(A2?A2.food:0)}%)`);
+    // hợp đồng tác chiến: đạo đông (chuẩn bị lâu, đi chậm) và đạo nhỏ vẫn ập tới gần như cùng lúc
+    const bw5=mk(); bw5.armies.length=0; bw5.battles.length=0; bw5.aiTurn=()=>{}; bw5.supplyCap=()=>1e9; for(const n of bw5.nodes){ n.ambush=false; }
+    const mine=bw5.nodes.filter(n=>n.owner===1&&!n.eco).slice(0,2); const tg=bw5.nodes.find(n=>n.camp&&n.owner===0); tg.count=50000;
+    if(mine.length===2){ mine[0].count=9000; mine[1].count=400; bw5.sendCoordinated(mine,tg); const as=bw5.armies.slice(); const arr=[null,null]; let t5=0;
+      while(t5<400&&arr.some(v=>v==null)){ bw5.update(0.05); t5+=0.05; as.forEach((a,i)=>{ if(arr[i]==null&&(a.done||a.btl)) arr[i]=t5; }); }
+      ok(arr[0]!=null&&arr[1]!=null&&Math.abs(arr[0]-arr[1])<6, `🤝 Hợp đồng tác chiến có tính thời gian chuẩn bị lương: đạo 9 000 quân tới giây ${arr[0]&&arr[0].toFixed(0)}, đạo 400 quân tới giây ${arr[1]&&arr[1].toFixed(0)}`); }
+  }
+  // 3c) QUẦN HÙNG: nước đã MẤT thì không được "sống lại" nhờ một trận đang đánh dở (lỗi cũ: trận vẫn mang cờ nước đã mất)
+  { const bw=mk({royale:8,seed:11,map:1}); bw.armies.length=0; bw.battles.length=0; bw.aiTurn=()=>{}; if(bw.aiDiplomacy) bw.aiDiplomacy=()=>{}; bw.supplyCap=()=>1e9;
+    const X=3, Y=4, cX=bw.nodes.find(n=>n.camp&&n.owner===X), cY=bw.nodes.find(n=>n.camp&&n.owner===Y);
+    const N=bw.nodes.filter(n=>n.owner===2&&!n.camp&&!n.eco).sort((a,b)=>Math.hypot(a.x-cX.x,a.y-cX.y)-Math.hypot(b.x-cX.x,b.y-cX.y))[0]; N.owner=5; N.count=1500; N.type='spear'; N.ambush=false;   // cứ điểm của một nước thứ ba: đánh là mở trận kéo dài
+    const A={owner:X,type:'archer',count:5000,x:N.x,y:N.y+70,from:cX.id,to:N.id,trail:0,food:100}; bw.armies.push(A); bw.arrive(A,N);
+    const inBattle=!!A.btl&&bw.battles.some(b=>!b.done);
+    const prev=cX.owner; cX.owner=Y; cX.count=100; bw.checkCamp(cX,Y,prev);   // kinh đô (trại duy nhất) của nước X rơi vào tay nước Y
+    const fell=bw.nodes.every(n=>n.owner!==X)&&A.owner===Y;
+    let t=0; while(bw.battles.some(b=>!b.done)&&t<200){ bw.update(0.05); t+=0.05; }
+    const ghost=bw.nodes.filter(n=>n.owner===X).length+bw.armies.filter(a=>!a.done&&a.owner===X).length;
+    ok(inBattle&&fell&&ghost===0&&N.owner===Y, `👑 Nước mất kinh đô giữa lúc quân đang công thành: quân quy hàng, thắng trận thì cứ điểm về tay phe chiếm — nước đã mất KHÔNG sống lại (cứ điểm về phe ${N.owner}, bóng ma: ${ghost})`); }
   // 4) KHO LƯƠNG trên bản đồ + tiếp tế
   { const bw=mk();
     const gr=bw.nodes.filter(n=>n.eco==='granary');
@@ -626,7 +725,7 @@ console.log(`\n${pass} đạt, ${fail} chưa đạt`);
 // ============ v2.1: RÚT LUI VỀ TRẠI + SÔNG-CẦU + ĐƯỜNG CÁI + 20 BẢN ĐỒ ============
 {
   const M9 = new Function("const audio=new Proxy({},{get:()=>()=>{}});const ArtImages={};const makeUnitSprite=()=>null;const recolorUnit=()=>null;const rr=()=>{};\n"
-    + fs.readFileSync('src/01_config.js','utf8') + fs.readFileSync('src/02_map.js','utf8') + fs.readFileSync('src/09_bigwar.js','utf8')
+    + fs.readFileSync('src/01_config.js','utf8') + fs.readFileSync('src/02_map.js','utf8') + BWSRC
     + '\nreturn {BigWar, BW, BW_MAPS};')();
   const {BigWar, BW, BW_MAPS}=M9;
   // 1) RÚT LUI: thoát hẳn trận, miễn chiến, chạy VỀ TRẠI
@@ -661,7 +760,7 @@ console.log(`\n${pass} đạt, ${fail} chưa đạt`);
     // điểm hoang dã xa đường & xa mọi mảng đặc biệt -> rừng/núi
     let wild=0,total=0;
     for(let x=300;x<BW.W;x+=160) for(let y=260;y<BW.H-80;y+=160){ if(bw.distRoad(x,y)>200&&Math.abs(x-bw.riverX(y))>100){ total++; const t=bw.terAt(x,y); if(t==='forest'||t==='mountain') wild++; } }
-    ok(wild/total>0.55, `🌲 Hoang dã chủ yếu rừng núi (${Math.round(wild/total*100)}%) — đi tắt là chậm`);
+    ok(wild/total>0.2&&wild/total<0.65, `🌲 Địa hình cân đối: rừng núi chiếm ${Math.round(wild/total*100)}% vùng xa đường — còn lại là đồng trống cho kỵ binh và đại quân`);
     const sp={forest:0.58,mountain:0.42}; ok(sp.forest<0.65&&sp.mountain<0.5, '🌲 Xuyên rừng 0.58x, trèo núi 0.42x tốc độ');
   }
   // 4) 20 BẢN ĐỒ mỗi chế độ + trại nằm chỗ KHÁC NHAU
@@ -680,7 +779,7 @@ console.log(`\n${pass} đạt, ${fail} chưa đạt`);
 // ============ v2.2: CHỌN CỤM BỀN + TỰ HỢP BINH SAU THẮNG + MAP LỚN ============
 {
   const MA = new Function("const audio=new Proxy({},{get:()=>()=>{}});const ArtImages={};const makeUnitSprite=()=>null;const recolorUnit=()=>null;const rr=()=>{};\n"
-    + fs.readFileSync('src/01_config.js','utf8') + fs.readFileSync('src/02_map.js','utf8') + fs.readFileSync('src/09_bigwar.js','utf8')
+    + fs.readFileSync('src/01_config.js','utf8') + fs.readFileSync('src/02_map.js','utf8') + BWSRC
     + '\nreturn {BigWar, BW};')();
   const {BigWar, BW}=MA;
   ok(BW.W>=6000&&BW.H>=1400, `🗺️ Bản đồ phát hành ${BW.W}x${BW.H} (không bó theo web)`);
@@ -708,7 +807,8 @@ console.log(`\n${pass} đạt, ${fail} chưa đạt`);
     ok(bw.selG&&bw.selG.length===2, '👥 Đúp trượt sang đạo sát bên vẫn ăn cụm');
   }
   // 3) THẮNG DÃ CHIẾN -> các đạo cùng trận TỰ HỢP LÀM 1
-  { const bw=mk(); const x0=BW.W*0.45,y0=BW.H*0.5;
+  { const bw=mk(); let x0=BW.W*0.45,y0=BW.H*0.5;
+    find3: for(let x=600;x<BW.W-600;x+=40) for(let y=300;y<BW.H-200;y+=40){ let all=true; for(let dx=-320;dx<=80;dx+=40) if(bw.terAt(x+dx,y)!=='plain') all=false; if(all&&Math.abs(x-bw.riverX(y))>500&&!bw.nodes.some(n=>Math.hypot(n.x-x,n.y-y)<420)){ x0=x; y0=y; break find3; } }
     const A={owner:0,type:'spear',count:700,x:x0,y:y0,to:-1,tx:x0+1,ty:y0,trail:0,food:80};
     const B={owner:1,type:'saber',count:900,x:x0+45,y:y0,to:-1,tx:x0-1,ty:y0,trail:0,food:60};
     bw.armies.push(A,B); let st=0; while(!bw.battles.length&&st++<600) bw.update(1/30);
@@ -731,7 +831,7 @@ console.log(`\n${pass} đạt, ${fail} chưa đạt`);
 // ============ v2.5: GỘP QUÂN THÀNH -> ĐẠO DÃ NGOẠI ============
 {
   const MB = new Function("const audio=new Proxy({},{get:()=>()=>{}});const ArtImages={};const makeUnitSprite=()=>null;const recolorUnit=()=>null;const rr=()=>{};\n"
-    + fs.readFileSync('src/01_config.js','utf8') + fs.readFileSync('src/02_map.js','utf8') + fs.readFileSync('src/09_bigwar.js','utf8')
+    + fs.readFileSync('src/01_config.js','utf8') + fs.readFileSync('src/02_map.js','utf8') + BWSRC
     + '\nreturn {BigWar, BW};')();
   const {BigWar, BW}=MB;
   const mk=()=>{ const bw=new BigWar(1,{classic:true,autoMenu:false}); bw.nextAI=1e9; bw.nextAiScout=1e9; bw.nextWaveF={1:1e9}; bw._updateVision(); bw.armies.length=0; return bw; };

@@ -6,7 +6,9 @@ V="$1"; MSG="$2"; [ -z "$V" ] || [ -z "$MSG" ] && { echo "usage: release.sh <ver
 LTM=/home/claude/ltm; REPO=/home/claude/co-bay
 cd $LTM && echo "$V" > VERSION && node build.mjs
 cp dist/index.html $REPO/www/index.html; cp dist/index.html $REPO/web/index.html
-mkdir -p $REPO/tests && cp test/*.mjs $REPO/tests/ && cp release.sh build.mjs $REPO/tests/ 2>/dev/null || true
+mkdir -p $REPO/tests/fixtures && cp test/*.mjs $REPO/tests/ && cp test/fixtures/* $REPO/tests/fixtures/ && cp release.sh build.mjs $REPO/tests/ 2>/dev/null || true
+# mã nguồn tách file (src/*.js + shell.html) cũng đưa vào repo để phiên làm việc sau lấy lại được, không phải tách ngược từ index.html
+rm -rf $REPO/ltm-src && mkdir -p $REPO/ltm-src/src && cp src/*.js src/shell.html $REPO/ltm-src/src/ && cp build.mjs release.sh VERSION $REPO/ltm-src/
 cd $REPO
 PREV=$(grep -o 'ltm-v[0-9.]*' .github/workflows/build-android.yml | head -1 | sed 's/ltm-v//')
 sed -i "s/v$PREV/v$V/g" .github/workflows/build-android.yml README.md

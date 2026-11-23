@@ -1,5 +1,5 @@
 // AUDIT BỐ CỤC — nhìn như người chơi: mọi phần tử HUD + mọi dòng chữ vẽ ra, trên nhiều cỡ máy / ngang-dọc /
-// vùng tai thỏ-thanh trạng thái (safe-area), ở 4 trạng thái chơi (thông báo dồn dập, menu gọi quân + rút lui, menu lệnh ở 4 góc, dòng hướng dẫn).
+// vùng tai thỏ-thanh trạng thái (safe-area), ở 8 trạng thái chơi (thông báo dồn dập, menu gọi quân + rút lui, menu lệnh ở 4 góc, dòng hướng dẫn).
 // Báo: phần tử đè nhau · tràn khỏi màn hình · lấn vùng tai thỏ · nút quá nhỏ để chạm · CHỮ tràn khỏi khung/màn hình · chữ quá nhỏ.
 // Cách chạy: node test/audit_layout.mjs [url] [--shots]
 import { chromium } from 'playwright';
@@ -58,6 +58,10 @@ async function run(J){ const {vn,w,h,inn,it,il,ir,ib,mode,portrait}=J;
       bw.menu={wx:bw.camX+2,wy:bw.camY+2,opts:[{id:'move',s:'🛡️ Send troops here (merge/garrison) now'},{id:'cancel',s:'✖ Cancel'}]}; },
     'chọn điểm tập kết': ()=>{ const bw=__ltm.bw; bw.menu=null; bw.rallyPick=Infinity; },
     'dòng hướng dẫn đầu trận': ()=>{ const bw=__ltm.bw; bw.rallyPick=0; bw.time=2; bw.sel=null; },
+    'thẻ binh chủng: đại quân kỵ binh trên núi': ()=>{ const bw=__ltm.bw; bw.time=60; bw.menu=null; bw.sel=null; bw.selG=null; const cap=bw.nodes.find(n=>n.camp&&n.owner===0);
+      const a={id:99001,owner:0,type:'cavalry',count:123456,x:cap.x+80,y:cap.y+40,ter:'mountain',to:-1,trail:[],food:100}; bw.armies.push(a); bw.selA=a; },
+    'thẻ binh chủng: gom 4 đạo quân khác loại': ()=>{ const bw=__ltm.bw; const cap=bw.nodes.find(n=>n.camp&&n.owner===0); const G4=['swordsman','crossbow','assassin','shield'].map((t,i)=>({id:99010+i,owner:0,type:t,count:23456+i*1111,x:cap.x+60+i*40,y:cap.y+90,to:-1,trail:[],food:100}));
+      bw.armies=bw.armies.filter(a=>a.id!==99001).concat(G4); bw.selA=G4[0]; bw.selG=G4; },
   };
   for(const [sn,fn] of Object.entries(STATES)){
     await p.evaluate(fn); await p.waitForTimeout(260);
