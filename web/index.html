@@ -4127,7 +4127,7 @@ class BigWar{
     this.drawFog(c);
     // ngoài mép bản đồ: vùng tối (kéo vượt mép tối đa nửa màn hình)
     c.fillStyle='#17121f'; c.beginPath(); c.rect(-1e5,-1e5,2e5,2e5); c.rect(0,0,BW.W,BW.H); c.fill('evenodd');
-    c.strokeStyle='rgba(255,213,74,0.35)'; c.lineWidth=6/scale; c.setLineDash([24/scale,16/scale]); c.strokeRect(0,0,BW.W,BW.H); c.setLineDash([]);
+    this.drawMapFrame(c,scale);
     c.restore();
     // HUD trên canvas
     this.drawHud(c,vw,vh,tm);
@@ -4207,6 +4207,33 @@ class BigWar{
     c.lineWidth=4; c.strokeStyle='rgba(42,26,18,0.75)'; c.fillStyle='#dff2ff'; c.globalAlpha=0.9;
     c.strokeText('🌊 Sông', this.riverX(BW.H*0.3)*k, BW.H*0.3*k); c.fillText('🌊 Sông', this.riverX(BW.H*0.3)*k, BW.H*0.3*k); c.globalAlpha=1;
     return this.terCv=cv;
+  }
+  // KHUNG BẢN ĐỒ kiểu cổ: bóng đổ vào trong, viền gỗ sẫm + chỉ vàng kép, hoa văn 4 góc và mốc giữa cạnh
+  drawMapFrame(c,scale){
+    const W=BW.W, H=BW.H, u=1/scale, cv=this._cullV;
+    const near=(x0,y0,x1,y1)=>!cv||!(x1<cv.x0||x0>cv.x1||y1<cv.y0||y0>cv.y1);
+    // bóng đổ vào trong mép (28px màn hình)
+    const sh=28*u; const edge=(x0,y0,x1,y1,gx0,gy0,gx1,gy1)=>{ if(!near(x0,y0,x1,y1)) return; const g=c.createLinearGradient(gx0,gy0,gx1,gy1); g.addColorStop(0,'rgba(10,6,18,0.55)'); g.addColorStop(1,'rgba(10,6,18,0)'); c.fillStyle=g; c.fillRect(x0,y0,x1-x0,y1-y0); };
+    edge(0,0,W,sh, 0,0,0,sh); edge(0,H-sh,W,H, 0,H,0,H-sh); edge(0,0,sh,H, 0,0,sh,0); edge(W-sh,0,W,H, W,0,W-sh,0);
+    // viền: dải gỗ sẫm ở ngoài + chỉ vàng + chỉ sáng mảnh ở trong
+    c.lineJoin='round';
+    c.strokeStyle='#3b2414'; c.lineWidth=14*u; c.strokeRect(-7*u,-7*u,W+14*u,H+14*u);
+    c.strokeStyle='#6b4423'; c.lineWidth=4*u; c.strokeRect(-11*u,-11*u,W+22*u,H+22*u);
+    const gold=c.createLinearGradient(0,0,W,H); gold.addColorStop(0,'#f6d27a'); gold.addColorStop(0.5,'#c8952f'); gold.addColorStop(1,'#f6d27a');
+    c.strokeStyle=gold; c.lineWidth=3*u; c.strokeRect(-2*u,-2*u,W+4*u,H+4*u);
+    c.strokeStyle='rgba(255,240,200,0.55)'; c.lineWidth=1.2*u; c.strokeRect(4*u,4*u,W-8*u,H-8*u);
+    // hoa văn góc
+    const corner=(x,y,sx,sy)=>{ if(!near(x-80*u,y-80*u,x+80*u,y+80*u)) return; c.save(); c.translate(x,y); c.scale(sx*u,sy*u);
+      c.fillStyle='#3b2414'; c.strokeStyle='#e9b949'; c.lineWidth=2.5;
+      c.beginPath(); c.moveTo(-6,-6); c.lineTo(46,-6); c.quadraticCurveTo(30,8,14,14); c.quadraticCurveTo(8,30,-6,46); c.closePath(); c.fill(); c.stroke();
+      c.beginPath(); c.moveTo(0,-14); c.lineTo(14,0); c.lineTo(0,14); c.lineTo(-14,0); c.closePath(); c.fillStyle='#c8952f'; c.fill(); c.strokeStyle='#fff0c8'; c.lineWidth=1.5; c.stroke();
+      c.beginPath(); c.arc(0,0,4,0,7); c.fillStyle='#7a1f1f'; c.fill();
+      c.strokeStyle='#e9b949'; c.lineWidth=2; c.beginPath(); c.arc(26,8,4,0,7); c.stroke(); c.beginPath(); c.arc(8,26,4,0,7); c.stroke(); c.restore(); };
+    corner(0,0,1,1); corner(W,0,-1,1); corner(0,H,1,-1); corner(W,H,-1,-1);
+    // mốc nhỏ giữa các cạnh, cách đều ~2000px
+    const stud=(x,y)=>{ if(!near(x-20*u,y-20*u,x+20*u,y+20*u)) return; c.save(); c.translate(x,y); c.scale(u,u); c.rotate(Math.PI/4);
+      c.fillStyle='#c8952f'; c.strokeStyle='#3b2414'; c.lineWidth=2; c.fillRect(-6,-6,12,12); c.strokeRect(-6,-6,12,12); c.restore(); };
+    const step=2000; for(let x=step;x<W-step/2;x+=step){ stud(x,-7*u); stud(x,H+7*u); } for(let y=step*0.75;y<H-step/2;y+=step*0.75){ stud(-7*u,y); stud(W+7*u,y); }
   }
   drawFog(c){
     this._fogN=(this._fogN||0)+1;
