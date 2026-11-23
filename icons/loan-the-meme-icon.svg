@@ -71,6 +71,6 @@
     <path d="M150 770 L230 730 L230 870 L150 860 L190 815Z" fill="#8f1414" stroke="#2a1a12" stroke-width="12" stroke-linejoin="round"/>
     <path d="M874 770 L794 730 L794 870 L874 860 L834 815Z" fill="#8f1414" stroke="#2a1a12" stroke-width="12" stroke-linejoin="round"/>
     <path d="M210 720 Q512 790 814 720 L814 860 Q512 930 210 860Z" fill="url(#gold)" stroke="#2a1a12" stroke-width="14" stroke-linejoin="round"/>
-    <text x="512" y="858" text-anchor="middle" font-family="DejaVu Sans, Arial" font-weight="900" font-size="104" fill="#5a0f1c" stroke="#fff3b0" stroke-width="4" paint-order="stroke">LOẠN THẾ</text>
+    <text x="512" y="858" text-anchor="middle" font-family="DejaVu Sans, Arial" font-weight="900" font-size="82" fill="#5a0f1c" stroke="#fff3b0" stroke-width="4" paint-order="stroke" textLength="560" lengthAdjust="spacingAndGlyphs">LOAN THE MEME</text>
   </g>
 </svg>

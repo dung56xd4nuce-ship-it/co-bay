@@ -4,7 +4,7 @@
 Loan The Meme: Chibi War
 
 ## Short description (80 chars)
-Chibi RTS: fog of war, ambushes, sieges, supply lines & 34-nation battle royale.
+Chibi RTS: fog of war, ambushes, sieges, supply lines & 37-nation Warlords mode.
 
 ## Full description (Google Play / App Store)
 Command your meme legion in a chibi war for the ages!

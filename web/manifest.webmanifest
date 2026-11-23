@@ -1,8 +1,8 @@
 {
   "name": "Loan The Meme — Chibi War Strategy",
   "short_name": "LoanTheMeme",
-  "description": "Real-time chibi war strategy: fog of war, ambushes, supply lines, sieges and a 34-nation battle royale.",
-  "lang": "vi",
+  "description": "Real-time chibi war strategy: fog of war, ambushes, supply lines, sieges and a 37-nation Warlords mode on a huge map.",
+  "lang": "en",
   "start_url": "./index.html",
   "display": "fullscreen",
   "orientation": "landscape",
