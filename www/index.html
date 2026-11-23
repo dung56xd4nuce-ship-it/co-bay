@@ -3135,7 +3135,7 @@ class BigWar{
     { const ns=this.nodes; const done=new Set();
       for(const n of ns){ const near=[...ns].filter(m=>m!==n).sort((a2,b2)=>Math.hypot(a2.x-n.x,a2.y-n.y)-Math.hypot(b2.x-n.x,b2.y-n.y)).slice(0,2);
         for(const m of near){ const key=Math.min(n.id,m.id)+'-'+Math.max(n.id,m.id); if(done.has(key)) continue; done.add(key);
-          this.roads.push({x1:n.x,y1:n.y,x2:m.x,y2:m.y}); } } }
+          this.roads.push({x1:n.x,y1:n.y,x2:m.x,y2:m.y,a:n.id,b:m.id}); } } }
     const RB=400; this._rb=new Map();
     for(const r of this.roads){ const x0=Math.floor((Math.min(r.x1,r.x2)-90)/RB), x1=Math.floor((Math.max(r.x1,r.x2)+90)/RB), y0=Math.floor((Math.min(r.y1,r.y2)-90)/RB), y1=Math.floor((Math.max(r.y1,r.y2)+90)/RB);
       for(let bx=x0;bx<=x1;bx++) for(let by=y0;by<=y1;by++){ const key=bx*4096+by; let arr=this._rb.get(key); if(!arr) this._rb.set(key,arr=[]); arr.push(r); } }
@@ -3179,10 +3179,19 @@ class BigWar{
   }
   _updateVision(){
     const F=this.localFid;
-    const vw=[]; for(const n of this.nodes) if(n.owner===F&&(n.count>0||n.camp)) vw.push({x:n.x,y:n.y,r:this.visR});
+    // VÙNG CHIẾM ĐÓNG: mọi cứ điểm của ta (kể cả đã rút hết quân) đều sáng; đường nối 2 cứ điểm của ta cũng sáng
+    const vw=[]; for(const n of this.nodes) if(n.owner===F) vw.push({x:n.x,y:n.y,r:this.visR});
+    for(const r of this.roads){ if(r.a==null) continue; const A=this.nodes[r.a], B=this.nodes[r.b]; if(!A||!B||A.owner!==F||B.owner!==F) continue;
+      const L=Math.hypot(r.x2-r.x1,r.y2-r.y1), k=Math.ceil(L/300); for(let i=1;i<k;i++) vw.push({x:r.x1+(r.x2-r.x1)*i/k,y:r.y1+(r.y2-r.y1)*i/k,r:330}); }
     for(const a of this.armies) if(a.owner===F) vw.push({x:a.x,y:a.y,r:this.visR*0.8});
     for(const s2 of this.scouts) if((s2.fid??0)===F) vw.push({x:s2.x,y:s2.y,r:300});
     this._viewers=vw;
+    // lưới tầm nhìn 100px: tra cứu O(1) cho mọi đối tượng thay vì quét hàng trăm điểm sáng
+    const G2=100, gw=Math.ceil(BW.W/G2), gh=Math.ceil(BW.H/G2);
+    if(!this._visG||this._visG.length!==gw*gh){ this._visG=new Uint8Array(gw*gh); this._visGW=gw; this._visGH=gh; } else this._visG.fill(0);
+    const VG=this._visG;
+    for(const v of vw){ const r2=v.r*v.r, x0=Math.max(0,Math.floor((v.x-v.r)/G2)), x1=Math.min(gw-1,Math.floor((v.x+v.r)/G2)), y0=Math.max(0,Math.floor((v.y-v.r)/G2)), y1=Math.min(gh-1,Math.floor((v.y+v.r)/G2));
+      for(let gy=y0;gy<=y1;gy++){ const cy=gy*G2+50-v.y, row=gy*gw; for(let gx=x0;gx<=x1;gx++){ const cx=gx*G2+50-v.x; if(cx*cx+cy*cy<r2) VG[row+gx]=1; } } }
     for(const n of this.nodes){ if(n.owner===F) continue;
       if(n.scoutT!=null&&this.time-n.scoutT<30) n.known={count:n.count,type:n.type,t:this.time}; }
   }
@@ -3195,7 +3204,8 @@ class BigWar{
     if(n.owner===this.localFid) return true;
     return n.scoutT!=null && this.time-n.scoutT<30;
   }
-  visAt(x,y){ const vw=this._viewers||[]; for(const v of vw){ if(Math.hypot(x-v.x,y-v.y)<v.r) return true; } return false; }
+  visAt(x,y){ const VG=this._visG; if(VG){ const gx=Math.floor(x/100), gy=Math.floor(y/100); if(gx<0||gy<0||gx>=this._visGW||gy>=this._visGH) return false; return VG[gy*this._visGW+gx]===1; }
+    const vw=this._viewers||[]; for(const v of vw){ const dx=x-v.x, dy=y-v.y; if(dx*dx+dy*dy<v.r*v.r) return true; } return false; }
   addFx(x,y,key,w,life){ this.fxs.push({x,y,key,w:w||120,t:0,life:life||0.55}); if(this.fxs.length>70) this.fxs.shift(); }
   battleFx(x,y,ter,big){
     this.addFx(x,y,big?'fx:clash2':'fx:clash1',big?170:130,0.5);
@@ -3211,8 +3221,10 @@ class BigWar{
     const f=BW.ambushFit[n.ter]; if(!f) return 1;
     return Math.max(2, Math.min(10, 2*(f[BW.cls(n.type)]||1))); }
   canAmbush(n){ return n.owner===this.localFid && n.count>0 && !n.camp && !!BW.ambushFit[n.ter]; }
+  terrLit(x,y,fid){ // VÙNG CHIẾM ĐÓNG của một phe (cứ điểm đang giữ) — không tính tầm mắt của đạo quân đang đi
+    const r2=this.visR*this.visR; for(const n of this.nodes){ if(n.owner!==fid) continue; const dx=n.x-x, dy=n.y-y; if(dx*dx+dy*dy<r2) return true; } return false; }
   aiVis(x,y,fid){ fid=fid??1; // AI cũng chỉ thấy trong bán kính 15 ô quanh quân phe nó
-    for(const n of this.nodes){ if(n.owner!==fid||(n.count<=0&&!n.camp)) continue; if(Math.hypot(n.x-x,n.y-y)<this.visR) return true; }
+    for(const n of this.nodes){ if(n.owner!==fid) continue; if(Math.hypot(n.x-x,n.y-y)<this.visR) return true; } // vùng chiếm đóng luôn sáng (cả 2 phía)
     for(const a of this.armies){ if(a.owner!==fid||a.done) continue; if(Math.hypot(a.x-x,a.y-y)<this.visR*0.8) return true; }
     return false; }
   aiSee(m,fid){ fid=fid??1; // AI nhìn mục tiêu: NGƯỜI CHƠI thì chịu sương mù; phe AI khác thì thấy thật
@@ -3698,7 +3710,7 @@ class BigWar{
       if(d<=260*dt){ s2.done=true; } else { s2.x+=dx/d*260*dt; s2.y+=dy/d*260*dt; } }
     this.aiScouts=this.aiScouts.filter(s2=>!s2.done);
     for(const f of this.fxs) f.t+=dt; this.fxs=this.fxs.filter(f=>f.t<f.life);
-    this._updateVision();
+    this._visT=(this._visT||0)-dt; if(this._visT<=0){ this._visT=0.1; this._updateVision(); } // cập nhật tầm nhìn 10 lần/giây
     // ===== kinh tế + LƯƠNG THẢO mỗi nhịp =====
     this.regenT+=dt;
     if(this.regenT>=BW.ecoEvery){ this.regenT-=BW.ecoEvery;
@@ -3985,7 +3997,7 @@ class BigWar{
         for(const f2 of [0.5,0.4,0.6,0.3,0.7]) for(const off of [0,60,-60,120,-120]){
           const px=s2.x+dx*f2 + (-dy/L2)*off, py=s2.y+dy*f2 + (dx/L2)*off;
           const ter=this.terAt(px,py); if(!BW.ambushFit[ter]||ter==='river'&&this.bridges.some(b=>Math.hypot(b.x-px,b.y-py)<90)) continue;
-          if(Math.hypot(px-pa.x,py-pa.y)<200) continue; pt={x:px,y:py}; break; }
+          if(Math.hypot(px-pa.x,py-pa.y)<200) continue; if(this.terrLit(px,py,pa.owner)) continue; pt={x:px,y:py}; break; }
         if(!pt) continue;
         s2.tx=pt.x; s2.ty=pt.y; s2.to=-1; s2.hunt=null; s2.camped=false; s2.aiAmbush=true; abud--; }
     }
@@ -4035,6 +4047,7 @@ class BigWar{
     if(viewH>BW.H) sy+=(viewH-BW.H)/2*scale;
     this.scale=scale; c.save(); c.scale(scale,scale); c.translate(-this.camX+sx, -this.camY+sy);
     const cull={x0:this.camX-260, x1:this.camX+viewW+260, y0:this.camY-260, y1:this.camY+viewH+260};
+    this._cullV={x0:this.camX-700,x1:this.camX+viewW+700,y0:this.camY-700,y1:this.camY+viewH+700};
     const inView=(x,y)=>x>=cull.x0&&x<=cull.x1&&y>=cull.y0&&y<=cull.y1;
     this._inView=inView;
     // lớp địa hình (prerender)
@@ -4197,13 +4210,18 @@ class BigWar{
   }
   drawFog(c){
     this._fogN=(this._fogN||0)+1;
+    const camMoved=this._fogCam&&(Math.abs(this._fogCam[0]-this.camX)>300||Math.abs(this._fogCam[1]-this.camY)>300); if(camMoved) this._fogN=1;
     if(this.fogCv&&this._fogN%2===0){ c.save(); c.imageSmoothingEnabled=true; c.drawImage(this.fogCv,0,0,BW.W,BW.H); c.restore(); return; }
     if(!this.fogCv){ this.fogCv=document.createElement('canvas'); this.fogCv.width=Math.ceil(BW.W/10); this.fogCv.height=Math.ceil(BW.H/10); }
     const fc=this.fogCv.getContext('2d'); const fw=this.fogCv.width, fh=this.fogCv.height;
+    this._fogCam=[this.camX,this.camY];
     fc.globalCompositeOperation='source-over'; fc.clearRect(0,0,fw,fh);
     fc.fillStyle='rgba(16,12,34,0.87)'; fc.fillRect(0,0,fw,fh);
     fc.globalCompositeOperation='destination-out';
-    const punch=(x,y,r)=>{ const g=fc.createRadialGradient(x/10,y/10,r/10*0.5,x/10,y/10,r/10); g.addColorStop(0,'rgba(0,0,0,1)'); g.addColorStop(1,'rgba(0,0,0,0)'); fc.fillStyle=g; fc.beginPath(); fc.arc(x/10,y/10,r/10,0,7); fc.fill(); };
+    // vệt sáng dùng sẵn 1 ảnh tròn (không tạo gradient cho từng điểm) và chỉ đục các điểm gần khung nhìn
+    if(!this._punchSpr){ const sp=document.createElement('canvas'); sp.width=sp.height=64; const g2=sp.getContext('2d'); const gr=g2.createRadialGradient(32,32,16,32,32,32); gr.addColorStop(0,'rgba(0,0,0,1)'); gr.addColorStop(1,'rgba(0,0,0,0)'); g2.fillStyle=gr; g2.fillRect(0,0,64,64); this._punchSpr=sp; }
+    const spr=this._punchSpr, cv0=this._cullV;
+    const punch=(x,y,r)=>{ if(cv0&&(x+r<cv0.x0||x-r>cv0.x1||y+r<cv0.y0||y-r>cv0.y1)) return; fc.drawImage(spr,(x-r)/10,(y-r)/10,r/5,r/5); };
     for(const v of this._viewers||[]) punch(v.x,v.y,v.r);
     for(const n of this.nodes) if(n.scoutT!=null&&this.time-n.scoutT<30) punch(n.x,n.y,330);
     c.save(); c.imageSmoothingEnabled=true; c.drawImage(this.fogCv,0,0,BW.W,BW.H); c.restore();
