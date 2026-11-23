@@ -243,6 +243,7 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
     <p>Mỗi đạo quân có vạch lương 🌾 (100). Tiêu hao theo quân số — đạo càng đông càng ngốn. Đứng gần thành/🐂 trại/🌾 KHO LƯƠNG phe mình là tự được tiếp tế. <b>Thắng trận cướp 80% lương bên thua.</b> Hết lương: quân đói teo 4%/nhịp, tụt dưới 20 là <b>tan rã</b>. Đừng hành quân xuyên lục địa không trạm nghỉ!</p>
     <h3>👑 Chế độ chơi</h3>
     <p><b>⚔️ 1 vs 1:</b> 10 ải chiến dịch, độ khó tăng dần: từ ải 2 địch biết MAI PHỤC, từ ải 6 địch gom quân đủ mạnh mới đánh, ải 10 là bậc thầy quân sự. <b>🌏 QUẦN HÙNG:</b> ~36 nước cùng loạn chiến, nước mất đại bản doanh là toàn bộ lãnh thổ + quân đội <b>quy hàng phe chiếm</b> — sống sót cuối cùng thắng. <b>📶 P2P:</b> 2 người đánh nhau qua WiFi bằng cách đổi mã kết nối (trình duyệt không hỗ trợ Bluetooth).</p>
+    <p><b>🔲 Quét chọn nhiều đạo:</b> giữ yên ngón tay khoảng nửa giây (máy rung nhẹ) rồi kéo thành khung chữ nhật — thả tay là chọn mọi đạo quân ta trong khung; sau đó chạm đích để cả cụm cùng hành quân/tấn công. Kéo ngay không giữ thì vẫn là cuộn bản đồ.</p>
     <p><b>🗺️ 40 bản đồ</b> (20 mỗi chế độ) — vị trí trại đổi theo từng bản đồ. <b>🤝 Hợp binh:</b> thắng trận xong, mọi đạo quân cùng tham chiến tự gộp làm một. <b>👥 Chọn cụm:</b> chạm đúp 1 đạo để cầm cả cụm gần đó (huy hiệu 👥 xN), chạm đạo khác trong cụm không làm rơi cụm.</p>
     <h3>🌫️ Sương mù &amp; do thám</h3>
     <p><b>Không bao giờ thấy quân số địch</b> — kể cả đứng sát bên — chỉ thấy bóng dáng. Chạm node địch (không chọn quân) để phái 🕵️ <b>toán do thám</b> (tối đa 2): đi mất thời gian thật, tới nơi lộ rõ quân số <b>30 giây</b>, sau đó chỉ còn tin cũ dạng <b>~536?</b>. Do thám cũng mở tầm nhìn dọc đường đi.</p>
@@ -2563,18 +2564,24 @@ function canvasPos(e){ const r=$('game').getBoundingClientRect(); return [e.clie
 function setupInput(){
   const cv=$('game');
   cv.addEventListener('pointerdown',(e)=>{ audio.init(); try{ cv.setPointerCapture&&cv.setPointerCapture(e.pointerId); }catch(_){} const p=canvasPos(e); if(G.bw){ if(G.bw.intro) G.bw.intro=null; if(p[1]<120) G.bw.revealHud(); } ptrs.set(e.pointerId,{x:p[0],y:p[1],sx:p[0],sy:p[1],t:performance.now()});
-    if(ptrs.size===1) gest={mode:'tap',x:p[0],y:p[1],t:performance.now()};
-    else if(ptrs.size===2){ const [a,b]=[...ptrs.values()]; gest={mode:'pinch',d:Math.hypot(a.x-b.x,a.y-b.y),cx:(a.x+b.x)/2,cy:(a.y+b.y)/2,z:(G.bw? G.bw.zoomTgt : (G.ren? G.ren.cam.z:1))}; if(G.bw&&G.bw.camDrag!=null){ G.bw.camX=G.bw.camDrag; G.bw.camDrag=null; } } });
+    if(ptrs.size===1){ gest={mode:'tap',x:p[0],y:p[1],t:performance.now()};
+      // GIỮ YÊN NGÓN ~0.35s rồi kéo = VÙNG QUÉT chọn nhiều đạo quân
+      if(G.bw&&!G.bw.over){ const g0=gest; g0.lp=setTimeout(()=>{ if(gest===g0&&g0.mode==='tap'&&ptrs.size===1&&G.bw&&!G.bw.over&&!G.bw.rallyOpen){ g0.mode='box'; G.bw.box={x0:g0.x,y0:g0.y,x1:g0.x,y1:g0.y}; G.bw.menu=null; try{ navigator.vibrate&&navigator.vibrate(18); }catch(_){} } },350); } }
+    else if(ptrs.size===2){ if(gest&&gest.lp) clearTimeout(gest.lp); if(G.bw) G.bw.box=null; const [a,b]=[...ptrs.values()]; gest={mode:'pinch',d:Math.hypot(a.x-b.x,a.y-b.y),cx:(a.x+b.x)/2,cy:(a.y+b.y)/2,z:(G.bw? G.bw.zoomTgt : (G.ren? G.ren.cam.z:1))}; if(G.bw&&G.bw.camDrag!=null){ G.bw.camX=G.bw.camDrag; G.bw.camDrag=null; } } });
   cv.addEventListener('pointermove',(e)=>{ const q=ptrs.get(e.pointerId); if(!q||(!G.ren&&!G.bw)) return; if(!G.ren&&G.bw){ const p=canvasPos(e); const dx=p[0]-q.x, dy=p[1]-q.y; q.x=p[0]; q.y=p[1];
       if(gest&&gest.mode==='pinch'&&ptrs.size===2){ const [a,b]=[...ptrs.values()]; const d=Math.hypot(a.x-b.x,a.y-b.y); const cx=(a.x+b.x)/2, cy=(a.y+b.y)/2;
         const bw=G.bw; bw.zoomAt(gest.z*d/Math.max(1,gest.d), cx, cy); gest.cx=cx; gest.cy=cy; return; } // zoomAt đã neo điểm giữa hai ngón: không cộng thêm độ dịch (tránh trôi)
-      if(gest){ if(gest.mode==='tap'&&Math.hypot(p[0]-q.sx,p[1]-q.sy)>9) gest.mode='pan'; if(gest.mode==='pan'){ const bw=G.bw; bw.camDrag=(bw.camDrag==null? bw.camX : bw.camDrag) - dx/(bw.scale||1); if(Number.isFinite(dy)) bw.camY=(bw.camY||0)-dy/(bw.scale||1); /* dy lấy từ điểm chạm trước, không dùng biến chưa khởi tạo */ bw.focusB=null; bw.jumpT=null; } } return; } const p=canvasPos(e); const dx=p[0]-q.x, dy=p[1]-q.y; q.x=p[0]; q.y=p[1]; const cam=G.ren.cam;
+      if(gest&&gest.mode==='box'&&G.bw.box){ G.bw.box.x1=p[0]; G.bw.box.y1=p[1]; return; }
+      if(gest){ if(gest.mode==='tap'&&Math.hypot(p[0]-q.sx,p[1]-q.sy)>9){ gest.mode='pan'; if(gest.lp) clearTimeout(gest.lp); } if(gest.mode==='pan'){ const bw=G.bw; bw.camDrag=(bw.camDrag==null? bw.camX : bw.camDrag) - dx/(bw.scale||1); if(Number.isFinite(dy)) bw.camY=(bw.camY||0)-dy/(bw.scale||1); /* dy lấy từ điểm chạm trước, không dùng biến chưa khởi tạo */ bw.focusB=null; bw.jumpT=null; } } return; } const p=canvasPos(e); const dx=p[0]-q.x, dy=p[1]-q.y; q.x=p[0]; q.y=p[1]; const cam=G.ren.cam;
     if(ptrs.size===1 && gest){ if(gest.mode==='tap' && Math.hypot(p[0]-q.sx,p[1]-q.sy)>9) gest.mode='pan'; if(gest.mode==='pan'){ if(G.bw){ const bw=G.bw; bw.camDrag=(bw.camDrag==null? bw.camX : bw.camDrag) - dx/(bw.scale||1); if(Number.isFinite(dy)){ bw.camY=(bw.camY||0)-dy/(bw.scale||1); bw.focusB=null; } } else { cam.x-=dx/cam.z; cam.y-=dy/cam.z; cam.tx=null; } } }
     else if(ptrs.size===2 && gest && gest.mode==='pinch'){ const [a,b]=[...ptrs.values()]; const d=Math.hypot(a.x-b.x,a.y-b.y); const cx=(a.x+b.x)/2, cy=(a.y+b.y)/2;
       const before=G.ren.toWorld(cx,cy); cam.z=Math.max(0.45,Math.min(2.6,gest.z*d/gest.d)); const after=G.ren.toWorld(cx,cy); cam.x+=before[0]-after[0]; cam.y+=before[1]-after[1];
       cam.x-=(cx-gest.cx)/cam.z; cam.y-=(cy-gest.cy)/cam.z; gest.cx=cx; gest.cy=cy; cam.tx=null; } });
-  const up=(e)=>{ const q=ptrs.get(e.pointerId); ptrs.delete(e.pointerId); if(G.bw&&ptrs.size===0&&G.bw.camDrag!=null){ G.bw.camX=G.bw.camDrag; G.bw.camDrag=null; } if(!q) return; if(gest && gest.mode==='tap' && ptrs.size===0 && performance.now()-gest.t<600) onTap(q.sx,q.sy); if(ptrs.size===0) gest=null; else if(gest&&gest.mode==='pinch') gest={mode:'pan'}; };
-  cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',(e)=>{ ptrs.delete(e.pointerId); gest=null; });
+  const up=(e)=>{ const q=ptrs.get(e.pointerId); ptrs.delete(e.pointerId); if(gest&&gest.lp) clearTimeout(gest.lp);
+    if(gest&&gest.mode==='box'&&G.bw){ const B=G.bw.box; G.bw.box=null; gest=null;
+      if(B&&(Math.abs(B.x1-B.x0)>=16||Math.abs(B.y1-B.y0)>=16)) G.bw.boxSelect(B.x0,B.y0,B.x1,B.y1); else if(q) onTap(q.sx,q.sy);
+      return; } if(G.bw&&ptrs.size===0&&G.bw.camDrag!=null){ G.bw.camX=G.bw.camDrag; G.bw.camDrag=null; } if(!q) return; if(gest && gest.mode==='tap' && ptrs.size===0 && performance.now()-gest.t<600) onTap(q.sx,q.sy); if(ptrs.size===0) gest=null; else if(gest&&gest.mode==='pinch') gest={mode:'pan'}; };
+  cv.addEventListener('pointerup',up); cv.addEventListener('pointercancel',(e)=>{ ptrs.delete(e.pointerId); if(gest&&gest.lp) clearTimeout(gest.lp); if(G.bw) G.bw.box=null; gest=null; });
   cv.addEventListener('wheel',(e)=>{ e.preventDefault();
     if(G.bw&&!G.ren){ const p=canvasPos(e); G.bw.zoomAt(G.bw.zoom*Math.exp(-e.deltaY*0.0015), p[0], p[1]); return; }
     if(!G.ren) return; const cam=G.ren.cam; const p=canvasPos(e); const before=G.ren.toWorld(p[0],p[1]); cam.z=Math.max(0.45,Math.min(2.6,cam.z*Math.exp(-e.deltaY*0.0015))); const after=G.ren.toWorld(p[0],p[1]); cam.x+=before[0]-after[0]; cam.y+=before[1]-after[1]; cam.tx=null; },{passive:false});
@@ -3363,6 +3370,21 @@ class BigWar{
     else if(best.owner!==F && best.owner!==2 && !this.visNow(best)){ this.sel=null; this.selA=null; this.startScout(best); }
     else if(best.owner===2 && !this.visNow(best) && best.count>0){ this.sel=null; this.selA=null; this.startScout(best); }
     else { this.sel=null; this.selA=null; }
+  }
+  // 🔲 VÙNG QUÉT: chọn mọi đạo quân ta trong hình chữ nhật (toạ độ màn hình)
+  boxSelect(sx0,sy0,sx1,sy1){
+    const F=this.localFid, sc=this.scale||1;
+    const x0=Math.min(sx0,sx1)/sc+this.camX, x1=Math.max(sx0,sx1)/sc+this.camX, y0=Math.min(sy0,sy1)/sc+(this.camY||0), y1=Math.max(sy0,sy1)/sc+(this.camY||0);
+    const inR=(a)=>{ const vy=a.y-28; return (a.x>=x0&&a.x<=x1&&((a.y>=y0&&a.y<=y1)||(vy>=y0&&vy<=y1))); };
+    const got=this.armies.filter(a=>a.owner===F&&!a.done&&a.count>0&&inR(a));
+    const free=got.filter(a=>!a.btl);
+    this.menu=null; this.rallyPick=0;
+    if(!free.length){ this.texts.push({x:(x0+x1)/2,y:(y0+y1)/2,s: got.length?'⚔️ Các đạo trong vùng đang giao chiến':'Không có đạo quân nào trong vùng quét',col:'#ffd54a',t:0,max:1.4}); this.sel=null; this.selA=null; this.selG=null; return 0; }
+    free.sort((a,b)=>b.count-a.count);
+    this.sel=null; this.selA=free[0]; this.selG=free.slice();
+    const tot=free.reduce((t,a)=>t+a.count,0);
+    this.texts.push({x:free[0].x,y:free[0].y-110,s:`👥 Đã chọn ${free.length} đạo · ${Math.round(tot)} quân`,col:'#7dffcf',t:0,max:1.6,big:1});
+    audio.click(); return free.length;
   }
   rallyCall(N,x,y){ // gọi quân từ N trại/điểm tập kết gần điểm chạm nhất về một điểm
     const F=this.localFid;
@@ -4490,6 +4512,16 @@ class BigWar{
         if(myArm){ const bw2=170,bh=48,bx=vw/2-bw2/2,by=vh-bh-64; this._retreatBtn={x:bx,y:by,w:bw2,h:bh,b};
           c.fillStyle='rgba(120,30,30,0.92)'; c.strokeStyle='#ffd54a'; c.lineWidth=3; rr(c,bx,by,bw2,bh,13); c.fill(); c.stroke();
           c.font='900 20px "Baloo 2",system-ui'; c.fillStyle='#ffe9c9'; c.fillText('🏳️ RÚT LUI',bx+bw2/2,by+31); } } }
+    // 🔲 vùng quét đang kéo
+    if(this.box){ const B=this.box, bx=Math.min(B.x0,B.x1), by=Math.min(B.y0,B.y1), bw2=Math.abs(B.x1-B.x0), bh=Math.abs(B.y1-B.y0);
+      c.fillStyle='rgba(125,255,207,0.14)'; c.fillRect(bx,by,bw2,bh);
+      c.strokeStyle='#7dffcf'; c.lineWidth=2; c.setLineDash([8,5]); c.strokeRect(bx,by,bw2,bh); c.setLineDash([]);
+      for(const [px,py] of [[bx,by],[bx+bw2,by],[bx,by+bh],[bx+bw2,by+bh]]){ c.fillStyle='#7dffcf'; c.fillRect(px-4,py-4,8,8); }
+      const sc=this.scale||1, F=this.localFid, wx0=bx/sc+this.camX, wx1=(bx+bw2)/sc+this.camX, wy0=by/sc+(this.camY||0), wy1=(by+bh)/sc+(this.camY||0);
+      const n=this.armies.filter(a=>a.owner===F&&!a.done&&a.count>0&&!a.btl&&a.x>=wx0&&a.x<=wx1&&((a.y>=wy0&&a.y<=wy1)||(a.y-28>=wy0&&a.y-28<=wy1))).length;
+      const t=n? `👥 ${n} đạo quân` : '🔲 Kéo để quét chọn';
+      c.font='800 14px "Baloo 2",system-ui'; const tw=c.measureText(t).width+16; const ly=by>30? by-26 : by+bh+6;
+      c.fillStyle='rgba(20,14,34,0.85)'; rr(c,bx,ly,tw,22,7); c.fill(); c.fillStyle='#7dffcf'; c.textAlign='left'; c.fillText(t,bx+8,ly+16); c.textAlign='center'; }
     // 📣 NÚT GỌI QUÂN cố định ở mép trái (trên nút phục kích)
     { const bs=48, bx=12, by=vh-bs-76; this._rallyBtn={x:bx,y:by,w:bs,h:bs};
       c.globalAlpha=this.rallyPick||this.rallyOpen?1:0.85; c.fillStyle=this.rallyPick?'rgba(255,213,74,0.95)':'rgba(30,24,54,0.85)'; c.strokeStyle='rgba(255,213,74,0.8)'; c.lineWidth=2;
