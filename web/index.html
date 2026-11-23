@@ -3372,7 +3372,16 @@ class BigWar{
     const rid=(this._rid=(this._rid||0)+1); let i=0, sent=0;
     for(const n of src){ const ox=((i%4)-1.5)*70, oy=((i/4|0)-1)*70; i++;
       const a=this.send(n,{x:x+ox,y:y+oy,id:-1}); if(a){ a.rally=rid; sent++; } }
-    this.note(N===Infinity?`🚩 TỔNG ĐỘNG VIÊN: ${sent} trại kéo về đây`:`📣 Gọi ${sent} trại gần nhất tập kết`,x,y,N===Infinity?'🚩':'📣');
+    // TRẤN THỦ: quân ở trại chăn nuôi / điểm luyện binh chủ động chạy về giữ các trại vừa bị rút trống (gần nhất trước)
+    const emptied=src.filter(n=>n.owner===F&&n.count<50);
+    const feeders=this.nodes.filter(n=>n.owner===F&&(n.eco==='farm'||n.eco==='train')&&n.count>=60&&!n.btl&&!n.sieged);
+    const used=new Set(); let refill=0;
+    for(const tgt of emptied.sort((a,b)=>(b.camp?1:0)-(a.camp?1:0))){ // ưu tiên trại lớn (kinh đô/trại) trước
+      let best=null,bd=1e9; for(const f of feeders){ if(used.has(f)) continue; const d=Math.hypot(f.x-tgt.x,f.y-tgt.y); if(d<bd){bd=d;best=f;} }
+      if(!best||bd>4000) continue; used.add(best);
+      const keep=Math.max(30,Math.round(best.count*0.2)), go=best.count-keep; if(go<30) continue;
+      best.count=go; const g=this.send(best,tgt); best.count=keep; if(g){ g.garrison=1; refill++; } }
+    this.note((N===Infinity?`🚩 TỔNG ĐỘNG VIÊN: ${sent} trại kéo về đây`:`📣 Gọi ${sent} trại gần nhất tập kết`)+(refill?` · ${refill} trại chăn nuôi/luyện binh về trấn thủ`:''),x,y,N===Infinity?'🚩':'📣');
     audio.order();
   }
   // 💾 LƯU / TẢI VÁN (Quần Hùng chơi dài): mọi tham chiếu đối tượng đổi thành chỉ số
