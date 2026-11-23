@@ -3300,15 +3300,21 @@ class BigWar{
     let best=null,bd=1e9;
     for(const n of this.nodes){ const d=Math.hypot(n.x-wx,n.y-wy); if(d<95&&d<bd){bd=d;best=n;} }
     // đạo quân gần điểm chạm (ưu tiên nếu gần hơn node)
+    // đạo quân: đo tới TÂM HÌNH VẼ (lính + bảng số vẽ phía trên vị trí ~30px), vùng chạm nở theo quy mô
     let bA=null,bAd=1e9;
-    for(const a of this.armies){ if(a.done) continue; const d=Math.hypot(a.x-wx,a.y-wy); if(d<80&&d<bAd){bAd=d;bA=a;} }
+    for(const a of this.armies){ if(a.done||a.count<=0) continue;
+      const nU= a.count<80?2 : a.count<300?3 : a.count<800?5 : a.count<2000?7 : a.count<5000?9 : 12;
+      const d=Math.hypot(a.x-wx,(a.y-28)-wy), rA=72+nU*3;
+      if(d<rA&&(d<bAd||(a.owner===F&&bA&&bA.owner!==F&&d<bAd+25))){bAd=d;bA=a;} }
+    // quân ta trùng chỗ với điểm (trại chăn nuôi, làng...): chạm vào hình quân thì chọn QUÂN, chạm sát tâm điểm thì chọn ĐIỂM
+    const aWin= !!bA && (!best || bAd<=bd*1.25+10);
     const src=this.sel||this.selA;
     // LUẬT MAI PHỤC: nguồn đang mai phục + chạm vào node TA khác -> chỉ ĐỔI CHỌN, không bao giờ nhấc quân
-    if(src && src.ambush && !(this.selG&&this.selG.length>1) && best && best!==src && best.owner===F && !(bA&&bA.owner===F&&bAd<bd)){
+    if(src && src.ambush && !(this.selG&&this.selG.length>1) && best && best!==src && best.owner===F && !(bA&&bA.owner===F&&aWin)){
       if(best.count>0){ this.sel=best; this.selA=null; this.selG=null; }
       this.texts.push({x:src.x,y:src.y-70,s:'🪤 Quân mai phục giữ nguyên vị trí',col:'#ffd54a',t:0,max:1.1});
       audio.click(); return; }
-    if(src && bA && bA.owner===F && bA!==src && bAd<bd){ // chạm quân ta khác
+    if(src && bA && bA.owner===F && bA!==src && aWin){ // chạm quân ta khác
       if(this.selG&&this.selG.includes(bA)){ this.selA=bA; this._dblChk(bA,wx,wy); audio.click(); return; } // vẫn giữ CẢ CỤM
       if(bA.btl){ this.sel=null; this.selA=bA; this.selG=null; audio.click(); return; } // đang giao chiến: chỉ xem
       this.menu={wx,wy,tgtOwn:bA,opts:[{id:'merge',s:'🤝 Gộp quân vào đạo này'},{id:'switch',s:'👉 Chọn đạo này'},{id:'cancel',s:'✖ Thôi'}],
@@ -3317,7 +3323,7 @@ class BigWar{
       return; }
     if(src && best!==src && bA!==src){
       // CHỌN MỤC TIÊU -> mở MENU LỆNH ngữ cảnh (tự chọn hành động mặc định khi autoMenu)
-      const tgtArmy = bA&&bA.owner!==F&&bAd<bd? bA : null;
+      const tgtArmy = bA&&bA.owner!==F&&aWin? bA : null;
       const tgtNode = !tgtArmy&&best? best : null;
       let opts=[];
       if(tgtArmy) opts=[{id:'hunt',s:'⚔️ Truy kích'},{id:'cancel',s:'✖ Thôi'}];
@@ -3336,7 +3342,7 @@ class BigWar{
       if(b&&src){ this.menu={wx,wy,tgtArmy:null,tgtNode:null,joinB:b,opts:[{id:'join',s:'➕ Tiếp viện nhập trận'},{id:'cancel',s:'✖ Thôi'}],src:this.sel?{kind:'node',ref:this.sel}:{kind:'grp',refs:(this.selG&&this.selG.length?this.selG:[this.selA]).slice()}};
         if(this.autoMenu) this.menuPick('join');
         return; } }
-    if(bA && bAd<bd){ // chạm trúng đạo quân
+    if(bA && aWin){ // chạm trúng đạo quân
       if(bA.owner===F){ this.selA=bA; this.sel=null; audio.click(); this._dblChk(bA,wx,wy); }
       else { this.selA=this.sel=null; this.selG=null; }
       return; }
@@ -4008,6 +4014,7 @@ class BigWar{
     // tự dõi theo: lấy node ta xa nhất
     // camera: chỉ tự dõi theo NGẮN sau khi người chơi vừa ra lệnh; còn lại đứng yên (hết lỗi trôi màn hình)
     if(this.camDrag!=null){ this.camX=this.camDrag; this.jumpT=null; }
+    if(!Number.isFinite(this.camX)) this.camX=0; if(!Number.isFinite(this.camY)) this.camY=0; if(!Number.isFinite(this.zoom)||this.zoom<=0){ this.zoom=this.zoomTgt=1; } // chốt chặn: không bao giờ kẹt camera
     this.camX=Math.max(0,Math.min(BW.W-viewW,this.camX));
     this.camY=Math.max(0,Math.min(Math.max(0,BW.H-viewH),this.camY||0));
     // đồng bộ điểm kéo với vị trí đã kẹp biên: nếu không, kéo quá biên rồi phải kéo ngược rất xa mới nhúc nhích (kẹt biên)
