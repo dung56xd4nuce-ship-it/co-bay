@@ -2568,8 +2568,8 @@ function setupInput(){
   cv.addEventListener('pointermove',(e)=>{ const q=ptrs.get(e.pointerId); if(!q||(!G.ren&&!G.bw)) return; if(!G.ren&&G.bw){ const p=canvasPos(e); const dx=p[0]-q.x, dy=p[1]-q.y; q.x=p[0]; q.y=p[1];
       if(gest&&gest.mode==='pinch'&&ptrs.size===2){ const [a,b]=[...ptrs.values()]; const d=Math.hypot(a.x-b.x,a.y-b.y); const cx=(a.x+b.x)/2, cy=(a.y+b.y)/2;
         const bw=G.bw; bw.zoomAt(gest.z*d/Math.max(1,gest.d), cx, cy); gest.cx=cx; gest.cy=cy; return; } // zoomAt đã neo điểm giữa hai ngón: không cộng thêm độ dịch (tránh trôi)
-      if(gest){ if(gest.mode==='tap'&&Math.hypot(p[0]-q.sx,p[1]-q.sy)>9) gest.mode='pan'; if(gest.mode==='pan'){ const bw=G.bw; bw.camDrag=(bw.camDrag==null? bw.camX : bw.camDrag) - dx/(bw.scale||1); if(Number.isFinite(dy)) bw.camY=Math.max(0,(bw.camY||0)-dy/(bw.scale||1)); /* dy lấy từ điểm chạm trước, không dùng biến chưa khởi tạo */ bw.focusB=null; bw.jumpT=null; } } return; } const p=canvasPos(e); const dx=p[0]-q.x, dy=p[1]-q.y; q.x=p[0]; q.y=p[1]; const cam=G.ren.cam;
-    if(ptrs.size===1 && gest){ if(gest.mode==='tap' && Math.hypot(p[0]-q.sx,p[1]-q.sy)>9) gest.mode='pan'; if(gest.mode==='pan'){ if(G.bw){ const bw=G.bw; bw.camDrag=(bw.camDrag==null? bw.camX : bw.camDrag) - dx/(bw.scale||1); if(bw.zoomTgt>1.03||bw.big){ bw.camY=Math.max(0,(bw.camY||0)-dy/(bw.scale||1)); bw.focusB=null; } } else { cam.x-=dx/cam.z; cam.y-=dy/cam.z; cam.tx=null; } } }
+      if(gest){ if(gest.mode==='tap'&&Math.hypot(p[0]-q.sx,p[1]-q.sy)>9) gest.mode='pan'; if(gest.mode==='pan'){ const bw=G.bw; bw.camDrag=(bw.camDrag==null? bw.camX : bw.camDrag) - dx/(bw.scale||1); if(Number.isFinite(dy)) bw.camY=(bw.camY||0)-dy/(bw.scale||1); /* dy lấy từ điểm chạm trước, không dùng biến chưa khởi tạo */ bw.focusB=null; bw.jumpT=null; } } return; } const p=canvasPos(e); const dx=p[0]-q.x, dy=p[1]-q.y; q.x=p[0]; q.y=p[1]; const cam=G.ren.cam;
+    if(ptrs.size===1 && gest){ if(gest.mode==='tap' && Math.hypot(p[0]-q.sx,p[1]-q.sy)>9) gest.mode='pan'; if(gest.mode==='pan'){ if(G.bw){ const bw=G.bw; bw.camDrag=(bw.camDrag==null? bw.camX : bw.camDrag) - dx/(bw.scale||1); if(Number.isFinite(dy)){ bw.camY=(bw.camY||0)-dy/(bw.scale||1); bw.focusB=null; } } else { cam.x-=dx/cam.z; cam.y-=dy/cam.z; cam.tx=null; } } }
     else if(ptrs.size===2 && gest && gest.mode==='pinch'){ const [a,b]=[...ptrs.values()]; const d=Math.hypot(a.x-b.x,a.y-b.y); const cx=(a.x+b.x)/2, cy=(a.y+b.y)/2;
       const before=G.ren.toWorld(cx,cy); cam.z=Math.max(0.45,Math.min(2.6,gest.z*d/gest.d)); const after=G.ren.toWorld(cx,cy); cam.x+=before[0]-after[0]; cam.y+=before[1]-after[1];
       cam.x-=(cx-gest.cx)/cam.z; cam.y-=(cy-gest.cy)/cam.z; gest.cx=cx; gest.cy=cy; cam.tx=null; } });
@@ -3457,6 +3457,9 @@ class BigWar{
     if(this.shake>0) this.shake=Math.max(0,this.shake-dt*26);
   }
   note(text,x,y,icon){ this.notes.push({text,x,y,icon:icon||'⚔️',t:0}); if(this.notes.length>4) this.notes.shift(); audio.flag&&audio.flag(); }
+  camClamp(viewW,viewH){ const ox=viewW*0.5, oy=viewH*0.5;
+    this.camX=Math.max(-ox,Math.min(BW.W-viewW+ox,this.camX));
+    this.camY=Math.max(-oy,Math.min(Math.max(0,BW.H-viewH)+oy,this.camY||0)); }
   jumpTo(x,y,zoom){ this.zoomTgt=zoom||1.7; this.jumpT={x,y,t:0.8}; }
   zoomAt(z,sx,sy){ // thu phóng quanh điểm chạm/con trỏ
     z=Math.max(this.big?0.3:0.7,Math.min(2.8,z));
@@ -3466,8 +3469,7 @@ class BigWar{
     const sc1=(this.scale0||1)*z;
     this.camX=wx-sx/sc1; this.camY=wy-sy/sc1; this.scale=sc1;
     const vw=this.lastVw||1200, vh=this.lastVh||600;
-    this.camX=Math.max(0,Math.min(BW.W-vw/sc1,this.camX));
-    this.camY=Math.max(0,Math.min(Math.max(0,BW.H-vh/sc1),this.camY));
+    this.camClamp(vw/sc1,vh/sc1);
   }
   // ---- cập nhật
   startBattle(x,y,ter,nodeId,atkE,defE,defMulV,tag){
@@ -4015,11 +4017,9 @@ class BigWar{
     // camera: chỉ tự dõi theo NGẮN sau khi người chơi vừa ra lệnh; còn lại đứng yên (hết lỗi trôi màn hình)
     if(this.camDrag!=null){ this.camX=this.camDrag; this.jumpT=null; }
     if(!Number.isFinite(this.camX)) this.camX=0; if(!Number.isFinite(this.camY)) this.camY=0; if(!Number.isFinite(this.zoom)||this.zoom<=0){ this.zoom=this.zoomTgt=1; } // chốt chặn: không bao giờ kẹt camera
-    this.camX=Math.max(0,Math.min(BW.W-viewW,this.camX));
-    this.camY=Math.max(0,Math.min(Math.max(0,BW.H-viewH),this.camY||0));
+    this.camClamp(viewW,viewH);
     // đồng bộ điểm kéo với vị trí đã kẹp biên: nếu không, kéo quá biên rồi phải kéo ngược rất xa mới nhúc nhích (kẹt biên)
     if(this.camDrag!=null) this.camDrag=this.camX;
-    if(!this.big&&this.zoomTgt<=1.001&&this.zoom<1.03&&!this.intro) this.camY*=(1-Math.min(1,dt*6));
     let sx=0,sy=0; if(this.shake>0){ sx=(Math.random()-0.5)*this.shake; sy=(Math.random()-0.5)*this.shake; }
     c.setTransform(dpr,0,0,dpr,0,0); c.clearRect(0,0,vw,vh);
     // nền thảo nguyên vàng
@@ -4104,6 +4104,9 @@ class BigWar{
       c.font=`900 ${ (t.big?46:34)*sc2 }px "Baloo 2",system-ui`; c.globalAlpha= k>0.7? (1-k)/0.3:1; c.lineWidth=8; c.strokeStyle='#2a1a12'; c.strokeText(t.s,t.x,t.y-k*50); c.fillStyle=t.col; c.fillText(t.s,t.x,t.y-k*50); c.globalAlpha=1; }
     // sương mù che đất địch
     this.drawFog(c);
+    // ngoài mép bản đồ: vùng tối (kéo vượt mép tối đa nửa màn hình)
+    c.fillStyle='#17121f'; c.beginPath(); c.rect(-1e5,-1e5,2e5,2e5); c.rect(0,0,BW.W,BW.H); c.fill('evenodd');
+    c.strokeStyle='rgba(255,213,74,0.35)'; c.lineWidth=6/scale; c.setLineDash([24/scale,16/scale]); c.strokeRect(0,0,BW.W,BW.H); c.setLineDash([]);
     c.restore();
     // HUD trên canvas
     this.drawHud(c,vw,vh,tm);
@@ -4393,7 +4396,9 @@ class BigWar{
         c.fillStyle=col; c.beginPath(); c.arc(px,py,n.camp?3:(n.eco?2.2:1.6),0,7); c.fill(); }
       const scale2=this.scale||1; const viewW=vw/scale2;
       const viewH=(this.lastVh||600)/scale2;
-      c.strokeStyle='#fff'; c.lineWidth=2; rr(c,ox+6+(this.camX/BW.W)*(ow-12),oy+4+(this.camY/BW.H)*(oh-8),Math.max(10,(viewW/BW.W)*(ow-12)),Math.max(8,Math.min(oh-8,(viewH/BW.H)*(oh-8))),4); c.stroke(); c.globalAlpha=1; }
+      c.strokeStyle='#fff'; c.lineWidth=2; { const x0=Math.max(0,this.camX), y0=Math.max(0,this.camY), x1=Math.min(BW.W,this.camX+viewW), y1=Math.min(BW.H,this.camY+viewH);
+        const rw=Math.max(8,((x1-x0)/BW.W)*(ow-12)), rh=Math.max(6,((y1-y0)/BW.H)*(oh-8));
+        rr(c,Math.min(ox+ow-6-rw,ox+6+(x0/BW.W)*(ow-12)),Math.min(oy+oh-4-rh,oy+4+(y0/BW.H)*(oh-8)),rw,rh,4); c.stroke(); } c.globalAlpha=1; }
     // 🔔 THÔNG BÁO chạm để nhảy tới nơi xảy ra
     this._noteRects=[];
     { let ny=52; c.textAlign='left';

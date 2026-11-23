@@ -15,11 +15,11 @@ for(const royale of [false,true]) for(let mi=0;mi<20;mi++){
   await p.waitForTimeout(80); const a=await st();
   for(let i=0;i<10;i++){ await p.mouse.move(cx+3000-i*15,cy); await p.waitForTimeout(16); }
   await p.mouse.up(); await p.waitForTimeout(120); const b2=await st();
-  if(a.x>1) fails.push(`${royale?'QH':'solo'}${mi}: không chạm biên trái (camX=${a.x|0})`);
+  const lim=-(a.vw/a.sc)*0.5; if(Math.abs(a.x-lim)>3) fails.push(`${royale?'QH':'solo'}${mi}: không tới giới hạn trái (camX=${a.x|0}, kỳ vọng ${lim|0})`);
   if(!(b2.x>a.x+20)) fails.push(`${royale?'QH':'solo'}${mi}: kẹt biên — kéo ngược không nhúc nhích (${a.x|0}→${b2.x|0})`);
   // 2) kéo đến biên phải và biên dưới/trên
-  await p.mouse.move(cx,cy); await p.mouse.down(); for(let i=0;i<40;i++){ await p.mouse.move(cx-i*100,cy); await p.waitForTimeout(12);} await p.mouse.up(); await p.waitForTimeout(100);
-  const r=await st(); const maxX=r.W-r.vw/r.sc;
+  await p.mouse.move(cx,cy); await p.mouse.down(); for(let k=0;k<3;k++){ await p.mouse.move(cx,cy); await p.mouse.down(); for(let i=0;i<40;i++){ await p.mouse.move(cx-i*100,cy); await p.waitForTimeout(12);} await p.mouse.up(); } await p.waitForTimeout(100);
+  const r=await st(); const maxX=r.W-r.vw/r.sc*0.5;
   if(Math.abs(r.x-maxX)>3) fails.push(`${royale?'QH':'solo'}${mi}: không chạm biên phải (camX=${r.x|0}, max=${maxX|0})`);
   // 3) thu phóng quanh một điểm: điểm dưới ngón phải đứng yên (không trôi)
   await p.evaluate(()=>{ __ltm.bw.zoomAt(2.0, 300, 200); });

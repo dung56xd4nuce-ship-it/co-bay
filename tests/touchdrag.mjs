@@ -24,8 +24,8 @@ for(const mode of ['royale','1v1']){
       const c1=cams[cams.length-1];
       // camera phải đi đúng ngược chiều ngón tay theo tỉ lệ, không nhảy (trừ khi chạm biên)
       const ex=[c0[0]-dx/sc, c0[1]-dy/sc];
-      const maxY=await p.evaluate(()=>Math.max(0,BW.H-(__ltm.bw.lastVh||600)/__ltm.bw.scale)), maxX=await p.evaluate(()=>BW.W-(__ltm.bw.lastVw||1200)/__ltm.bw.scale);
-      const cl=[Math.max(0,Math.min(maxX,ex[0])),Math.max(0,Math.min(maxY,ex[1]))];
+      const L=await p.evaluate(()=>{ const bw=__ltm.bw, vW=(bw.lastVw||1200)/bw.scale, vH=(bw.lastVh||600)/bw.scale; return [-vW/2, BW.W-vW/2, -vH/2, Math.max(0,BW.H-vH)+vH/2]; });
+      const cl=[Math.max(L[0],Math.min(L[1],ex[0])),Math.max(L[2],Math.min(L[3],ex[1]))];
       const err=Math.hypot(c1[0]-cl[0],c1[1]-cl[1]);
       // bước nhảy lớn nhất giữa 2 lần di ngón liền nhau
       let jump=0, prev=c0; for(const c of cams){ jump=Math.max(jump,Math.hypot(c[0]-prev[0],c[1]-prev[1])); prev=c; }
