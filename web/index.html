@@ -3545,6 +3545,9 @@ class BigWar{
     this.texts.push({x:a.x,y:a.y-70,s:'🏳️ Rút lui về trại!',col:'#ffd54a',t:0,max:1.4,big:1});
     if(a.count<BW.food.disband) a.done=true;
   }
+  nearOwnBase(a,R){ let best=null,bd=1e9; for(const n of this.nodes){ if(n.owner!==a.owner||n.btl) continue; const d=Math.hypot(n.x-a.x,n.y-a.y)-(n.camp?150:0); if(d<bd&&Math.hypot(n.x-a.x,n.y-a.y)<=R){bd=d;best=n;} } return best; }
+  marchHome(a,n){ a.btl=null; a.camped=false; a.ambush=false; a.to=n.id; a.tx=null; a.ty=null; a.hunt=null; a.mergeInto=null; a.homeIn=1;
+    if(a.owner===this.localFid) this.texts.push({x:a.x,y:a.y-90,s:'⛺ Gom quân về '+(n.camp?'trại':'cứ điểm'),col:'#7dffcf',t:0,max:1.4}); }
   bEnd(b,winS,loseS){
     b.done=true;
     // cướp lương của bên thua
@@ -3567,7 +3570,8 @@ class BigWar{
         const prevOwner=node.owner;
         node.owner=winS.fid; node.type=ty; node.count=Math.max(1,tot); node.ambush=false; node.food=(node.food||0)+Math.round(fd*0.2);
         this.ring(node,BW.facPal(winS.fid).color); this.checkCamp(node,winS.fid,prevOwner);
-      } else { for(const e of winS.es){ if(e.kind==='army'){ e.ref.btl=null; e.ref.camped=true; } } }
+      } else { // giữ thành thắng: các đạo tiếp viện đang đứng quanh thành NHẬP THÀNH luôn
+        for(const e of winS.es){ if(e.kind==='army'){ const a=e.ref; a.btl=null; if(a.done||a.count<=0) continue; this.marchHome(a,node); } } }
     } else { // dã chiến: GỘP toàn bộ đạo thắng trận thành MỘT đạo
       const wa=winS.es.filter(e=>e.kind==='army'&&!e.ref.done&&e.ref.count>0).map(e=>e.ref);
       if(wa.length>1){ const main=wa.reduce((m2,a2)=>a2.count>m2.count?a2:m2,wa[0]);
@@ -3575,7 +3579,9 @@ class BigWar{
         main.count=Math.round(tot); main.food=Math.min(BW.food.max, Math.round(fd/wa.length)+20); main.btl=null; main.camped=true;
         this.texts.push({x:main.x,y:main.y-70,s:'🤝 Hợp binh: '+Math.round(tot)+' quân!',col:'#7dffcf',t:0,max:1.6,big:1});
       } else for(const a2 of wa) a2.btl=null;
-      if(wa.length===1) wa[0].camped=true; }
+      if(wa.length===1) wa[0].camped=true;
+      // thắng trận dã chiến sát trại/cứ điểm phe mình -> tự gom quân kéo vào trại
+      for(const a2 of wa){ if(a2.done||a2.count<=0) continue; const h=this.nearOwnBase(a2,650); if(h) this.marchHome(a2,h); } }
     const F=this.localFid;
     if(winS.fid===F) this.stats.win++; else if(loseS.fid===F) this.stats.lose++;
     if(winS.fid===F||loseS.fid===F) this.note(winS.fid===F?'🏆 Thắng trận!':'💀 Thua trận!',b.x,b.y, winS.fid===F?'🏆':'💀');
