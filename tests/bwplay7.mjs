@@ -1,0 +1,30 @@
+// v2.5: gộp quân thành -> đạo dã ngoại bằng CHẠM THẬT
+import { chromium, devices } from 'playwright';
+const which=process.argv[2]||'android';
+const {defaultBrowserType, ...o}= which==='ios'? devices['iPhone 14 Pro landscape'] : devices['Pixel 7 landscape'];
+const b=await chromium.launch(); const p=await (await b.newContext(o)).newPage();
+const errs=[]; p.on('pageerror',e=>errs.push(e.message));
+const R=[]; const ok=(c,m)=>{ R.push(c?1:0); if(!c) console.log('FAIL',m); };
+await p.goto('http://localhost:8766/index.html'); await p.waitForTimeout(1500);
+const tapEl=async(id)=>{ const r=await p.evaluate((id)=>{ const el=document.getElementById(id); const r2=el.getBoundingClientRect(); return [r2.x+r2.width/2,r2.y+r2.height/2]; },id); await p.touchscreen.tap(r[0],r[1]); await p.waitForTimeout(350); };
+await tapEl('bBW'); await tapEl('bBoss1v1'); await p.waitForTimeout(500);
+const S=await p.evaluate(()=>{ const bw=__ltm.bw; bw.nextAI=1e9; bw.nextWaveF={1:1e9}; bw.nextAiScout=1e9;
+  const nd=bw.nodes.find(n=>n.owner===0&&n.count>200&&!n.camp)||bw.nodes[0]; nd.count=Math.max(400,nd.count);
+  const sgn= nd.x<BW.W/2? 1 : -1; // hướng về giữa bản đồ, tránh mép & nút zoom
+  const F={owner:0,type:'archer',count:300,x:nd.x+sgn*480,y:Math.max(240,Math.min(BW.H-140,nd.y+40)),to:-1,trail:0,camped:true,ambush:true,food:60};
+  bw.armies.push(F); bw._updateVision();
+  return {nx:nd.x,ny:nd.y,fx:F.x,fy:F.y,c0:nd.count}; });
+const scr=async(wx,wy)=>p.evaluate(([wx,wy])=>{ const bw=__ltm.bw; const r=document.getElementById('game').getBoundingClientRect();
+  const sc=bw.scale; bw.camX=Math.max(0,Math.min(BW.W-r.width/sc,wx-r.width/sc/2)); bw.camY=Math.max(0,Math.min(Math.max(0,BW.H-r.height/sc),wy-r.height/sc/2));
+  return [(wx-bw.camX)*sc+r.left,(wy-bw.camY)*sc+r.top]; },[wx,wy]);
+let t=await scr(S.nx,S.ny); await p.touchscreen.tap(t[0],t[1]); await p.waitForTimeout(240);
+t=await scr(S.fx,S.fy); await p.touchscreen.tap(t[0],t[1]); await p.waitForTimeout(280);
+const mi=await p.evaluate(()=>{ const r=(__ltm.bw._menuRects||[]).find(r2=>r2.id==='merge'); const g=document.getElementById('game').getBoundingClientRect(); return r?[g.left+r.x+r.w/2,g.top+r.y+r.h/2]:null; });
+ok(!!mi, '🤝 Menu hiện lựa chọn GỘP QUÂN');
+await p.touchscreen.tap(mi[0],mi[1]); await p.waitForTimeout(250);
+await p.evaluate(()=>{ const bw=__ltm.bw; for(let k=0;k<240*60;k++){ bw.update(1/60); if(!bw.armies.some(a=>a.owner===0&&a.mergeInto)) break; } });
+const done=await p.evaluate(()=>{ const F2=__ltm.bw.armies.find(a=>a.owner===0&&a.camped); return F2?{c:Math.round(F2.count),amb:F2.ambush,n:__ltm.bw.armies.filter(a=>a.owner===0&&!a.done).length}:null; });
+ok(done&&done.n===1&&done.c>=S.c0+290, `🤝 Gộp xong: đạo dã ngoại ${done&&done.c} quân (300 + ${S.c0} từ thành), vẫn mai phục=${done&&done.amb}`);
+await p.screenshot({path:`test/${which}-merge.png`});
+console.log(which, R.filter(x=>x).length+'/'+R.length,'PASS | errors',errs.slice(0,2));
+await b.close();

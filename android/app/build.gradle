@@ -7,13 +7,23 @@ android {
         applicationId "com.dungnt.loanthememe"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode 42
+        versionName "4.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
              // Default: https://android.googlesource.com/platform/frameworks/base/+/282e181b58cf72b6ca770dc7ca5f91f135444502/tools/aapt/AaptAssets.cpp#61
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
+        }
+    }
+    // Khoá ký CỐ ĐỊNH cho bản APK cài trực tiếp: mọi bản phát hành cùng một chữ ký → cài đè lên bản cũ, KHÔNG mất dữ liệu đã lưu.
+    // (Trước v4.2 mỗi lần build CI sinh khoá ngẫu nhiên nên phải gỡ bản cũ mới cài được.) Đây là khoá debug theo thông lệ, không dùng cho Google Play.
+    signingConfigs {
+        debug {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
         }
     }
     buildTypes {

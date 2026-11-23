@@ -20,7 +20,7 @@ const r=await p.evaluate(()=>{
     out.strong={coalition:bw.coalition, alliesBefore:al0, alliesAfter:bw.allies.size, myAllyKept:bw.allied(0,near[0]), notes:bw.notes.map(n=>n.text).slice(-2)};
     const nlog=[]; const on=bw.note.bind(bw); bw.note=(t,x,y,i)=>{ nlog.push(Math.round(bw.time)+'s '+t); on(t,x,y,i); };
     const capBy={}; const own0=new Set(bw.nodes.filter(n=>n.owner===0).map(n=>n.id));
-    out.strong.targets=run(bw,240); for(const id of own0){ const o=bw.nodes[id].owner; capBy[o]=(capBy[o]||0)+1; } out.strong.ownerOfMyStartNodes=capBy; out.strong.log=nlog.filter(t=>/LIÊN QUÂN|bị diệt|mất|chiếm/.test(t)).slice(0,8); out.strong.jointNotes=bw.notes.map(n=>n.text).filter(t=>t.includes('LIÊN QUÂN')).length; out.strong.lostNodes=bw.nodes.filter(n=>n.owner===0).length; }
+    out.strong.targets=run(bw,240); for(const id of own0){ const o=bw.nodes[id].owner; capBy[o]=(capBy[o]||0)+1; } out.strong.ownerOfMyStartNodes=capBy; out.strong.log=nlog.filter(t=>/ALLIED ARMIES|fallen|lost|taken/.test(t)).slice(0,8); out.strong.jointNotes=bw.notes.map(n=>n.text).filter(t=>t.includes('LIÊN QUÂN')).length; out.strong.lostNodes=bw.nodes.filter(n=>n.owner===0).length; }
   // B) TA YẾU
   { const bw=mk(91); for(const n of bw.nodes) if(n.owner===0) n.count=Math.round(n.count*0.15); bw.aiDiplomacy();
     out.weak={playerWeak:bw.playerWeak, coalition:!!bw.coalition, targets:run(bw,240)}; }

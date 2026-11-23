@@ -22,7 +22,7 @@ const r=await p.evaluate(async()=>{
   // 2) mất KINH ĐÔ khi còn trại khác -> dời đô
   conquer(bw,myCap,enemy,myCap.count*4+5000);
   const newCap=bw.nodes.find(n=>n.capOf===F);
-  out.matKinhDo={over:bw.over, doiDo:!!newCap&&newCap.owner===F&&newCap!==myCap, thongBao:bw.notes.map(n=>n.text).filter(t=>t.includes('DỜI ĐÔ'))[0]||null};
+  out.matKinhDo={over:bw.over, doiDo:!!newCap&&newCap.owner===F&&newCap!==myCap, thongBao:bw.notes.map(n=>n.text).filter(t=>t.includes('MOVING THE CAPITAL'))[0]||null};
   // 3) mất nốt các trại -> THUA
   for(const n of bw.nodes.filter(n=>n.camp&&n.owner===F)) conquer(bw,n,enemy,n.count*4+5000);
   out.hetTrai={over:bw.over, ketQua:bw.result};

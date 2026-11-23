@@ -1,0 +1,11 @@
+import fs from 'fs';
+const src = ['01_config.js','02_map.js','03_sim.js','04_ai.js'].map(f=>fs.readFileSync('src/'+f,'utf8')).join('\n');
+const {World, levelConfig, T} = new Function(src+'\nreturn {World, levelConfig, T};')();
+const w = new World(levelConfig(1), 0, {allAI:true});
+const until=+process.argv[2], fid=+process.argv[3];
+for(let k=0;k<until/0.05;k++) w.step();
+const f=w.factions[fid]; const g=f.general;
+console.log('g',g.x,g.y,g.mode,'dead',g.dead,'stam',g.stam.toFixed(0),'order',g.order&&[g.order.x,g.order.y],'stuck',g.stuck.toFixed(1),'digT',g.digTile>=0?[g.digTile%w.W,(g.digTile/w.W)|0]:null, 'chan',!!g.channel);
+const hist={}; for(const u of f.units){ if(u.dead||u.type==='general')continue; const k=u.mode+(u.squad&&u.squad.flag?'F':''); hist[k]=(hist[k]||0)+1; } console.log(hist);
+const W=w.W; let s=''; for(let y=g.y-8;y<=g.y+8;y++){ for(let x=g.x-20;x<=g.x+20;x++){ const i=y*W+x; const o=w.occ[i]; const u=o?w.units[o-1]:null; s+= u&&!u.dead? (u.f===fid?(u.type==='general'?'@':'o'):(u.f===99?'n':'E')) : !f.explored[i]?'#': '.,frhmWRbXPts'[w.t[i]]; } s+='\n'; } console.log(s);
+console.log('jobs',[...w.digJobs.values()].filter(j=>j.f===fid).map(j=>[j.i%W,(j.i/W)|0,j.prog.toFixed(2),j.rate]));

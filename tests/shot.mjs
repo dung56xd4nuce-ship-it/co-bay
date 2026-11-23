@@ -1,0 +1,17 @@
+import { chromium, webkit, devices } from 'playwright';
+const which=process.argv[2]||'android';
+const dev = which==='ios' ? devices['iPhone 14 Pro landscape'] : devices['Pixel 7 landscape'];
+const browserType = chromium;
+const browser = await browserType.launch();
+const {defaultBrowserType, ...devOpts}=dev; const ctx = await browser.newContext(devOpts);
+const page = await ctx.newPage();
+const errs=[]; page.on('pageerror',e=>errs.push(e.message)); page.on('console',m=>{ if(m.type()==='error') errs.push(m.text()); });
+await page.route('**fonts.g*/**', r=>r.abort());
+await page.goto('file://'+process.cwd()+'/dist/index.html');
+await page.waitForTimeout(800);
+await page.screenshot({path:`test/${which}-menu.png`});
+await page.tap('#bPlay');
+await page.waitForTimeout(1500);
+await page.screenshot({path:`test/${which}-start.png`});
+console.log('errors', errs);
+await browser.close();

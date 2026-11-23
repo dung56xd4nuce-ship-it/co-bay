@@ -1,0 +1,13 @@
+import { chromium, devices } from 'playwright';
+const {defaultBrowserType, ...o}=devices['Pixel 7 landscape'];
+const b=await chromium.launch(); const p=await (await b.newContext(o)).newPage();
+p.on('pageerror',e=>console.log('ERR',e.message));
+await p.route('**fonts.g*/**', r=>r.abort());
+await p.goto('http://localhost:8766/index.html'); await p.waitForTimeout(1300);
+await p.evaluate(()=>{ document.querySelectorAll('.screen').forEach(e=>e.classList.add('hidden')); document.getElementById('hud').classList.remove('hidden'); __ltm.startLevel(21,{allAI:true}); });
+await p.waitForTimeout(300);
+await p.evaluate(()=>{ const w=__ltm.world; w.factions[0].explored.fill(1); const fl=w.flags[0];
+  document.getElementById('toasts').style.display='none'; document.getElementById('hint').style.display='none';
+  __ltm.G.ren.centerOn(fl.x,fl.y,true); __ltm.G.ren.cam.z=2.4; __ltm.stepSec(1); });
+await p.waitForTimeout(700); await p.screenshot({path:'test/flag-closeup.png'});
+await b.close();

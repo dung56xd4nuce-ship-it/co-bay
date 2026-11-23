@@ -25,7 +25,7 @@ for(const [label,idx] of [['Gọi 5 trại',0],['Gọi 10 trại',1],['Tổng đ
     const src=garr.map(a=>bw.nodes[a.from]); const ok=garr.every(a=>{ const f=bw.nodes[a.from], t=bw.nodes[a.to]; return (f.eco==='farm'||f.eco==='train')&&t.owner===0&&!t.eco; });
     const kept=src.every(f=>f.count>=30);
     // chạy mô phỏng tới khi quân trấn thủ tới nơi
-    const note0=bw.notes.map(n=>n.text).find(t=>t.includes('trấn thủ'))||null; const targets=garr.map(a=>bw.nodes[a.to]);
+    const note0=bw.notes.map(n=>n.text).find(t=>t.includes('garrison'))||null; const targets=garr.map(a=>bw.nodes[a.to]);
     for(let i=0;i<900;i++) bw.update(0.1);
     const filled=targets.filter(t=>t.owner===0&&t.count>=100).length;
     return {goiDi:rally.length, quanTranThu:garr.length, dungNguonVaDich:ok, traiChanNuoiConGiuLai:kept, traiDuocLapDay:filled+'/'+targets.length, thongBao:note0}; },before);

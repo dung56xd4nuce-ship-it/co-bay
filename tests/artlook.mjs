@@ -1,0 +1,12 @@
+import { chromium, devices } from 'playwright';
+const which=process.argv[2]||'android';
+const {defaultBrowserType, ...o}= which==='ios'? devices['iPhone 14 Pro landscape'] : devices['Pixel 7 landscape'];
+const b=await chromium.launch(); const p=await (await b.newContext(o)).newPage(); const errs=[]; p.on('pageerror',e=>errs.push(e.message));
+await p.route('**fonts.g*/**', r=>r.abort());
+await p.goto('http://localhost:8765/index.html'); await p.waitForTimeout(1500);
+await p.screenshot({path:`test/${which}-art-menu.png`});
+await p.evaluate(()=>{ __ltm.startLevel(1,{allAI:true}); __ltm.stepSec(+(new URLSearchParams(location.search).get('t')||0)); });
+await p.evaluate(()=>{ __ltm.stepSec(200); const w=__ltm.world; w.factions[0].explored.fill(1); const g=w.factions[0].general; __ltm.G.ren.centerOn(w.drum.x,w.drum.y+6,true); __ltm.G.ren.cam.z=1.1; });
+await p.waitForTimeout(1200); await p.screenshot({path:`test/${which}-art-game.png`});
+await p.evaluate(()=>{ const w=__ltm.world; const c=w.factions[1].camp; __ltm.G.ren.centerOn(c.x,c.y,true); }); await p.waitForTimeout(900); await p.screenshot({path:`test/${which}-art-camp.png`});
+console.log(errs); await b.close();

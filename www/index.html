@@ -128,7 +128,8 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
 .stats b{color:var(--gold)}
 #result h1{margin:0;font-size:clamp(34px,7vw,64px);-webkit-text-stroke:2px var(--ink);text-shadow:0 5px 0 var(--ink)}
 .kbd{display:inline-block;background:rgba(255,255,255,.15);border-radius:6px;padding:0 6px;font-weight:800}
-#rotate{position:absolute;left:0;right:0;bottom:0;padding:8px;text-align:center;background:rgba(255,213,74,.95);color:var(--ink);font-weight:800;font-size:13px;z-index:20;display:none}
+#rotate.off{display:none!important}
+#rotate{position:absolute;left:0;right:0;bottom:0;padding:8px 8px calc(8px + var(--safe-b));text-align:center;background:rgba(255,213,74,.95);color:var(--ink);font-weight:800;font-size:13px;z-index:20;display:none}
 @media (orientation:portrait) and (max-width:700px){ #rotate{display:block} #actions .btn{width:50px;height:50px;font-size:18px} #minimap{width:96px;height:96px} #tc{top:calc(58px + var(--safe-t))} #toasts{top:calc(150px + var(--safe-t))} #hint{top:auto;bottom:calc(190px + var(--safe-b));max-width:70vw} #selbar{bottom:calc(66px + var(--safe-b))} #items{bottom:calc(120px + var(--safe-b));left:auto;right:calc(8px + var(--safe-r));transform:none} #ctx{bottom:calc(180px + var(--safe-b))} }
 @media (max-height:420px){ #actions .btn{width:52px;height:50px} #minimap{width:100px;height:100px} #selbar{bottom:calc(66px + var(--safe-b))} }
 </style>
@@ -164,6 +165,7 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
     <div class="sub">Chibi strategy · Fog of war · Ambushes · Sieges · Conquer the realm</div>
     <div class="menuBtns"><button class="btn big" id="bBW" style="background:linear-gradient(#ffd0c2,#ff7a50);font-size:26px;padding:12px 30px">👑 BATTLE</button><button class="btn" id="bP2P" style="background:linear-gradient(#c9e7ff,#7db8ff)">📶 2-PLAYER P2P</button><button class="btn" id="bPlay" style="display:none">🥁 Drum Campaign</button><button class="btn" id="bMini" style="display:none">⚡ Blitz</button><button class="btn" id="bForge" style="display:none"><span class="ic" data-art="ui:forge">⚒️</span> General Forge</button><button class="btn" id="bLevels" style="display:none">🗺️ Stages</button><button class="btn" id="bArt">🎨 Art pack</button><button class="btn" id="bFull">⛶ Full screen</button><button class="btn" id="bHelp">📖 How to play</button></div>
     <div class="coinbar"><span class="ic" data-art="ui:coin">🪙</span> <b class="xu">0</b> Meme Coins</div>
+    <div id="ver" style="position:absolute;right:calc(10px + var(--safe-r));bottom:calc(6px + var(--safe-b));font-size:12px;font-weight:700;opacity:.6;pointer-events:none">v4.2</div>
   </div>
   <div id="forge" class="screen hidden"><div class="card wide"><div class="fhead"><h2>⚒️ General Forge</h2><div class="coinbar"><span class="ic" data-art="ui:coin">🪙</span> <b class="xu">0</b> Coins</div></div>
     <div class="fprev"><canvas id="forgeHero" width="220" height="220"></canvas><div id="forgeStats"></div></div>
@@ -255,6 +257,7 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
     <div style="text-align:right"><button class="btn" data-back>Got it!</button></div></div></div>
   <div id="pause" class="screen hidden"><div class="card" style="text-align:center"><h2>⏸ Paused</h2><div class="menuBtns"><button class="btn big" id="bResume">▶ Resume</button><button class="btn" id="bRestart">↻ Restart</button><button class="btn" id="bPHelp">📖 How to play</button><button class="btn" id="bMenu">🏠 Menu</button></div></div></div>
   <div id="result" class="screen hidden"><div class="card" style="text-align:center"><h1 id="rTitle">VICTORY!</h1><div id="rSub" class="sub" style="margin:6px 0"></div><div class="stats" id="rStats"></div><div id="rXu" class="coinbar"></div><div class="menuBtns"><button class="btn big" id="bNext">Next stage ▶</button><button class="btn" id="bRForge" style="display:none">⚒️ Forge</button><button class="btn" id="bAgain">↻ Play again</button><button class="btn" id="bRMenu">🏠 Menu</button></div></div></div>
+  <div id="ask" class="screen hidden" style="z-index:30"><div class="card" style="text-align:center;max-width:min(92vw,460px)"><h2 id="askT" style="font-size:20px;line-height:1.3"></h2><p id="askS" style="opacity:.85"></p><div class="menuBtns" style="margin-top:10px"><button class="btn big" id="askY">Yes</button><button class="btn" id="askN">Cancel</button></div></div></div>
   <div id="rotate">📱↻ Rotate your phone to landscape for a wider view</div>
 </div>
 <script>
@@ -2569,7 +2572,7 @@ const ptrs=new Map(); let gest=null;
 function canvasPos(e){ const r=$('game').getBoundingClientRect(); return [e.clientX-r.left,e.clientY-r.top]; }
 function setupInput(){
   const cv=$('game');
-  cv.addEventListener('pointerdown',(e)=>{ audio.init(); try{ cv.setPointerCapture&&cv.setPointerCapture(e.pointerId); }catch(_){} const p=canvasPos(e); if(G.bw){ if(G.bw.intro) G.bw.intro=null; if(p[1]<120) G.bw.revealHud(); } ptrs.set(e.pointerId,{x:p[0],y:p[1],sx:p[0],sy:p[1],t:performance.now()});
+  cv.addEventListener('pointerdown',(e)=>{ audio.init(); try{ cv.setPointerCapture&&cv.setPointerCapture(e.pointerId); }catch(_){} const p=canvasPos(e); if(G.bw){ if(G.bw.intro) G.bw.intro=null; if(p[1]<SAFE.t+130) G.bw.revealHud(); } ptrs.set(e.pointerId,{x:p[0],y:p[1],sx:p[0],sy:p[1],t:performance.now()});
     if(ptrs.size===1){ gest={mode:'tap',x:p[0],y:p[1],t:performance.now()};
       // GIỮ YÊN NGÓN ~0.35s rồi kéo = VÙNG QUÉT chọn nhiều đạo quân
       if(G.bw&&!G.bw.over){ const g0=gest; g0.lp=setTimeout(()=>{ if(gest===g0&&g0.mode==='tap'&&ptrs.size===1&&G.bw&&!G.bw.over&&!G.bw.rallyOpen){ g0.mode='box'; G.bw.box={x0:g0.x,y0:g0.y,x1:g0.x,y1:g0.y}; G.bw.menu=null; try{ navigator.vibrate&&navigator.vibrate(18); }catch(_){} } },350); } }
@@ -2767,7 +2770,11 @@ function setupMenus(){
   $('bMini').onclick=()=>{ audio.init(); startLevel('mini'); };
   $('bBW').onclick=()=>{ audio.init(); refreshContinue(); $('bossPick').classList.remove('hidden'); };
   $('bBoss1v1').onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); startBigWar(Math.min(BW_LEVELS.length,save.bwMax||1)); };
-  $('bBossRoyale').onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); try{ localStorage.removeItem(RSAVE); }catch(e){} G.bwCfg={royale:36, seed: 61+((Math.random()*999)|0)}; startBigWar(5); };
+  $('bBossRoyale').onclick=()=>{ audio.click(); const go=()=>{ $('bossPick').classList.add('hidden'); try{ localStorage.removeItem(RSAVE); }catch(e){} G.bwCfg={royale:36, seed: 61+((Math.random()*999)|0)}; startBigWar(5); };
+    const sv=royaleLoadInfo(); // đang có ván lưu: hỏi lại, kẻo chạm nhầm là mất cả ván chơi dài
+    if(sv){ const nat=new Set(sv.nodes.filter(n=>n.camp&&n.owner!==2).map(n=>n.owner)).size, mm=Math.floor((sv.sc.time||0)/60);
+      ask('Start a NEW Warlords game?',`Your saved game (${nat} nations left, ${mm} min played) will be erased.`,'🌏 New game',go); }
+    else go(); };
   const refreshContinue=()=>{ const sv=royaleLoadInfo(), bc=$('bBossContinue');
     if(bc){ if(sv){ const d=new Date(sv.savedAt), nat=new Set(sv.nodes.filter(n=>n.camp&&n.owner!==2).map(n=>n.owner)).size, mm=Math.floor((sv.sc.time||0)/60);
         bc.style.display=''; bc.innerHTML=`▶ CONTINUE WARLORDS<br><small>${nat} nations · played ${mm} min · saved ${d.toLocaleString('en-US',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'short'})}</small>`;
@@ -2777,18 +2784,26 @@ function setupMenus(){
   $('bP2P').onclick=()=>{ audio.init(); P2P.open(); };
   $('bFull').onclick=()=>{ audio.init(); audio.click(); goFullscreen(); };
   $('bwFull').onclick=(e)=>{ e.stopPropagation(); audio.click(); goFullscreen(); };
-  $('bwBack').onclick=()=>{ audio.click(); if(G.bw&&G.bw.cfg&&G.bw.cfg.p2p&&typeof P2P!=='undefined') P2P.drop('Your opponent left the match.'); stopBigWar(true); };
+  const leave=()=>{ if(G.bw&&G.bw.cfg&&G.bw.cfg.p2p&&typeof P2P!=='undefined') P2P.drop('Your opponent left the match.'); G.paused=false; $('pause').classList.add('hidden'); stopBigWar(true); };
+  $('bwBack').onclick=()=>{ audio.click(); const bw=G.bw; if(!bw){ stopBigWar(true); return; }
+    if(bw.over){ leave(); return; }
+    if(bw.royale&&!(bw.cfg&&bw.cfg.p2p)){ leave(); toast('💾 Warlords game saved — tap BATTLE → CONTINUE to resume',3); return; } // Quần Hùng tự lưu: thoát không mất gì
+    ask(bw.cfg&&bw.cfg.p2p? 'Leave the 2-player match?' : 'Leave this battle?', bw.cfg&&bw.cfg.p2p? 'Your opponent will be disconnected.' : 'Progress in this battle will be lost.', '🏠 Leave', leave); };
   $('bwPause').onclick=(e)=>{ e.stopPropagation(); audio.click(); bwSetPause(true); };
-  $('bwRetry').onclick=()=>{ audio.click(); startBigWar(G.bw?G.bw.lv:1); };
+  $('bwRetry').onclick=()=>{ audio.click(); const bw=G.bw; if(!bw) return;
+    if(bw.cfg&&bw.cfg.p2p){ toast('↻ Restart is not available in a 2-player match',2.5); return; }
+    ask(bw.royale? 'Restart Warlords from the beginning?' : 'Restart this battle?', bw.royale? 'Your current conquest will be lost.' : 'Progress in this battle will be lost.', '↻ Restart', bwRestart); };
   $('bLevels').onclick=()=>{ audio.init(); buildLevels(); showScreen('levels'); };
   $('bHelp').onclick=()=>{ audio.init(); G.helpFrom='menu'; showScreen('help'); };
   document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{ if(!$('forge').classList.contains('hidden') && G.forgeFrom==='result'){ $('forge').classList.add('hidden'); $('result').classList.remove('hidden'); return; } if(G.helpFrom==='pause'){ G.helpFrom=null; $('help').classList.add('hidden'); $('pause').classList.remove('hidden'); } else showScreen('menu'); });
   $('tc').onclick=()=>{ if(G.world&&G.ren){ const d=G.world.drum; G.ren.centerOn(d.x,d.y); } };
   $('bPause').onclick=()=>{ audio.init(); pause(true); };
   $('bResume').onclick=()=>bwSetPause(false);
-  $('bRestart').onclick=()=>{ if(G.bw){ pause(false); const cfg=G.lastBwCfg||{}; G.bwCfg=Object.assign({},cfg); startBigWar(G.bw.lv||1); } else startLevel(G.level); };
+  $('bRestart').onclick=()=>{ if(G.bw){ const bw=G.bw; if(bw.royale&&!bw.over){ ask('Restart Warlords from the beginning?','Your current conquest will be lost.','↻ Restart',()=>{ pause(false); bwRestart(); }); return; } pause(false); bwRestart(); } else startLevel(G.level); };
   $('bPHelp').onclick=()=>{ G.helpFrom='pause'; $('pause').classList.add('hidden'); $('help').classList.remove('hidden'); };
-  $('bMenu').onclick=()=>{ if(G.bw){ if(G.bw.cfg&&G.bw.cfg.p2p&&typeof P2P!=='undefined') P2P.drop('Your opponent left the match.'); G.paused=false; stopBigWar(true); return; } G.world=null; G.paused=true; showScreen('menu'); setupMenus(); };
+  $('bMenu').onclick=()=>{ if(G.bw){ const bw=G.bw; if(bw.over||(bw.royale&&!(bw.cfg&&bw.cfg.p2p))){ leave(); return; }
+      ask(bw.cfg&&bw.cfg.p2p? 'Leave the 2-player match?' : 'Leave this battle?', bw.cfg&&bw.cfg.p2p? 'Your opponent will be disconnected.' : 'Progress in this battle will be lost.', '🏠 Leave', leave); return; }
+    G.world=null; G.paused=true; showScreen('menu'); setupMenus(); };
   $('bAgain').onclick=()=>startLevel(G.level);
   $('bNext').onclick=()=>startLevel(Math.min(40,(typeof G.level==='number'?G.level:0)+1));
   $('bForge').onclick=()=>{ audio.init(); G.forgeFrom='menu'; openForge(); };
@@ -2840,12 +2855,20 @@ function applyUiArt(){
 onArt(applyUiArt);
 
 // ---------- 🔥 Đại Chiến ----------
+// hộp hỏi lại trước thao tác không hoàn tác được (không dùng confirm() của trình duyệt)
+function ask(title,sub,yes,cb){ const was=G.paused; G.paused=true; $('askT').textContent=title; $('askS').textContent=sub||''; $('askY').textContent=yes||'Yes'; $('ask').classList.remove('hidden');
+  const close=(ok)=>{ $('ask').classList.add('hidden'); G.paused=was; if(ok) cb(); };
+  $('askY').onclick=()=>{ audio.click(); close(true); }; $('askN').onclick=()=>{ audio.click(); close(false); }; }
+// chơi lại ĐÚNG chế độ/bản đồ đang chơi (trước đây nút ↻ làm ván Quần Hùng biến thành ải 1v1)
+function bwRestart(){ const lv=(G.bw&&G.bw.lv)||1; G.paused=false; G.bwCfg=Object.assign({},G.lastBwCfg||{}); if(G.bwCfg.royale){ try{ localStorage.removeItem(RSAVE); }catch(e){} } startBigWar(lv); }
+function rotateHint(show){ const r=$('rotate'); clearTimeout(G._rotT); r.classList.remove('off'); if(show) G._rotT=setTimeout(()=>r.classList.add('off'),6000); }
 function startBigWar(lv){
   lv=Math.max(1,Math.min(BW_LEVELS.length,lv||1));
   G.lastBwCfg=Object.assign({},G.bwCfg||{}); G.bw=new BigWar(lv, G.bwCfg||{}); G.bw.autoMenu=false; G.bw.lv=lv; G.world=null; G.paused=false; G.resultShown=false; G.sel.clear(); G.bwCfg=null;
   document.body.classList.remove('mini');
   ['menu','levels','help','pause','result'].forEach(id=>$(id).classList.add('hidden'));
-  $('hud').classList.add('hidden'); $('bwbar').classList.remove('hidden');
+  $('hud').classList.add('hidden'); $('bwbar').classList.remove('hidden'); $('ask').classList.add('hidden');
+  $('bwRetry').style.display= G.bw.cfg&&G.bw.cfg.p2p? 'none':''; rotateHint(true); // băng "xoay ngang" chỉ hiện 6 giây đầu trận rồi nhường chỗ cho bản đồ
 }
 // 💾 Lưu ván Quần Hùng vào bộ nhớ máy: tự lưu 15 giây/lần, khi ẩn app, khi về menu
 const RSAVE='ltm_royale_save_v1';
@@ -2858,21 +2881,24 @@ function royaleResume(){ const sv=royaleLoadInfo(); if(!sv) return false;
 setInterval(()=>{ if(G.bw&&G.bw.royale&&!G.paused) royaleSave(); },15000);
 document.addEventListener('visibilitychange',()=>{ if(document.hidden) royaleSave(); });
 window.addEventListener('pagehide',()=>royaleSave());
-function stopBigWar(toMenu){ royaleSave(); G.bw=null; $('bwbar').classList.add('hidden'); if(toMenu){ showScreen('menu'); setupMenus(); } }
+function stopBigWar(toMenu){ royaleSave(); G.bw=null; $('bwbar').classList.add('hidden'); rotateHint(false); if(toMenu){ showScreen('menu'); setupMenus(); } }
 function showBwResult(){
   const bw=G.bw, r=bw.result; G.resultShown=true; if(bw.royale){ try{ localStorage.removeItem(RSAVE); }catch(e){} } const win=r.win; const lv=bw.lv;
   $('rTitle').textContent= win? '🎉 VICTORY!' : '💀 DEFEAT';
   $('rTitle').style.color= win? '#ffd54a' : '#f87171';
   const bk= win? 'ui:win':'ui:lose'; if(artOK(bk)) $('rTitle').innerHTML=`<img src="${ArtUrls[bk]}" style="max-width:min(70vw,460px);max-height:17vh">`;
-  $('rSub').textContent= win? `Enemy camp destroyed — ${bw.L.name}!` : 'Our camp has fallen...';
+  $('rSub').textContent= bw.royale? (win? 'The whole realm is yours — every nation has fallen!' : 'Your last camp has fallen — the realm belongs to others...') : (win? `Enemy camp destroyed — ${bw.L.name}!` : 'Our camp has fallen...');
   const xu=Math.round(bw.stats.eat/40 + bw.stats.win*4 + (win? 30+18*lv : 8));
   save.xu=(save.xu||0)+xu; if(win){ save.bwMax=Math.max(save.bwMax||1,lv+1); } Save.set(save); refreshXu();
   $('rStats').innerHTML=`<div>⏱️ Time: <b>${fmt(bw.time)}</b></div><div>🤝 Defected to you: <b>${bw.stats.eat}</b> troops</div><div>⚔️ Battles won: <b>${bw.stats.win}</b></div><div>💥 Armies routed: <b>${bw.stats.lose}</b></div><div>👥 Peak strength: <b>${bw.stats.peak}</b></div><div>🪙 Coins earned: <b>+${xu}</b></div>`;
   $('rXu').innerHTML='';
-  const next= win && lv<BW_LEVELS.length;
+  const solo1v1=!bw.royale&&!(bw.cfg&&bw.cfg.p2p);
+  const next= solo1v1 && win && lv<BW_LEVELS.length;
   $('bNext').classList.toggle('hidden',!next);
   $('bNext').onclick=()=>{ $('result').classList.add('hidden'); startBigWar(Math.min(lv+1,BW_LEVELS.length)); };
-  $('bAgain').onclick=()=>{ $('result').classList.add('hidden'); startBigWar(lv); };
+  $('bAgain').classList.toggle('hidden',!!(bw.cfg&&bw.cfg.p2p)); // P2P: muốn đấu lại thì hai máy kết nối lại
+  $('bAgain').textContent= bw.royale? '🌏 New Warlords game' : '↻ Play again';
+  $('bAgain').onclick=()=>{ $('result').classList.add('hidden'); if(bw.royale){ G.bwCfg={royale:36, seed: 61+((Math.random()*999)|0)}; startBigWar(5); } else bwRestart(); };
   $('bRMenu').onclick=()=>{ stopBigWar(false); G.world=null; showScreen('menu'); setupMenus(); };
   if(win){ audio.win(); } $('result').classList.remove('hidden'); $('bwbar').classList.add('hidden');
 }
@@ -2915,6 +2941,12 @@ window.__ltm={ G, startBigWar, royaleSave, royaleResume, royaleLoadInfo, get Big
 window.addEventListener('resize',()=>{ if(G.ren) G.ren.resize(); });
 window.addEventListener('orientationchange',()=>setTimeout(()=>{ if(G.ren) G.ren.resize(); },300));
 document.addEventListener('visibilitychange',()=>{ if(document.hidden && G.world && !G.world.over && !G.paused) pause(true); });
+$('rotate').onclick=()=>{ clearTimeout(G._rotT); $('rotate').classList.add('off'); };
+// trong app (APK/iOS) màn hình đã tràn viền sẵn: nút ⛶ vô dụng nên ẩn đi
+const IS_NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform());
+if(IS_NATIVE){ for(const id of ['bFull','bwFull']){ const e=$(id); if(e) e.style.display='none'; } }
+// app chuyển nền / tắt màn hình: tắt nhạc ngay, quay lại thì bật tiếp
+document.addEventListener('visibilitychange',()=>{ const c=audio&&audio.ctx; if(!c) return; try{ if(document.hidden) c.suspend(); else c.resume(); }catch(e){} });
 loadArt(); setupInput(); setupMenus(); menuBg(); refreshXu(); requestAnimationFrame(frame);
 
 // ===== ⛶ TOÀN MÀN HÌNH =====
@@ -2931,11 +2963,28 @@ function goFullscreen(){
 }
 function toast(msg,sec){ let t=document.getElementById('ltmToast');
   if(!t){ t=document.createElement('div'); t.id='ltmToast';
-    t.style.cssText='position:fixed;left:50%;bottom:14%;transform:translateX(-50%);background:rgba(25,15,45,0.95);color:#ffe9c9;padding:12px 18px;border-radius:14px;font:800 15px "Baloo 2",system-ui;z-index:99;max-width:86vw;text-align:center;border:2px solid #ffd54a';
+    t.style.cssText='position:fixed;left:50%;bottom:14%;transform:translateX(-50%);background:rgba(25,15,45,0.95);color:#ffe9c9;padding:12px 18px;border-radius:14px;font:800 15px "Baloo 2",system-ui;z-index:99;max-width:86vw;text-align:center;border:2px solid #ffd54a;pointer-events:none';
     document.body.appendChild(t); }
   t.textContent=msg; t.style.display='block'; clearTimeout(t._h); t._h=setTimeout(()=>t.style.display='none',(sec||3)*1000); }
 
 // ---- 09_bigwar.js
+// ===== vùng an toàn của màn hình (tai thỏ / thanh trạng thái / thanh điều hướng), tính bằng px =====
+const SAFE={t:0,l:0,r:0,b:0,at:-1e9};
+function readSafe(){ const now=(typeof performance!=='undefined')? performance.now() : 0; if(now-SAFE.at<400) return SAFE; SAFE.at=now;
+  try{ let p=document.getElementById('safeProbe');
+    if(!p){ p=document.createElement('div'); p.id='safeProbe'; p.style.cssText='position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:var(--safe-t) var(--safe-r) var(--safe-b) var(--safe-l)'; document.body.appendChild(p); }
+    const cs=getComputedStyle(p); SAFE.t=parseFloat(cs.paddingTop)||0; SAFE.r=parseFloat(cs.paddingRight)||0; SAFE.b=parseFloat(cs.paddingBottom)||0; SAFE.l=parseFloat(cs.paddingLeft)||0; }catch(e){}
+  return SAFE; }
+// bẻ dòng theo bề rộng (tối đa maxLines dòng; còn chữ thì dòng cuối kết bằng …)
+function bwWrap(c,text,maxW,maxLines){ const words=String(text).split(' '), lines=[]; let cur='';
+  for(const w of words){ const t=cur? cur+' '+w : w; if(!cur||c.measureText(t).width<=maxW) cur=t; else { lines.push(cur); cur=w; } }
+  if(cur) lines.push(cur);
+  const cut=(s)=>{ let a=[...s]; while(a.length>1&&c.measureText(a.join('')+'…').width>maxW) a.pop(); return a.join('').replace(/\s+$/,'')+'…'; };
+  if(lines.length>maxLines){ const last=lines.slice(maxLines-1).join(' '); lines.length=maxLines; lines[maxLines-1]=cut(last); }
+  for(let i=0;i<lines.length;i++) if(c.measureText(lines[i]).width>maxW) lines[i]=cut(lines[i]);
+  return lines; }
+// đặt cỡ chữ lớn nhất (f0→fMin) để một dòng vừa bề rộng maxW
+function bwFit(c,text,maxW,weight,f0,fMin){ let f=f0; for(;f>fMin;f--){ c.font=`${weight} ${f}px "Baloo 2",system-ui`; if(c.measureText(text).width<=maxW) return f; } c.font=`${weight} ${fMin}px "Baloo 2",system-ui`; return fMin; }
 // ============ 🔥 ĐẠI CHIẾN LẤN ĐẤT — chế độ node quân số ============
 // Chạm đạo quân của mình → chạm đích. Nuốt trại trung lập là cộng quân.
 // Đánh địch giải bằng quân số × hệ số khắc chế (luật Lanchester cho cảm giác "đánh số").
@@ -3352,7 +3401,7 @@ class BigWar{
       const tgtNode = !tgtArmy&&best? best : null;
       let opts=[];
       if(tgtArmy) opts=[{id:'hunt',s:'⚔️ Pursue'},{id:'cancel',s:'✖ Cancel'}];
-      else if(tgtNode&&tgtNode.owner===F) opts=[{id:'move',s:'🛡️ Send troops here (merge/garrison)'},{id:'cancel',s:'✖ Cancel'}];
+      else if(tgtNode&&tgtNode.owner===F) opts=[{id:'move',s:'🛡️ Reinforce this post'},{id:'cancel',s:'✖ Cancel'}];
       else if(tgtNode&&tgtNode.owner===2&&tgtNode.count<=0) opts=[{id:'move',s:'🏃 March and capture'},{id:'cancel',s:'✖ Cancel'}];
       else if(tgtNode&&this.royale&&tgtNode.owner>=3&&this.allied(F,tgtNode.owner)) opts=[{id:'unally',s:'✂️ Break alliance'},{id:'scout',s:'🕵️ Scout'},{id:'cancel',s:'✖ Cancel'}];
       else if(tgtNode&&this.royale&&tgtNode.owner>=3&&tgtNode.camp) opts=[{id:'ally',s:'🤝 Propose alliance'},{id:'attack',s:'⚔️ Attack'},{id:'siege',s:'⛓️ Siege (cut supply)'},{id:'scout',s:'🕵️ Scout'},{id:'cancel',s:'✖ Cancel'}];
@@ -4457,35 +4506,84 @@ class BigWar{
   // HUD phía trên mờ đi khi không thao tác; chạm vào vùng trên (hoặc nút) thì hiện rõ lại
   revealHud(){ this.hudSeen=performance.now(); }
   hudAlpha(){ const target=(performance.now()-this.hudSeen<3000)?1:0.18; this.hudA+=(target-this.hudA)*0.12; return this.hudA; }
+  // ===== BỐ CỤC HUD =====
+  // Mọi nút/bảng lấy vị trí từ đây: né tai thỏ/thanh trạng thái (SAFE), né cụm nút 🏠↻⏸ và băng "xoay ngang",
+  // không phần tử nào đè nhau ở mọi cỡ màn hình ngang/dọc. test/audit_layout.mjs kiểm đúng các ô này trước mỗi lần phát hành.
+  _domRects(){ const now=performance.now(); if(this._dr&&now-this._dr.t<200) return this._dr;
+    const cv=document.getElementById('game'), c0=cv? cv.getBoundingClientRect() : {left:0,top:0};
+    const rel=(id)=>{ const el=document.getElementById(id); if(!el||el.classList.contains('hidden')||getComputedStyle(el).display==='none') return null;
+      const r=el.getBoundingClientRect(); return r.width&&r.height? {x:r.left-c0.left,y:r.top-c0.top,w:r.width,h:r.height} : null; };
+    return this._dr={t:now,bar:rel('bwbar'),rot:rel('rotate')}; }
+  hudLayout(vw,vh){
+    const S=readSafe(), D=this._domRects();
+    const X0=S.l, Y0=S.t, X1=vw-S.r, Y1=Math.min(vh-S.b, D.rot? D.rot.y : 1e9), W=X1-X0, cx=(X0+X1)/2, narrow=W<560;
+    const bar=D.bar||{x:X0+8,y:Y0+8,w:0,h:0};
+    // bản đồ nhỏ: góc phải trên, không lấn sang cụm nút
+    const freeR=X1-10-(bar.x+bar.w+8);
+    const ow=Math.max(60,Math.min(Math.min(240,Math.max(110,W*0.25)),freeR)), oh=Math.max(28,Math.round(ow*BW.H/BW.W)+8);
+    const map={x:X1-ow-10,y:Y0+8,w:ow,h:oh};
+    // thanh quân số: nằm giữa cụm nút và bản đồ nhỏ nếu đủ chỗ, không thì xuống hàng 2
+    const gL=bar.x+bar.w+8, gR=map.x-8; let top;
+    if(gR-gL>=190){ const w=Math.min(400,W*0.38,gR-gL); top={x:Math.max(gL,Math.min(gR-w,cx-w/2)),y:Y0+8,w,h:32,row:1}; }
+    else { top={x:X0+8,y:Math.max(bar.y+bar.h,map.y+map.h)+6,w:Math.min(400,W-16),h:32,row:2}; }
+    // cột phải: nút TOÀN CẢNH (khi đang phóng to) + nút ＋ －
+    const zooming=this.zoomTgt>1.05; let zs=46, zg=12; const zx=X1-zs-10;
+    let colTop=map.y+map.h+8; if(top.row===2&&top.x+top.w>zx-8) colTop=Math.max(colTop,top.y+top.h+8);
+    let ovw=null; if(zooming&&!narrow){ ovw={x:X1-150-10,y:colTop,w:150,h:40,wide:1}; colTop=ovw.y+ovw.h+8; }
+    const nB=2+(zooming&&narrow?1:0), room=Y1-8-colTop;
+    if(nB*zs+(nB-1)*zg>room){ zg=6; zs=Math.max(36,Math.min(46,Math.floor((room-(nB-1)*zg)/nB))); }
+    const colH=nB*zs+(nB-1)*zg; let zy=Math.max(colTop,Math.min(vh*0.5-56-(nB>2? zs+zg : 0),Y1-8-colH));
+    if(nB>2){ ovw={x:X1-zs-10,y:zy,w:zs,h:zs,wide:0}; zy+=zs+zg; }
+    const zooms=[{x:X1-zs-10,y:zy,w:zs,h:zs,dir:1},{x:X1-zs-10,y:zy+zs+zg,w:zs,h:zs,dir:-1}];
+    // góc trái dưới: 📣 gọi quân (trên) + 🪤 mai phục (dưới); giữa đáy: 🏳️ rút lui
+    const rally={x:X0+12,y:Y1-48-76,w:48,h:48}, amb={x:X0+12,y:Y1-52-12,w:Math.min(190,W-24),h:52};
+    const retreat={x:cx-85,y:Y1-48-64,w:170,h:48};
+    // thông báo: cột trái, dưới cụm nút/thanh quân số; bề rộng tự co để không chui xuống bản đồ nhỏ và cột nút phải
+    const blockers=[map,...zooms]; if(ovw) blockers.push(ovw);
+    const noteX=X0+10, noteY=Math.max(bar.y+bar.h,top.y+top.h)+8, noteBottom=rally.y-8;
+    const noteMaxW=(y,h)=>{ let r=X1-10; for(const b of blockers) if(y<b.y+b.h+4&&y+h>b.y-4) r=Math.min(r,b.x-8); return r-noteX; };
+    return this._L={S,X0,Y0,X1,Y1,W,cx,narrow,bar:D.bar,rot:D.rot,map,top,ovw,zooms,rally,amb,retreat,noteX,noteY,noteBottom,noteMaxW,vw,vh};
+  }
+  // các ô HUD đang hiển thị (đúng những ô dùng để vẽ và bắt chạm) — phục vụ kiểm thử bố cục
+  hudRects(){ const L=this._L, R={}; if(!L) return R; const o=this.obar;
+    if(L.bar) R['nút 🏠↻⏸']=L.bar; if(this._topBar) R['thanh quân số']=this._topBar; if(o) R['bản đồ nhỏ']={x:o.ox,y:o.oy,w:o.ow,h:o.oh};
+    (this._zBtns||[]).forEach(z=>R[z.dir>0?'nút +':'nút −']={x:z.x,y:z.y,w:z.w,h:z.h});
+    if(this._zoomBtn) R['nút TOÀN CẢNH']=this._zoomBtn; if(this._rallyBtn) R['nút 📣']=this._rallyBtn; if(this._ambBtn) R['nút mai phục']=this._ambBtn;
+    if(this._retreatBtn) R['nút RÚT LUI']={x:this._retreatBtn.x,y:this._retreatBtn.y,w:this._retreatBtn.w,h:this._retreatBtn.h};
+    (this._noteRects||[]).forEach((n,i)=>R['thông báo '+(i+1)]={x:n.x,y:n.y,w:n.w,h:n.h});
+    if(this._rallyMenu) R['menu gọi quân']=this._rallyMenu; if(this._orderMenu) R['menu lệnh']=this._orderMenu; if(this._hintBox) R['dòng hướng dẫn']=this._hintBox;
+    if(L.rot) R['băng "xoay ngang"']=L.rot; return R; }
   drawHud(c,vw,vh,tm){
     const ha=this.hudAlpha(); const bbar=document.getElementById('bwbar'); if(bbar) bbar.style.opacity=ha.toFixed(3);
+    const L=this.hudLayout(vw,vh), F=this.localFid, FONT='"Baloo 2",system-ui';
     // tổng lực hai bên + tên màn
-    const F=this.localFid;
     const my=Math.round(this.myPower()); let en=0, unk=false;
     for(const n of this.nodes){ if(!this.isFoe(n.owner,F)) continue; if(this.visNow(n)) en+=n.count; else if(n.known){ en+=n.known.count; unk=true; } else unk=true; }
     for(const a of this.armies) if(this.isFoe(a.owner,F)&&this.visAt(a.x,a.y)) en+=a.count;
-    const w2=Math.min(400,vw*0.38);
-    c.globalAlpha=ha; c.fillStyle='rgba(25,15,45,0.72)'; rr(c,vw/2-w2/2,8,w2,32,10); c.fill(); c.strokeStyle='rgba(255,255,255,0.15)'; c.lineWidth=1.5; rr(c,vw/2-w2/2,8,w2,32,10); c.stroke();
-    const tot=Math.max(1,my+en); c.fillStyle='#3b82f6'; rr(c,vw/2-w2/2+8,27,(w2-16)*my/tot,7,3); c.fill();
-    c.fillStyle='#ef4444'; rr(c,vw/2-w2/2+8+(w2-16)*my/tot,27,(w2-16)*en/tot,7,3); c.fill();
-    c.font='800 13px "Baloo 2",system-ui'; c.textAlign='center'; c.fillStyle='#fff';
-    { const cap=this.supplyCap(F); const t1=`⚔️${my}/${cap}`, t2=' · '+(this.royale? `🌏 ${new Set(this.nodes.filter(n=>n.camp&&n.owner!==2).map(n=>n.owner)).size} nations` : `🔥 Stage ${this.lv}`)+` · ${this.mapName.length>11?this.mapName.slice(0,10)+'…':this.mapName}`;
-      const enT=(unk?'~':'')+Math.round(en)+(unk?'?':''); c.font='800 13px "Baloo 2",system-ui'; const enW=c.measureText(enT).width+10;
-      let fs=13; c.font=`800 ${fs}px "Baloo 2",system-ui`; while(fs>9&&c.measureText(t1+t2).width>w2-16-enW){ fs--; c.font=`800 ${fs}px "Baloo 2",system-ui`; }
-      const w1=c.measureText(t1).width, wt=w1+c.measureText(t2).width, x0=vw/2-w2/2+9; c.textAlign='left';
-      c.fillStyle= my>cap?'#ff8a8a': my>=cap*0.95?'#ffd54a':'#93c5fd'; c.fillText(t1,x0,22); c.fillStyle='#fff'; c.fillText(t2,x0+w1,22); }
-    c.globalAlpha=1;
-    c.textAlign='right'; c.font='800 13px "Baloo 2",system-ui'; c.fillStyle='#fca5a5'; c.fillText((unk?'~':'')+Math.round(en)+(unk?'?':''), vw/2+w2/2-9, 22);
-    c.textAlign='center';
-    // thanh dẫn đường bản đồ
+    { const x=L.top.x, y=L.top.y, w2=L.top.w; this._topBar={x,y,w:w2,h:32};
+      c.globalAlpha=ha; c.fillStyle='rgba(25,15,45,0.72)'; rr(c,x,y,w2,32,10); c.fill(); c.strokeStyle='rgba(255,255,255,0.15)'; c.lineWidth=1.5; rr(c,x,y,w2,32,10); c.stroke();
+      const tot=Math.max(1,my+en); c.fillStyle='#3b82f6'; rr(c,x+8,y+19,(w2-16)*my/tot,7,3); c.fill();
+      c.fillStyle='#ef4444'; rr(c,x+8+(w2-16)*my/tot,y+19,(w2-16)*en/tot,7,3); c.fill();
+      const cap=this.supplyCap(F), t1=`⚔️${my}/${cap}`, enT=(unk?'~':'')+Math.round(en)+(unk?'?':'');
+      const nat=this.royale? `🌏 ${new Set(this.nodes.filter(n=>n.camp&&n.owner!==2).map(n=>n.owner)).size} nations` : `🔥 Stage ${this.lv}`;
+      const mapN=this.mapName.length>11? this.mapName.slice(0,10)+'…' : this.mapName;
+      c.font=`800 13px ${FONT}`; const room=w2-18-(c.measureText(enT).width+12);
+      let t2='', fs=11; // chữ tự rút gọn theo bề rộng thanh: đủ → bỏ tên bản đồ → chỉ còn quân số
+      fit: for(const cand of [` · ${nat} · ${mapN}`,` · ${nat}`,'']) for(let f=13;f>=11;f--){ c.font=`800 ${f}px ${FONT}`; if(c.measureText(t1+cand).width<=room||(cand===''&&f===11)){ t2=cand; fs=f; break fit; } }
+      c.font=`800 ${fs}px ${FONT}`; const w1=c.measureText(t1).width; c.textAlign='left';
+      c.fillStyle= my>cap?'#ff8a8a': my>=cap*0.95?'#ffd54a':'#93c5fd'; c.fillText(t1,x+9,y+14); c.fillStyle='#fff'; c.fillText(t2,x+9+w1,y+14);
+      c.globalAlpha=Math.max(ha,0.55); c.textAlign='right'; c.font=`800 13px ${FONT}`; c.fillStyle='#fca5a5'; c.fillText(enT,x+w2-9,y+14);
+      c.globalAlpha=1; c.textAlign='center'; }
+    // 🪤 nút mai phục (góc trái dưới)
     if(this.sel&&this.canAmbush(this.sel)){
-      const bw2=190,bh=52,bx=12,by=vh-bh-12; this._ambBtn={x:bx,y:by,w:bw2,h:bh};
+      const {x:bx,y:by,w:bw2,h:bh}=L.amb; this._ambBtn={x:bx,y:by,w:bw2,h:bh};
       c.fillStyle=this.sel.ambush?'rgba(255,213,74,0.95)':'rgba(30,24,54,0.85)';
       c.strokeStyle='#ffd54a'; c.lineWidth=3; c.beginPath(); c.roundRect(bx,by,bw2,bh,14); c.fill(); c.stroke();
-      c.font='900 21px "Baloo 2",system-ui'; c.textAlign='center'; c.fillStyle=this.sel.ambush?'#3a2405':'#ffd54a';
-      c.fillText(this.sel.ambush?'🪤 IN AMBUSH':'🪤 AMBUSH x'+this.ambushMult(this.sel).toFixed(1), bx+bw2/2, by+33);
+      const t=this.sel.ambush?'🪤 IN AMBUSH':'🪤 AMBUSH x'+this.ambushMult(this.sel).toFixed(1);
+      bwFit(c,t,bw2-20,900,21,14); c.textAlign='center'; c.fillStyle=this.sel.ambush?'#3a2405':'#ffd54a'; c.fillText(t, bx+bw2/2, by+33);
     } else this._ambBtn=null;
-    { const ow=Math.min(240,vw*0.25), oh=Math.max(28,Math.round(ow*BW.H/BW.W)+8), ox=vw-ow-10, oy=8; this.obar={ox,oy,ow,oh}; c.globalAlpha=Math.max(ha,0.35);
+    // 🗺️ bản đồ nhỏ (góc phải trên) — chạm để nhảy tới
+    { const ox=L.map.x, oy=L.map.y, ow=L.map.w, oh=L.map.h; this.obar={ox,oy,ow,oh}; c.globalAlpha=Math.max(ha,0.35);
       c.fillStyle='rgba(25,15,45,0.75)'; rr(c,ox,oy,ow,oh,10); c.fill(); c.strokeStyle='rgba(255,255,255,0.2)'; c.lineWidth=1.5; rr(c,ox,oy,ow,oh,10); c.stroke();
       for(const n of this.nodes){ if(n.count<=0&&!n.camp) continue; if(n.owner!==F&&!n.camp&&!this.visNow(n)&&!n.known&&!this.visAt(n.x,n.y)) continue; const col= n.owner===F? '#3b82f6': n.owner!==2? BW.facPal(n.owner).color : (n.eco? (n.eco==='farm'?'#eab308': n.eco==='granary'?'#8bc34a':'#60a5fa') :'#cbd5e1');
         const px=ox+6+(n.x/BW.W)*(ow-12), py=oy+4+(n.y/BW.H)*(oh-8);
@@ -4495,77 +4593,102 @@ class BigWar{
       c.strokeStyle='#fff'; c.lineWidth=2; { const x0=Math.max(0,this.camX), y0=Math.max(0,this.camY), x1=Math.min(BW.W,this.camX+viewW), y1=Math.min(BW.H,this.camY+viewH);
         const rw=Math.max(8,((x1-x0)/BW.W)*(ow-12)), rh=Math.max(6,((y1-y0)/BW.H)*(oh-8));
         rr(c,Math.min(ox+ow-6-rw,ox+6+(x0/BW.W)*(ow-12)),Math.min(oy+oh-4-rh,oy+4+(y0/BW.H)*(oh-8)),rw,rh,4); c.stroke(); } c.globalAlpha=1; }
-    // 🔔 THÔNG BÁO chạm để nhảy tới nơi xảy ra
+    // 🔔 THÔNG BÁO chạm để nhảy tới nơi xảy ra: chữ tự co/xuống dòng theo chỗ trống, thiếu chỗ thì nhường cho tin mới nhất
     this._noteRects=[];
-    { let ny=52; c.textAlign='left';
-      for(const nt of this.notes){ const al= nt.t>5.6? (7-nt.t)/1.4 : 1;
-        c.font='800 15px "Baloo 2",system-ui'; const tw=c.measureText(nt.text).width+46;
-        c.globalAlpha=0.92*al*ha; c.fillStyle='rgba(25,15,45,0.9)'; rr(c,10,ny,tw,34,10); c.fill();
-        c.strokeStyle='rgba(255,213,74,0.7)'; c.lineWidth=2; rr(c,10,ny,tw,34,10); c.stroke();
-        c.font='17px system-ui'; c.fillText(nt.icon,20,ny+24);
-        c.font='800 15px "Baloo 2",system-ui'; c.fillStyle='#ffe9c9'; c.fillText(nt.text,44,ny+23);
-        c.globalAlpha=1; this._noteRects.push({x:10,y:ny,w:tw,h:34,nt}); ny+=40; }
+    { c.textAlign='left'; const maxLines=L.narrow?3:2, hOf=(n)=>16+n*18;
+      const lay=(list)=>{ let y=L.noteY; const out=[];
+        for(const nt of list){ const icon=nt.icon||'', txt= icon&&nt.text.startsWith(icon)? nt.text.slice(icon.length).replace(/^\s+/,'') : nt.text; // biểu tượng chỉ vẽ một lần
+          const maxW=Math.max(60,L.noteMaxW(y,hOf(maxLines))-46); let fs=15, lines=null;
+          for(;fs>=12;fs--){ c.font=`800 ${fs}px ${FONT}`; if(c.measureText(txt).width<=maxW){ lines=[txt]; break; } }
+          if(!lines){ fs=13; c.font=`800 ${fs}px ${FONT}`; lines=bwWrap(c,txt,maxW,maxLines); }
+          c.font=`800 ${fs}px ${FONT}`; let tw=0; for(const s of lines) tw=Math.max(tw,c.measureText(s).width);
+          const h=hOf(lines.length); out.push({nt,icon,fs,lines,x:L.noteX,y,w:Math.ceil(tw)+46,h}); y+=h+6; }
+        return {out,bottom:y-6}; };
+      let list=this.notes, R=lay(list); while(list.length>1&&R.bottom>L.noteBottom){ list=list.slice(1); R=lay(list); }
+      for(const it of R.out){ const al= it.nt.t>5.6? (7-it.nt.t)/1.4 : 1;
+        c.globalAlpha=0.92*al*ha; c.fillStyle='rgba(25,15,45,0.9)'; rr(c,it.x,it.y,it.w,it.h,10); c.fill();
+        c.strokeStyle='rgba(255,213,74,0.7)'; c.lineWidth=2; rr(c,it.x,it.y,it.w,it.h,10); c.stroke();
+        c.font='17px system-ui'; c.fillStyle='#ffe9c9'; c.fillText(it.icon,it.x+10,it.y+24);
+        c.font=`800 ${it.fs}px ${FONT}`; it.lines.forEach((s,i)=>c.fillText(s,it.x+34,it.y+23+i*18));
+        c.globalAlpha=1; this._noteRects.push({x:it.x,y:it.y,w:it.w,h:it.h,nt:it.nt}); }
       c.textAlign='center'; }
-    // ➕➖ thu phóng chủ động
-    { const bs=46, bx=vw-bs-10; this._zBtns=[];
-      [['+',1],['−',-1]].forEach(([lb,dir],i)=>{ const by=vh*0.5-56+i*58;
-        c.fillStyle='rgba(30,24,54,0.85)'; c.strokeStyle='rgba(255,255,255,0.35)'; c.lineWidth=2; rr(c,bx,by,bs,bs,12); c.fill(); c.stroke();
-        c.font='900 30px "Baloo 2",system-ui'; c.textAlign='center'; c.fillStyle='#ffe9c9'; c.fillText(lb,bx+bs/2,by+34);
-        this._zBtns.push({x:bx,y:by,w:bs,h:bs,dir}); }); }
-    // 🔍 nút thoát zoom
-    if(this.zoomTgt>1.05){ const bw2=150,bh=40,bx=vw-bw2-12,by=(this.obar?this.obar.oy+this.obar.oh+8:56); this._zoomBtn={x:bx,y:by,w:bw2,h:bh}; c.globalAlpha=ha;
-      c.fillStyle='rgba(30,24,54,0.88)'; c.strokeStyle='#93c5fd'; c.lineWidth=2.5; rr(c,bx,by,bw2,bh,12); c.fill(); c.stroke();
-      c.font='900 18px "Baloo 2",system-ui'; c.fillStyle='#bfdbfe'; c.fillText('🔍 OVERVIEW',bx+bw2/2,by+29); c.globalAlpha=1; }
+    // ➕➖ thu phóng chủ động (cột phải)
+    this._zBtns=[];
+    for(const z of L.zooms){ c.fillStyle='rgba(30,24,54,0.85)'; c.strokeStyle='rgba(255,255,255,0.35)'; c.lineWidth=2; rr(c,z.x,z.y,z.w,z.h,12); c.fill(); c.stroke();
+      c.font=`900 ${Math.round(z.h*0.65)}px ${FONT}`; c.textAlign='center'; c.fillStyle='#ffe9c9'; c.fillText(z.dir>0?'+':'−',z.x+z.w/2,z.y+z.h*0.74);
+      this._zBtns.push(z); }
+    // 🔍 nút thoát zoom: máy rộng nằm dưới bản đồ nhỏ, máy hẹp/dọc thu thành ô vuông trên nút +
+    if(L.ovw){ const o=L.ovw; this._zoomBtn={x:o.x,y:o.y,w:o.w,h:o.h}; c.globalAlpha=Math.max(ha,0.6);
+      c.fillStyle='rgba(30,24,54,0.88)'; c.strokeStyle='#93c5fd'; c.lineWidth=2.5; rr(c,o.x,o.y,o.w,o.h,12); c.fill(); c.stroke(); c.textAlign='center';
+      if(o.wide){ c.font=`900 18px ${FONT}`; c.fillStyle='#bfdbfe'; c.fillText('🔍 OVERVIEW',o.x+o.w/2,o.y+29); }
+      else { c.font=`${Math.round(o.h*0.5)}px system-ui`; c.fillStyle='#bfdbfe'; c.fillText('🔍',o.x+o.w/2,o.y+o.h*0.68); }
+      c.globalAlpha=1; }
     else this._zoomBtn=null;
     // 🏳️ nút rút lui khi quân ta đang trong trận được zoom tới
     this._retreatBtn=null;
     { const b=this.focusB?this.battleOf(this.focusB):null;
       if(b){ const myArm=[...b.A.es,...b.B.es].some(e=>e.kind==='army'&&e.ref.owner===F);
-        if(myArm){ const bw2=170,bh=48,bx=vw/2-bw2/2,by=vh-bh-64; this._retreatBtn={x:bx,y:by,w:bw2,h:bh,b};
+        if(myArm){ const {x:bx,y:by,w:bw2,h:bh}=L.retreat; this._retreatBtn={x:bx,y:by,w:bw2,h:bh,b};
           c.fillStyle='rgba(120,30,30,0.92)'; c.strokeStyle='#ffd54a'; c.lineWidth=3; rr(c,bx,by,bw2,bh,13); c.fill(); c.stroke();
-          c.font='900 20px "Baloo 2",system-ui'; c.fillStyle='#ffe9c9'; c.fillText('🏳️ RETREAT',bx+bw2/2,by+31); } } }
+          c.font=`900 20px ${FONT}`; c.textAlign='center'; c.fillStyle='#ffe9c9'; c.fillText('🏳️ RETREAT',bx+bw2/2,by+31); } } }
     // 🔲 vùng quét đang kéo
     if(this.box){ const B=this.box, bx=Math.min(B.x0,B.x1), by=Math.min(B.y0,B.y1), bw2=Math.abs(B.x1-B.x0), bh=Math.abs(B.y1-B.y0);
       c.fillStyle='rgba(125,255,207,0.14)'; c.fillRect(bx,by,bw2,bh);
       c.strokeStyle='#7dffcf'; c.lineWidth=2; c.setLineDash([8,5]); c.strokeRect(bx,by,bw2,bh); c.setLineDash([]);
       for(const [px,py] of [[bx,by],[bx+bw2,by],[bx,by+bh],[bx+bw2,by+bh]]){ c.fillStyle='#7dffcf'; c.fillRect(px-4,py-4,8,8); }
-      const sc=this.scale||1, F=this.localFid, wx0=bx/sc+this.camX, wx1=(bx+bw2)/sc+this.camX, wy0=by/sc+(this.camY||0), wy1=(by+bh)/sc+(this.camY||0);
+      const sc=this.scale||1, wx0=bx/sc+this.camX, wx1=(bx+bw2)/sc+this.camX, wy0=by/sc+(this.camY||0), wy1=(by+bh)/sc+(this.camY||0);
       const n=this.armies.filter(a=>a.owner===F&&!a.done&&a.count>0&&!a.btl&&a.x>=wx0&&a.x<=wx1&&((a.y>=wy0&&a.y<=wy1)||(a.y-28>=wy0&&a.y-28<=wy1))).length;
       const t=n? `👥 ${n} armies` : '🔲 Drag to select';
-      c.font='800 14px "Baloo 2",system-ui'; const tw=c.measureText(t).width+16; const ly=by>30? by-26 : by+bh+6;
-      c.fillStyle='rgba(20,14,34,0.85)'; rr(c,bx,ly,tw,22,7); c.fill(); c.fillStyle='#7dffcf'; c.textAlign='left'; c.fillText(t,bx+8,ly+16); c.textAlign='center'; }
+      c.font=`800 14px ${FONT}`; const tw=c.measureText(t).width+16; const ly=by>L.Y0+30? by-26 : by+bh+6, lx=Math.max(L.X0+4,Math.min(L.X1-tw-4,bx));
+      c.fillStyle='rgba(20,14,34,0.85)'; rr(c,lx,ly,tw,22,7); c.fill(); c.fillStyle='#7dffcf'; c.textAlign='left'; c.fillText(t,lx+8,ly+16); c.textAlign='center'; }
     // 📣 NÚT GỌI QUÂN cố định ở mép trái (trên nút phục kích)
-    { const bs=48, bx=12, by=vh-bs-76; this._rallyBtn={x:bx,y:by,w:bs,h:bs};
+    this._rallyMenu=null; this._hintBox=null;
+    { const {x:bx,y:by,w:bs}=L.rally; this._rallyBtn={x:bx,y:by,w:bs,h:bs};
       c.globalAlpha=this.rallyPick||this.rallyOpen?1:0.85; c.fillStyle=this.rallyPick?'rgba(255,213,74,0.95)':'rgba(30,24,54,0.85)'; c.strokeStyle='rgba(255,213,74,0.8)'; c.lineWidth=2;
-      rr(c,bx,by,bs,bs,24); c.fill(); c.stroke(); c.textAlign='center'; if(this.rallyPick){ c.font='900 26px "Baloo 2",system-ui'; c.fillStyle='#3a2405'; c.fillText('✕',bx+bs/2,by+34); } else { c.font='24px system-ui'; c.fillText('📣',bx+bs/2,by+33); } c.globalAlpha=1;
+      rr(c,bx,by,bs,bs,24); c.fill(); c.stroke(); c.textAlign='center'; if(this.rallyPick){ c.font=`900 26px ${FONT}`; c.fillStyle='#3a2405'; c.fillText('✕',bx+bs/2,by+34); } else { c.font='24px system-ui'; c.fillText('📣',bx+bs/2,by+33); } c.globalAlpha=1;
       this._rallyRects=[];
       if(this.rallyOpen){ const opts=[[5,'📣 Call 5 nearest camps'],[10,'📣 Call 10 nearest camps'],[Infinity,'🚩 General mobilization'],[0,'✖ Cancel']];
-        const mw=230, ih=42, mh=opts.length*ih+10, mx=bx+bs+8, my=Math.max(50,by+bs-mh);
-        c.fillStyle='rgba(25,15,45,0.95)'; rr(c,mx,my,mw,mh,12); c.fill(); c.strokeStyle='#ffd54a'; c.lineWidth=2; rr(c,mx,my,mw,mh,12); c.stroke(); c.textAlign='left';
-        opts.forEach(([n,t],i)=>{ const oy=my+5+i*ih; c.fillStyle=i%2?'rgba(255,255,255,0.04)':'rgba(255,255,255,0.08)'; rr(c,mx+5,oy,mw-10,ih-5,9); c.fill();
-          c.font='800 16px "Baloo 2",system-ui'; c.fillStyle=n?'#ffe9c9':'#f6b1a4'; c.fillText(t,mx+14,oy+25); this._rallyRects.push({x:mx+5,y:oy,w:mw-10,h:ih-5,n}); });
+        const mwMax=L.X1-8-(bx+bs+8); let fs=16, tw=0; for(;fs>=12;fs--){ c.font=`800 ${fs}px ${FONT}`; tw=0; for(const o of opts) tw=Math.max(tw,c.measureText(o[1]).width); if(tw+30<=mwMax) break; } fs=Math.max(12,fs);
+        const mx=bx+bs+8, mw=Math.max(170,Math.min(mwMax,tw+30)), yTop=(L.bar&&mx<L.bar.x+L.bar.w+6)? L.bar.y+L.bar.h+6 : L.Y0+8;
+        const ih=Math.min(42,Math.floor((L.Y1-8-yTop-10)/opts.length)), mh=opts.length*ih+10, my2=Math.max(yTop,Math.min(L.Y1-mh-8,by+bs-mh));
+        this._rallyMenu={x:mx,y:my2,w:mw,h:mh};
+        c.fillStyle='rgba(25,15,45,0.95)'; rr(c,mx,my2,mw,mh,12); c.fill(); c.strokeStyle='#ffd54a'; c.lineWidth=2; rr(c,mx,my2,mw,mh,12); c.stroke(); c.textAlign='left';
+        opts.forEach(([n,t],i)=>{ const oy=my2+5+i*ih; c.fillStyle=i%2?'rgba(255,255,255,0.04)':'rgba(255,255,255,0.08)'; rr(c,mx+5,oy,mw-10,ih-5,9); c.fill();
+          c.font=`800 ${fs}px ${FONT}`; c.fillStyle=n?'#ffe9c9':'#f6b1a4'; c.fillText(t,mx+14,oy+(ih-5)/2+fs*0.36); this._rallyRects.push({x:mx+5,y:oy,w:mw-10,h:ih-5,n}); });
         c.textAlign='center'; }
       if(this.rallyPick){ const t=`📍 Tap a rally point (${this.rallyPick===Infinity?'general mobilization':'call '+this.rallyPick+' camps'}) — tap ✖ to cancel`;
-        c.font='800 15px "Baloo 2",system-ui'; const tw=c.measureText(t).width+24; c.fillStyle='rgba(25,15,45,0.9)'; rr(c,vw/2-tw/2,46,tw,30,9); c.fill();
-        c.fillStyle='#ffd54a'; c.fillText(t,vw/2,66); } }
-    // 📋 MENU LỆNH ngữ cảnh
-    this._menuRects=[];
+        // nằm sát đáy, bên phải nút ✖ — không che thông báo và không tràn màn hình hẹp
+        const x0=bx+bs+10, xR=L.X1-66, maxW=xR-x0-24; let fs=15, lines=null; for(;fs>=13;fs--){ c.font=`800 ${fs}px ${FONT}`; if(c.measureText(t).width<=maxW){ lines=[t]; break; } }
+        if(!lines){ fs=13; c.font=`800 ${fs}px ${FONT}`; lines=bwWrap(c,t,maxW,3); }
+        let tw=0; for(const s of lines) tw=Math.max(tw,c.measureText(s).width); const bw3=Math.ceil(tw)+24, bh3=12+lines.length*18, hx=Math.max(x0,Math.min(xR-bw3,L.cx-bw3/2)), hy=by+bs-bh3;
+        this._hintBox={x:hx,y:hy,w:bw3,h:bh3}; c.fillStyle='rgba(25,15,45,0.9)'; rr(c,hx,hy,bw3,bh3,9); c.fill();
+        c.fillStyle='#ffd54a'; c.textAlign='center'; lines.forEach((s,i)=>c.fillText(s,hx+bw3/2,hy+19+i*18)); } }
+    // 📋 MENU LỆNH ngữ cảnh: bề rộng theo chữ, luôn nằm trọn trong vùng an toàn và né cột nút phải
+    this._menuRects=[]; this._orderMenu=null;
     if(this.menu&&!this.autoMenu){ const m=this.menu;
       const sc2=this.scale||1; let mx=(m.wx-this.camX)*sc2, my2=(m.wy-this.camY)*sc2;
-      const mw=250, ih=46, mh=m.opts.length*ih+14;
-      mx=Math.max(10,Math.min(vw-mw-66,mx+30)); my2=Math.max(46,Math.min(vh-mh-10,my2-mh/2));
+      const zc=L.narrow?0:66, mwMax=Math.min(360,L.W-20-zc); let fs=18, tw=0; for(;fs>=12;fs--){ c.font=`800 ${fs}px ${FONT}`; tw=0; for(const o of m.opts) tw=Math.max(tw,c.measureText(o.s).width); if(tw+38<=mwMax) break; } fs=Math.max(12,fs); // máy hẹp: menu (hộp chặn) được phủ cột nút ＋－
+      const mw=Math.max(190,Math.min(mwMax,Math.ceil(tw)+38)), ih=Math.min(46,Math.floor((L.Y1-L.Y0-30)/m.opts.length)), mh=m.opts.length*ih+14;
+      mx=Math.max(L.X0+10,Math.min(L.X1-mw-Math.max(10,zc),mx+30)); my2=Math.max(L.Y0+8,Math.min(L.Y1-mh-8,my2-mh/2));
+      // không chui xuống dưới cụm nút 🏠↻⏸: nút HTML nằm trên canvas sẽ che mất dòng lệnh
+      if(L.bar){ const B=L.bar; if(mx<B.x+B.w+6&&mx+mw>B.x-6&&my2<B.y+B.h+6&&my2+mh>B.y-6){ if(B.y+B.h+8+mh<=L.Y1-8) my2=B.y+B.h+8; else mx=Math.max(mx,Math.min(L.X1-mw-10,B.x+B.w+8)); } }
+      this._orderMenu={x:mx,y:my2,w:mw,h:mh};
       c.fillStyle='rgba(25,15,45,0.95)'; rr(c,mx,my2,mw,mh,14); c.fill();
       c.strokeStyle='#ffd54a'; c.lineWidth=2.5; rr(c,mx,my2,mw,mh,14); c.stroke();
       c.textAlign='left';
       m.opts.forEach((o,i)=>{ const oy=my2+7+i*ih;
         c.fillStyle= i%2? 'rgba(255,255,255,0.04)':'rgba(255,255,255,0.08)'; rr(c,mx+6,oy,mw-12,ih-6,10); c.fill();
-        c.font='800 18px "Baloo 2",system-ui'; c.fillStyle= o.id==='cancel'? '#f6b1a4':'#ffe9c9'; c.fillText(o.s,mx+18,oy+27);
+        c.font=`800 ${fs}px ${FONT}`; c.fillStyle= o.id==='cancel'? '#f6b1a4':'#ffe9c9'; c.fillText(o.s,mx+18,oy+(ih-6)/2+fs*0.36);
         this._menuRects.push({x:mx+6,y:oy,w:mw-12,h:ih-6,id:o.id}); });
       c.textAlign='center'; }
-    if(!this.sel && this.time<9){ const a2=0.6+0.4*Math.sin(tm*4); c.globalAlpha=a2; c.font='800 16px "Baloo 2",system-ui'; c.lineWidth=5; c.strokeStyle='#2a1a12';
+    // dòng hướng dẫn 9 giây đầu: tự xuống dòng trên máy hẹp, nằm trên mép đáy an toàn
+    if(!this.sel && this.time<9 && !this.rallyPick && !this.rallyOpen && !this.menu){ const a2=0.6+0.4*Math.sin(tm*4); c.globalAlpha=a2; c.lineWidth=5; c.strokeStyle='#2a1a12'; c.textAlign='center';
       const s='Tap a BLUE army, then tap ANYWHERE: empty ground = camp, enemy = pursue. Forests/valleys/fords trigger AUTO-AMBUSH x2–x10. Enemy numbers stay hidden — 🕵️ SCOUT them!';
-      let fz=16; while(fz>9&&c.measureText(s).width>vw-130){ fz--; c.font=`800 ${fz}px "Baloo 2",system-ui`; }
-      c.strokeText(s,vw/2,vh-16); c.fillStyle='#ffe27a'; c.fillText(s,vw/2,vh-16); c.globalAlpha=1; }
+      const sShort='Tap a BLUE army, then tap a target. Forests, valleys & fords = AMBUSH. 🕵️ SCOUT hidden enemies!';
+      const maxW=L.W-28; let fz=16, lines=null; for(;fz>=13;fz--){ c.font=`800 ${fz}px ${FONT}`; if(c.measureText(s).width<=maxW){ lines=[s]; break; } }
+      if(!lines){ fz=13; c.font=`800 ${fz}px ${FONT}`; lines=bwWrap(c,s,maxW,9); if(lines.length>3) lines=bwWrap(c,sShort,maxW,3); } // quá 3 dòng sẽ đè nút 📣 → dùng câu ngắn
+      const lh=fz+4; let tw=0; for(const ln of lines) tw=Math.max(tw,c.measureText(ln).width); this._hintBox={x:L.cx-tw/2,y:L.Y1-12-lines.length*lh,w:tw,h:lines.length*lh};
+      lines.forEach((ln,i)=>{ const yy=L.Y1-16-(lines.length-1-i)*lh; c.strokeText(ln,L.cx,yy); c.fillStyle='#ffe27a'; c.fillText(ln,L.cx,yy); }); c.globalAlpha=1; }
   }
 }
 
