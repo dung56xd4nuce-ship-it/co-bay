@@ -3018,8 +3018,8 @@ class BigWar{
     const node=(x,y,owner,type,count,camp)=>{ const n={id:this.nodes.length,x,y,owner,type,count:Math.round(count),camp:!!camp,wob:R()*7,food:0}; this.nodes.push(n); return n; };
     this.mkNode=node;
     // trại hai đầu
-    node(170, H*0.5, 0, 'general', 0, true).home=0;
-    node(W-170, H*0.5, 1, 'general', L.camp, true).home=1;
+    { const c0=node(170, H*0.5, 0, 'general', 0, true); c0.home=0; c0.capOf=0; }
+    { const c1=node(W-170, H*0.5, 1, 'general', L.camp, true); c1.home=1; c1.capOf=1; }
     // đạo quân của ta quanh trại
     const myT=['archer','spear','cavalry','shield'];
     for(let i=0;i<L.myN;i++) node(320+((i%2)*130), H*(0.26+0.48*(L.myN<2?0.5:i/(L.myN-1))), 0, myT[i%myT.length], L.myC*(0.85+R()*0.3));
@@ -3081,7 +3081,7 @@ class BigWar{
         let x=W*(0.1+0.85*gx)+(R()-0.5)*120, y=H*(0.2+0.68*gy)+(R()-0.5)*80;
         if(x<650&&Math.abs(y-H*0.5)<260){ x+=720; } // chừa đất khởi nghiệp cho người chơi
         const c2=node(x,y,fid,'general', Math.round(this.L.camp*(0.18+R()*0.3)), true);
-        c2.struct='citadel'; c2.home=fid;
+        c2.struct='citadel'; c2.home=fid; c2.capOf=fid;
         // mỗi nước 1-2 đạo quân vệ binh
         const nG=1+(R()<0.5?1:0);
         for(let k2=0;k2<nG;k2++) node(x+(R()-0.5)*260, y+(R()-0.5)*200, fid, BW_TYPES[(R()*BW_TYPES.length)|0], Math.round(this.L.enMin*(0.4+R()*0.7)));
@@ -3388,6 +3388,7 @@ class BigWar{
     this.stats=sv.stats||this.stats; this.fed=sv.fed||{}; this.nextWaveF=sv.nextWaveF||{}; this.cap0=sv.cap0||{};
     this.allies=new Set(sv.allies||[]); this.scouts=sv.scouts||[]; this.aiScouts=sv.aiScouts||[];
     this.notes=[]; this.texts=[]; this.fx=[]; this.rings=[]; this.fxs=[]; this.menu=null; this.sel=null; this.selA=null; this.selG=null;
+    if(!this.nodes.some(n=>n.capOf!=null)){ const seen=new Set(); for(const n of this.nodes){ if(n.camp&&n.owner!==2&&(n.home??n.owner)===n.owner&&!seen.has(n.owner)){ n.capOf=n.owner; seen.add(n.owner); } } }
     this.intro=null; this.over=false; this.result=null; this._updateVision&&this._updateVision();
     const c0=this.nodes.find(n=>n.camp&&n.owner===this.localFid)||this.nodes[0];
     this.note('💾 Đã tải ván Quần Hùng — chơi tiếp!',c0.x,c0.y,'💾');
@@ -3791,8 +3792,8 @@ class BigWar{
   }
   checkVictory(){
     if(this.over) return; const F=this.localFid;
-    const myCamp=this.nodes.find(n=>n.camp&&(n.home??0)===F);
-    if(myCamp&&myCamp.owner!==F){ this.over=true; this.result={win:false}; audio.lose(); return; }
+    // THUA chỉ khi không còn TRẠI nào (kinh đô mất mà còn trại khác thì đã dời đô)
+    if(!this.nodes.some(n=>n.camp&&n.owner===F)){ this.over=true; this.result={win:false}; audio.lose(); return; }
     const foeCamp=this.nodes.some(n=>n.camp&&n.owner!==F&&n.owner!==2);
     if(!foeCamp){ this.over=true; this.result={win:true}; audio.win(); }
   }
@@ -3836,17 +3837,24 @@ class BigWar{
       {fid:a.owner,e:{kind:'army',ref:a,c0:a.count}},
       {fid:n.owner,e:{kind:'node',ref:n,c0:n.count}}, dmu, tag||((a.owner===F||n.owner===F)?'🏰 CÔNG THÀNH '+(BW.structName[n.struct]||''):null));
   }
+  // KINH ĐÔ (capOf) khác với trại đã chiếm. Mất một trại đã chiếm chỉ là mất một điểm.
+  // Mất KINH ĐÔ: nếu còn trại khác thì DỜI ĐÔ về đó; chỉ khi hết trại mới mất nước (lãnh thổ quy hàng phe chiếm).
   checkCamp(n,captor,prevOwner){
     if(!n.camp||this.over) return;
-    const dead=n.home??prevOwner;
-    if(dead==null||dead===captor) { this.checkVictory(); return; }
-    // nước mất đại bản doanh: toàn bộ lãnh thổ + quân đội QUY HÀNG phe chiếm
-    let moved=0;
-    for(const m of this.nodes){ if(m.owner===dead){ m.owner=captor; m.ambush=false; moved+=m.count; } }
-    for(const a2 of this.armies){ if(a2.owner===dead){ a2.owner=captor; a2.ambush=false; } }
-    n.home=captor;
     const F=this.localFid;
-    if(this.royale&&(captor===F||dead===F||moved>0)) this.note(('👑 Một nước bị diệt — '+(captor===F?'về tay TA!':'đổi chủ!')),n.x,n.y,'👑');
+    n.home=captor;
+    const lost=n.capOf;
+    if(lost==null||lost!==prevOwner){ this.checkVictory(); return; } // trại thường (hoặc trại đã chiếm): chỉ là mất một điểm
+    n.capOf=null;
+    const other=this.nodes.filter(m=>m.camp&&m.owner===lost&&m!==n).sort((a,b)=>b.count-a.count)[0];
+    if(other){ other.capOf=lost; other.home=lost;
+      if(lost===F||captor===F||this.royale) this.note(lost===F? '🏯 Mất kinh đô — DỜI ĐÔ về trại khác, vẫn còn chiến!' : (this.royale? '🏯 NƯỚC '+lost+' mất kinh đô, dời đô' : '🏯 Địch mất kinh đô, dời đô!'), other.x,other.y,'🏯');
+      this.checkVictory(); return; }
+    // không còn trại nào: mất nước, toàn bộ lãnh thổ + quân đội QUY HÀNG phe chiếm
+    let moved=0;
+    for(const m of this.nodes){ if(m.owner===lost){ m.owner=captor; m.ambush=false; moved+=m.count; } }
+    for(const a2 of this.armies){ if(a2.owner===lost){ a2.owner=captor; a2.ambush=false; } }
+    if(this.royale&&(captor===F||lost===F||moved>0)) this.note(('👑 Một nước bị diệt — '+(captor===F?'về tay TA!':'đổi chủ!')),n.x,n.y,'👑');
     this.checkVictory();
   }
   ring(n,col){ this.rings.push({x:n.x,y:n.y,col,t:0,max:0.6}); }
@@ -4230,7 +4238,7 @@ class BigWar{
       if(im){ const cv2=recolorUnit(im, n.owner===this.localFid?0:1); c.drawImage(cv2,n.x-95,n.y-110,190,190); }
       else { c.fillStyle=col.color; c.strokeStyle='#2a1a12'; c.lineWidth=5; c.beginPath(); c.moveTo(n.x-85,n.y+45); c.lineTo(n.x,n.y-75); c.lineTo(n.x+85,n.y+45); c.closePath(); c.fill(); c.stroke(); }
       c.font='900 30px "Baloo 2",system-ui'; c.textAlign='center'; c.lineWidth=7; c.strokeStyle='#2a1a12'; c.fillStyle='#fff';
-      const nm= n.owner===this.localFid? 'TRẠI TA': (this.royale? 'NƯỚC '+((n.home??n.owner))+(this.allied(this.localFid,n.owner)?' 🤝':'') : 'TRẠI ĐỊCH'); c.strokeText(nm,n.x,n.y-96); c.fillText(nm,n.x,n.y-96);
+      const nm= n.owner===this.localFid? (n.capOf===this.localFid?'👑 KINH ĐÔ TA':'TRẠI TA'): (this.royale? 'NƯỚC '+((n.home??n.owner))+(this.allied(this.localFid,n.owner)?' 🤝':'') : 'TRẠI ĐỊCH'); c.strokeText(nm,n.x,n.y-96); c.fillText(nm,n.x,n.y-96);
       if(n.count>0){ const vz=n.owner===this.localFid||this.visNow(n);
         this.plate(c,n.x,n.y+66, vz? n.count : (n.known? '~'+n.known.count+'?' : '???'), vz? col:{color:'#8b85a8',light:'#cbc6e2'}, n.type, 1.15); }
       return;
