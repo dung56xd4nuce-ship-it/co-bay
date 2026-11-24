@@ -16,8 +16,8 @@ async function reveal(T,sel){ for(let i=0;i<12;i++){ await still(T,sel); const r
 const tapSel=async(T,sel)=>{ if(!(await reveal(T,sel))) return {ok:false,why:'vuốt mãi không tới'}; return T.tapEl(sel); };
 const inv=(T)=>T.ev(()=>{ const s=JSON.parse(localStorage.getItem('ltm_save')||'{}'); return {xu:s.xu||0,inv:s.inv||{},pack:s.pack||[],up:s.up||{},shown:[...document.querySelectorAll('.xu')].map(e=>+e.textContent)}; });
 const gearRow=(T,id)=>T.ev((id)=>{ const bw=__ltm.bw, i=bw.gear.findIndex(g=>g.id===id), r=(bw._gearRects||[]).find(q=>q.i===i); return r&&i>=0? [r.x+r.w/2,r.y+r.h/2] : null; },id);
-const openBag=async(T)=>{ const q=await T.ev(()=>{ const r=__ltm.bw._gearBtn; return r? [r.x+r.w/2,r.y+r.h/2] : null; }); if(!q) return false; await T.tap(q[0],q[1]); return !!(await T.until(()=>__ltm.bw.gearOpen&&(__ltm.bw._gearRects||[]).length>0,null,2500)); };
-const useItem=async(T,id)=>{ if(!(await openBag(T))) return false; const q=await gearRow(T,id); if(!q) return false; await T.p.waitForTimeout(120); await T.tap(q[0],q[1]); await T.p.waitForTimeout(160); return true; };
+const openBag=async(T)=>{ await T.p.waitForTimeout(380); const q=await T.ev(()=>{ const r=__ltm.bw._gearBtn; __ltm.bw._gearRects=[]; return r? [r.x+r.w/2,r.y+r.h/2] : null; });   /* xoá vị trí các dòng của lần mở trước: phải chờ khung hình MỚI vẽ bảng rồi mới chạm (bảng có thể nằm chỗ khác) */ if(!q) return false; await T.tap(q[0],q[1]); return !!(await T.until(()=>__ltm.bw.gearOpen&&(__ltm.bw._gearRects||[]).length>0,null,2500)); };
+const useItem=async(T,id)=>{ if(!(await openBag(T))) return false; await T.p.waitForTimeout(380); const q=await gearRow(T,id); if(!q) return false; await T.tap(q[0],q[1]);   /* người thật không chạm dòng trong bảng nhanh hơn ~0,4 giây sau khi mở túi; chạm quá sát bị tính là chạm đúp */ await T.p.waitForTimeout(160); return true; };
 
 for(const [dn,dev,tall] of [...DEVICES.map(d=>[...d,false]),[PORTRAIT[1][0],PORTRAIT[1][1],true]]){ console.log(dn);
   const T=await open(b,dev); const {p}=T; let r, s;
@@ -53,7 +53,7 @@ for(const [dn,dev,tall] of [...DEVICES.map(d=>[...d,false]),[PORTRAIT[1][0],PORT
   await p.reload(); await p.waitForFunction(()=>window.__ltm&&document.getElementById('menu')); await p.waitForTimeout(400); s=await inv(T);
   ok(s.xu===210&&s.inv.bun===2&&s.inv.tea===1&&s.inv.smoke===1&&s.inv.compass===1&&s.pack.join()==='bun,tea,compass'&&s.up.speed===1&&s.up.weapon===1&&s.shown[0]===210,'mở lại game: xu, kho, túi 3 món và nâng cấp còn nguyên');
   // ---------- VÀO TRẬN 1v1 ----------
-  await T.startBattle({map52:3,civ:'rome'},2); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.lastVw>0); await T.hookDraw(); await T.ev(()=>{ __ltm.bw.nextAI=1e9; __ltm.bw.nextWaveF={1:1e9}; });   /* (5.3) boss nay chủ động hơn: cho máy đứng yên để bài thử quân nhu không phụ thuộc nước đi của máy */
+  await T.startBattle({map52:3,civ:'rome'},2); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.lastVw>0); await T.hookDraw(); await T.ev(()=>{ __ltm.bw.aiTurn=()=>{}; __ltm.bw.nextWaveF={1:1e9}; });   /* (5.3) boss nay chủ động hơn: cho máy đứng yên để bài thử quân nhu không phụ thuộc nước đi của máy */
   const a0=await T.ev(()=>{ const bw=__ltm.bw; bw.skipIntro(); bw.aiTurn=()=>{}; bw.nextWaveF={1:1e9}; bw.notes=[]; const c=bw.nodes.find(n=>n.camp&&n.owner===0);
     const a={owner:0,type:'spear',count:900,x:c.x+330,y:c.y+170,to:-1,tx:c.x+330,ty:c.y+170,trail:0,camped:true,food:22}; bw.armies.push(a); window.__a=a;
     return {gear:bw.gear.map(g=>g.id).join(),up:bw.up&&bw.up.speed,x:a.x,y:a.y,hud:Object.keys(bw.hudRects())}; }); await p.waitForTimeout(500);
@@ -86,6 +86,7 @@ for(const [dn,dev,tall] of [...DEVICES.map(d=>[...d,false]),[PORTRAIT[1][0],PORT
   // la bàn: không cần chọn ai; soi quanh giữa màn hình
   { const e=await T.ev(()=>{ const bw=__ltm.bw, E=bw.nodes.filter(n=>n.owner===1&&n.count>0&&!n.camp).sort((p,q)=>q.x-p.x)[0]; bw.sel=null; bw.selA=null; bw.selG=null; const sc=bw.scale0*bw.zoom; bw.camX=E.x-bw.lastVw/sc/2; bw.camY=E.y-bw.lastVh/sc/2; window.__E=E; return {vis:bw.visNow(E)}; }); await T.settle();
     ok(!e.vis&&await useItem(T,'compass'),'kéo màn hình tới vùng địch còn ẩn quân số, mở 🎒 chạm La bàn');
+    { const dg=await T.ev(()=>{ const bw=__ltm.bw, E=window.__E, sc=bw.scale0*bw.zoom; return {vis:bw.visNow(E),tv:bw.tempVis.length,open:!!bw.gearOpen,inv:JSON.stringify(save.inv),cam:[Math.round(bw.camX),Math.round(bw.camY)],E:[Math.round(E.x),Math.round(E.y),E.owner,Math.round(E.count)],ctr:[Math.round(bw.camX+bw.lastVw/sc/2),Math.round(bw.camY+bw.lastVh/sc/2)],texts:bw.texts.map(t=>t.s).slice(-3),gear:bw.gear.map(g=>g.id+':'+Math.round(g.cd||0)).join()}; }); if(!(dg.vis&&dg.tv===1)) console.log('   [chẩn đoán la bàn]',JSON.stringify(dg)); }
     ok(await T.ev(()=>__ltm.bw.visNow(window.__E)&&__ltm.bw.tempVis.length===1)&&(await T.drawn(/strongholds revealed/)).length>=1,'🧭 quân số cứ điểm địch giữa màn hình lộ ra, có dòng "… strongholds revealed"');
     ok((await T.drawn(/^(2\d|30)s$/)).length>=1,'cứ điểm địch vừa lộ có huy hiệu ống nhòm đếm giây còn thấy'); }
   // hết món: bấm vào báo hết

@@ -21,22 +21,22 @@ for(const [dn,dev] of DEVICES){ console.log(dn);
     if(mr) await T.tap(mr[0],mr[1]); await p.waitForTimeout(350);
     return {picked,menu,moved:!!mr}; };
   // KỴ BINH
-  let o=await order('cav'); ok(o.picked,'chạm chọn được đạo kỵ binh'); ok(o.menu.some(m=>/^move\|.*⛔/.test(m)),'menu báo trước: kỵ binh chỉ tới được BÌA rừng — '+(o.menu[0]||''));
-  ok(await T.ev(()=>{ const a=window.__cav; return !a.camped&&a.path&&a.path.length>=1&&a.pathOk===false&&a.pvT>0; }),'ra lệnh xong: có lộ trình (đường nét đứt) dẫn tới bìa rừng');
-  ok(await T.ev(()=>__ltm.bw.texts.some(t=>/can't enter/.test(t.s||''))),'hiện dòng báo "⛔ Cavalry can\'t enter Forest"');
+  let o=await order('cav'); ok(o.picked,'chạm chọn được đạo kỵ binh'); ok(o.menu.some(m=>/^move\|/.test(m)&&!/⛔/.test(m)),'(5.4) kỵ binh: menu cho hành quân thẳng vào rừng, không còn dấu ⛔ — '+(o.menu[0]||''));
+  ok(await T.ev(()=>{ const a=window.__cav; return !a.camped&&a.path&&a.path.length>=1&&a.pathOk!==false&&a.pvT>0; }),'ra lệnh xong: có lộ trình (đường nét đứt) dẫn vào tận trong rừng');
+  ok(await T.ev(()=>!__ltm.bw.texts.some(t=>/can't enter/.test(t.s||''))),'không còn dòng báo "can\'t enter Forest"');
   // giữ chân đạo vừa nhận lệnh trong lúc ra lệnh cho các đạo sau: nếu để nó chạy tới sát điểm đích thì cú chạm vào đích sẽ trúng chính nó (ra menu gộp quân) — bài thử không được phụ thuộc máy chạy nhanh hay chậm
   await T.ev(()=>{ window.__cav.holdT=1e9; });
   // BỘ BINH NHỎ + ĐẠI QUÂN
   o=await order('foot'); ok(o.picked&&o.menu.some(m=>/^move\|/.test(m)&&!/⛔/.test(m)),'bộ binh nhỏ: menu cho hành quân thẳng vào rừng');
   await T.ev(()=>{ window.__foot.holdT=1e9; });
-  o=await order('big'); ok(o.picked&&o.menu.some(m=>/^move\|.*⛔/.test(m)),'đại quân 2600: menu báo chỉ tới được bìa rừng');
+  o=await order('big'); ok(o.picked&&o.menu.some(m=>/^move\|/.test(m)&&!/⛔/.test(m)),'(5.4) đại quân 2600: menu cho hành quân thẳng vào rừng');
   // cho chạy tới nơi (tua nhanh) và soi vị trí từng khung
   await T.ev(()=>{ window.__cav.holdT=0; window.__foot.holdT=0; });
   const R=await T.ev((deep)=>{ const bw=__ltm.bw, deepIn=(a)=>[[0,0],[45,0],[-45,0],[0,45],[0,-45]].every(([dx,dy])=>bw.terAt(a.x+dx,a.y+dy)==='forest'); let cIn=0,bIn=0,n=0;
     while(n++<20*200&&!(window.__cav.camped&&window.__foot.camped&&window.__big.camped)){ bw.update(0.05); for(const a of [window.__cav,window.__foot,window.__big]) a.food=100; window.__big.count=Math.max(2600,window.__big.count); if(deepIn(window.__cav)) cIn++; if(deepIn(window.__big)) bIn++; }
     const d=(a)=>Math.round(Math.hypot(a.x-deep[0],a.y-deep[1])); return {cIn,bIn,cav:{camped:!!window.__cav.camped,d:d(window.__cav),ter:bw.terAt(window.__cav.x,window.__cav.y)},foot:{camped:!!window.__foot.camped,d:d(window.__foot),amb:!!window.__foot.ambush},big:{camped:!!window.__big.camped,d:d(window.__big),ter:bw.terAt(window.__big.x,window.__big.y)}}; },S.deep);
-  ok(R.cav.camped&&R.cIn===0&&R.cav.ter!=='forest'&&R.cav.d>40,`kỵ binh dừng ở bìa rừng (cách đích ${R.cav.d}px, đang đứng trên ${R.cav.ter}), không khung hình nào lọt vào rừng`);
-  ok(R.big.camped&&R.bIn===0&&R.big.ter!=='forest',`đại quân dừng ở bìa rừng (cách đích ${R.big.d}px)`);
+  ok(R.cav.camped&&R.cIn>0&&R.cav.d<30,`(5.4) kỵ binh vào tới GIỮA RỪNG (cách điểm chạm ${R.cav.d}px)`);
+  ok(R.big.camped&&R.bIn>0&&R.big.d<80,`(5.4) đại quân vào tới GIỮA RỪNG (cách điểm chạm ${R.big.d}px)`);
   ok(R.foot.camped&&R.foot.d<30&&R.foot.amb,`bộ binh nhỏ vào tới GIỮA RỪNG (cách điểm chạm ${R.foot.d}px) và tự mai phục: ${JSON.stringify(R.foot)}`);
   // SÔNG: kỵ binh sang bờ bên kia phải qua bến
   const W=await T.ev(()=>{ const bw=__ltm.bw, c0=bw.nodes[0]; const far=bw.nodes.filter(n=>(n.x<bw.riverX(n.y))!==(c0.x<bw.riverX(c0.y))&&!n.camp).sort((a,b)=>Math.hypot(a.x-c0.x,a.y-c0.y)-Math.hypot(b.x-c0.x,b.y-c0.y))[0];

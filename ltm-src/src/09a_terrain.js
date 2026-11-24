@@ -9,7 +9,7 @@ BW.roadBoost=1.12;                   // đi trên đường cái nhanh hơn 12%
 BW.TER=['plain','forest','mountain','desert','valley','river'];
 BW.mv={ // hệ số tốc độ theo LỚP DI CHUYỂN × địa hình (0 = không đi được)
   F:{plain:1,desert:0.85,valley:0.9,forest:0.58,mountain:0.42,river:0.7},   // bộ binh
-  H:{plain:1,desert:0.85,valley:0.9,forest:0,mountain:0,river:0.7},         // kỵ binh + đại quân
+  H:{plain:1,desert:0.85,valley:0.9,forest:0.42,mountain:0.3,river:0.7},    // kỵ binh: (5.4) KHÔNG còn bị cấm — vào rừng núi được nhưng chậm hẳn
   R:{plain:1,desert:0.9,valley:1,forest:0.95,mountain:0.65,river:0.7} };    // đột kích nhẹ
 BW.typeSpeed={cavalry:1.35,shield:0.8,assassin:1.1};
 
@@ -162,7 +162,8 @@ BigWar.prototype.navNearest=function(C,x,y,maxRing){ const N=this.nav, cx=Math.m
 // hồ sơ di chuyển của một đạo quân / đội quân trong cứ điểm
 const MV_PROF={F:['F','Ff','Fm','Ffm'],H:['H','Hf','Hm','Hfm'],R:['R','Rf','Rm','Rfm']};   // tên hồ sơ lấy từ bảng có sẵn (không ghép chuỗi mỗi lần hỏi)
 const MV_PROF_W={}; for(const b in MV_PROF) MV_PROF_W[b]=MV_PROF[b].map(k=>k+'w');           // (5.2) 🪵 ván cầu: thêm 'w' = lội sông ở đâu cũng được
-BigWar.prototype.mvProfile=function(a){ const cav=a.type==='cavalry', k=(cav||a.count>=BW.bigArmy)? 'H' : a.type==='assassin'? 'R' : 'F', T= a.plankT>0? MV_PROF_W : MV_PROF;
+BigWar.prototype.mvProfile=function(a){ const cav=a.type==='cavalry', k= cav? 'H' : a.type==='assassin'? 'R' : 'F',   /* (5.4) đại quân không còn bị cấm rừng núi: đông quân chỉ đi chậm hơn theo quân số */
+  T= a.plankT>0? MV_PROF_W : MV_PROF;
   const cv=this.civOf? this.civOf(a.owner) : null; if(cv&&cv.pass&&!cav) return T[k][(cv.pass.indexOf('f')>=0? 1:0)+(cv.pass.indexOf('m')>=0? 2:0)];
   return T[k][0]; };
 BigWar.prototype.mvSpeed=function(a,key){ const C=this.navCost(key), c=C[this.navCell(a.x,a.y)]; const m= c<1e9? 1/c : 0.4; // lỡ đứng trong vùng cấm: lết ra với 40% tốc độ
@@ -220,7 +221,7 @@ BigWar.prototype.canReach=function(src,tx,ty){ const key=this.mvProfile(src), C=
   if(ok){ if(!(C[s0]<1e9)) s0=this.navNearest(C,src.x,src.y,16); ok= s0>=0&&CP[s0]===CP[g]; }                 /* cùng vùng liên thông = có lối (không cần dò đường) */
   const self=this; return {ok,key,get end(){ const P=self.findPath(key,src.x,src.y,tx,ty); return P.pts.length? P.pts[P.pts.length-1] : [src.x,src.y]; }}; };
 // tên lớp quân cho câu thông báo
-BigWar.prototype.mvWhy=function(a){ return a.type==='cavalry'? '🐎 Cavalry' : '🚩 Large armies ('+BW.bigArmy+'+)'; };
+BigWar.prototype.mvWhy=function(a){ return '🌊 Troops'; };   /* (5.4) chỉ còn nước sâu là không qua được (phải đi bến) */
 
 // ---- vẽ lộ trình của các đạo quân ta đang chọn / vừa nhận lệnh ----
 BigWar.prototype.drawPaths=function(c,tm,dt){ const F=this.localFid, sel=new Set(this.selG&&this.selG.length? this.selG : (this.selA? [this.selA] : []));

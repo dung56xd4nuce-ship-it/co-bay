@@ -145,7 +145,7 @@ class BigWar{
     // quân của mỗi nước: phần lớn là binh chủng sở trường + vài loại bổ trợ trong biên chế của nền văn minh đó
     const tOf=(fid)=> R()<0.62? this.civType(fid,(R()*4)|0) : BW_TYPES[(R()*BW_TYPES.length)|0];
     { const c0=node(170, H*0.5, 0, this.civType(0), 0, true); c0.home=0; c0.capOf=0; }
-    { const c1=node(W-170, H*0.5, 1, this.civType(1), L.camp*(this.cfg.p2p||this.cfg.classic? 1 : Math.min(1,Math.max(0.45,D.force*2))), true); c1.home=1; c1.capOf=1; }
+    { const c1=node(W-170, H*0.5, 1, this.civType(1), L.camp*(this.cfg.p2p||this.cfg.classic||this.cfg.royale? 1 : BW.CAMP_F[Math.min(9,Math.max(0,lv-1))]), true); c1.home=1; c1.capOf=1; }
     // đạo quân của ta quanh trại
     for(let i=0;i<L.myN;i++) node(320+((i%2)*130), H*(0.26+0.48*(L.myN<2?0.5:i/(L.myN-1))), 0, this.civType(0,i), L.myC*(0.85+R()*0.3));
     // vùng giữa: trung lập để nuốt (to dần về bên phải)
@@ -381,14 +381,19 @@ class BigWar{
     return Math.round(Math.max(cap, this.cap0[f]*0.6*Math.pow(Math.min(1,held/this.n0[f]),1.5))); }
   myPower(f){ f=f??this.localFid; let s=0; const N=this.nodes, A=this.armies; for(let i=0;i<N.length;i++){ if(N[i].owner===f) s+=N[i].count; } for(let i=0;i<A.length;i++){ if(A[i].owner===f) s+=A[i].count; } return s; }
   // ---- lệnh
-  send(from,to){
+  send(from,to,opt){   /* opt (5.4): {type} chỉ binh chủng đó đi · {frac} đi một phần quân; không có opt = cả kho, mỗi binh chủng một đạo */
     if(from.count<=0||from===to) return false;
-    const a={owner:from.owner,type:from.type,count:from.count,x:from.x,y:from.y,from:from.id,to:-1,trail:0,food:BW.food.start};
+    const top=!this._sending; if(top) this._lastSent=[];
+    const mix=this.mixOf(from), frac= opt&&opt.frac>0&&opt.frac<1? opt.frac : 1, want= opt&&opt.type&&mix[opt.type]>0? opt.type : null;
+    if(!want){ const ts=this.mixList(from); if(ts.length>1){ this._sending=1; let main=null; try{ for(const q of ts){ const g=this.send(from,to,{type:q[0],frac}); if(g&&!main) main=g; } } finally { this._sending=0; } return main||false; } }
+    const type= want||from.type, before=from.count, pool= want&&Object.keys(mix).length>1? before*mix[type] : before;
+    const cnt= frac>=1? (pool>=before-0.5? before : Math.round(pool)) : Math.floor(pool*frac); if(!(cnt>=1)||(frac<1&&cnt<BW.sendMin)) return false;
+    const a={owner:from.owner,type,count:cnt,x:from.x,y:from.y,from:from.id,to:-1,trail:0,food:BW.food.start};
     from.ambush=false;
     if(to&&to.id>=0&&this.nodes[to.id]===to){ a.to=to.id; }
     else if(to&&to.count!=null&&to.id==null){ a.hunt=to; }   // truy kích đạo quân
     else { a.tx=to.x; a.ty=to.y; }                            // tới điểm bất kỳ
-    from.count=0; this.armies.push(a);
+    from.count= cnt>=before? 0 : before-cnt; this.mixTake(from,type,cnt,before); this.armies.push(a); this._lastSent.push(a);
     this.supplyPrep(a,from,to.x,to.y);                        // 🌾 đại quân phải CHUẨN BỊ LƯƠNG rồi mới xuất phát (src/09d_supply.js)
     return a;
   }
@@ -399,7 +404,7 @@ class BigWar{
       this.rallyOpen=false; return true; }
     if(this.gearTap&&this.gearTap(sx,sy)) return true;   /* 🎒 quân nhu */
     if(hit(this._rallyBtn)){ if(this.rallyPick){ this.rallyPick=0; } else { this.rallyOpen=true; this.menu=null; this.gearOpen=false; } audio.click(); return true; }
-    if(this.menu&&this._menuRects){ for(const r of this._menuRects){ if(sx>=r.x&&sx<=r.x+r.w&&sy>=r.y&&sy<=r.y+r.h){ this.menuPick(r.id); return true; } }
+    if(this.menu&&this._menuRects){ for(const r of this._menuRects){ if(sx>=r.x&&sx<=r.x+r.w&&sy>=r.y&&sy<=r.y+r.h){ if(r.sel){ const S=this.sendSel||(this.sendSel={node:r.sel.node,type:null,frac:1}); if(S.node!==r.sel.node){ S.node=r.sel.node; S.type=null; S.frac=1; } if('type' in r.sel) S.type=r.sel.type; if('frac' in r.sel) S.frac=r.sel.frac; audio.click(); return true; } this.menuPick(r.id); return true; } }
       this.menu=null; this.sel=null; this.selA=null; this.selG=null; return true; } // chạm ngoài menu: đóng menu + bỏ chọn
     const rb=this._retreatBtn;
     if(rb&&sx>=rb.x&&sx<=rb.x+rb.w&&sy>=rb.y&&sy<=rb.y+rb.h){
@@ -518,14 +523,17 @@ class BigWar{
     audio.click(); return free.length;
   }
   rallyCall(N,x,y){ // gọi quân từ N trại/điểm tập kết gần điểm chạm nhất về một điểm
-    const F=this.localFid;
-    const src=this.nodes.filter(n=>n.owner===F&&n.count>=100&&!n.eco&&!n.btl)
-      .sort((a,b)=>hyp(a.x-x,a.y-y)-hyp(b.x-x,b.y-y)).slice(0,N);
+    const F=this.localFid; let snap=null, rescue=N<0;
+    if(rescue){ const t=this.rescuePick(x,y); if(!t){ this.note('🚑 No camp of yours is in danger near there',x,y,'🚑'); return; } snap={node:t,x:t.x,y:t.y}; N=5; }
+    else snap=this.rallySnap(x,y);                       /* (5.4) bắt dính trại / cứ điểm / đạo quân đang đóng gần ngón tay */
+    const x0=x, y0=y, pick=()=>this.nodes.filter(n=>n.owner===F&&n.count>=100&&!n.eco&&!n.btl&&!(snap&&snap.node===n)).sort((a,b)=>hyp(a.x-x,a.y-y)-hyp(b.x-x,b.y-y)).slice(0,N);
+    if(snap){ x=snap.x; y=snap.y; }
+    let src=pick(); if(!src.length&&snap&&!rescue){ snap=null; x=x0; y=y0; src=pick(); }   /* chạm cạnh trại duy nhất còn quân: không có ai để gọi VÀO trại đó → hiểu là gọi quân ra đúng điểm chạm như cũ */
     if(!src.length){ this.note('No camp has enough troops to call',x,y,'📣'); return; }
     if(this._asRemote==null) this.rallyMark={x,y,t:0,big:N===Infinity};   /* cờ hiệu / trống trận tại điểm tập kết (lệnh của người chơi bên kia thì không hiện trên máy này) */
     const rid=(this._rid=(this._rid||0)+1); let i=0, sent=0;
     for(const n of src){ const ox=((i%4)-1.5)*70, oy=((i/4|0)-1)*70; i++;
-      const a=this.send(n,{x:x+ox,y:y+oy,id:-1}); if(a){ a.rally=rid; sent++; } }
+      const a= snap&&snap.node? this.send(n,snap.node) : this.send(n,{x:x+ox,y:y+oy,id:-1}); if(a){ sent++; for(const q of this._lastSent){ if(snap&&snap.army) q.mergeInto=snap.army; else if(!(snap&&snap.node)) q.rally=rid; } } }
     // TRẤN THỦ: quân ở trại chăn nuôi / điểm luyện binh chủ động chạy về giữ các trại vừa bị rút trống (gần nhất trước)
     const emptied=src.filter(n=>n.owner===F&&n.count<50);
     const feeders=this.nodes.filter(n=>n.owner===F&&(n.eco==='farm'||n.eco==='train')&&n.count>=60&&!n.btl&&!n.sieged);
@@ -535,7 +543,8 @@ class BigWar{
       if(!best||bd>4000) continue; used.add(best);
       const keep=Math.max(30,Math.round(best.count*0.2)), go=best.count-keep; if(go<30) continue;
       best.count=go; const g=this.send(best,tgt); best.count=keep; if(g){ g.garrison=1; refill++; } }
-    this.note((N===Infinity?`🚩 GENERAL MOBILIZATION: ${sent} camps marching here`:`📣 Calling ${sent} nearest camps to rally`)+(refill?` · ${refill} ranches/training grounds sent troops to garrison`:''),x,y,N===Infinity?'🚩':'📣');
+    const where= snap&&snap.node? (snap.node.owner===F? ' into '+(snap.node.camp?'your camp':'your stronghold') : ' onto the '+(snap.node.owner===2?'neutral':'enemy')+' stronghold') : snap&&snap.army? ' to join your army' : '';
+    this.note((rescue? `🚑 RESCUE: ${sent} nearest camps rushing to save ${snap.node.camp?'the camp':'the stronghold'}` : N===Infinity?`🚩 GENERAL MOBILIZATION: ${sent} camps marching${where||' here'}`:`📣 Calling ${sent} nearest camps to rally${where}`)+(refill?` · ${refill} ranches/training grounds sent troops to garrison`:''),x,y,N===Infinity?'🚩':'📣');
     audio.order();
   }
   // 💾 LƯU / TẢI VÁN (Quần Hùng chơi dài): mọi tham chiếu đối tượng đổi thành chỉ số
@@ -577,23 +586,23 @@ class BigWar{
   }
   menuPick(id){
     const m=this.menu; if(!m) return false; this.menu=null;
-    if(this.p2p==='guest'){ if(typeof P2P!=='undefined') P2P.guestMenu(id); this.sel=null; this.selA=null; this.selG=null; audio.click(); return true; }
+    if(this.p2p==='guest'){ if(typeof P2P!=='undefined') P2P.guestMenu(id, m.src&&m.src.kind==='node'? this.selOpt(m.src.ref) : null); this.sel=null; this.selA=null; this.selG=null; audio.click(); return true; }
     if(id.startsWith('rally')){ this.rallyCall(id==='rally5'?5: id==='rally10'?10: Infinity, m.wx, m.wy); this.sel=null; this.selA=null; this.selG=null; return true; }
     if(id==='cancel'){ this.sel=null; this.selA=null; this.selG=null; audio.click();
       this.texts.push({x:m.wx,y:m.wy-40,s:'Deselected',col:'#cde6ff',t:0,max:0.8}); return true; }
     const F=this.localFid;
-    const doSend=(s,to,mode)=>{ const a=this.send(s,to); if(a&&mode==='siege'){ a.siege= m.tgtNode? m.tgtNode.id : -1; } return a; };
+    const doSend=(s,to,mode)=>{ const a=this.send(s,to,this.selOpt(s)); if(a&&mode==='siege'){ for(const q of this._lastSent) q.siege= m.tgtNode? m.tgtNode.id : -1; } if(!a&&this.selOpt(s)&&s.owner===this.localFid) this.texts.push({x:s.x,y:s.y-80,s:`Too few troops to split (min ${BW.sendMin})`,col:'#ffb4a8',t:0,max:1.6}); return a; };
     let made=null;
     if(id==='switch'&&m.tgtOwn){ this.sel=null; this.selA=m.tgtOwn; this.selG=null; audio.click(); this._dblChk(m.tgtOwn,m.wx,m.wy); return true; }
     if(id==='merge'&&m.tgtOwn){ const tgt=m.tgtOwn;
       if(m.src.kind==='node'){ const s2=m.src.ref; this.sel=null;
-        const a=this.send(s2,{x:tgt.x,y:tgt.y,id:-1}); if(a){ a.mergeInto=tgt; this.fxArrow={x0:s2.x,y0:s2.y,x1:tgt.x,y1:tgt.y,t:0}; audio.order(); } }
+        const a=this.send(s2,{x:tgt.x,y:tgt.y,id:-1},this.selOpt(s2)); if(a){ for(const q of this._lastSent) q.mergeInto=tgt; this.fxArrow={x0:s2.x,y0:s2.y,x1:tgt.x,y1:tgt.y,t:0}; audio.order(); } }
       else { for(const s2 of m.src.refs){ if(!s2||s2.done||s2===tgt) continue; s2.camped=false; s2.ambush=false; s2.siege=null; s2.hunt=null; s2.to=-1; s2.mergeInto=tgt; }
         this.selA=null; this.selG=null; audio.order(); }
       this.texts.push({x:tgt.x,y:tgt.y-70,s:'🤝 Marching over to merge...',col:'#7dffcf',t:0,max:1.3});
       return true; }
     if(id==='join'&&m.joinB){ const b=m.joinB;
-      if(m.src.kind==='node'){ const s2=m.src.ref; this.sel=null; const a=this.send(s2,{x:b.x,y:b.y,id:-1}); if(a){ this.fxArrow={x0:s2.x,y0:s2.y,x1:b.x,y1:b.y,t:0}; audio.order(); } }
+      if(m.src.kind==='node'){ const s2=m.src.ref; this.sel=null; const a=this.send(s2,{x:b.x,y:b.y,id:-1},this.selOpt(s2)); if(a){ this.fxArrow={x0:s2.x,y0:s2.y,x1:b.x,y1:b.y,t:0}; audio.order(); } }
       else { for(const s2 of m.src.refs){ if(!s2||s2.done) continue; s2.camped=false; s2.ambush=false; s2.to=-1; s2.tx=b.x; s2.ty=b.y; s2.hunt=null; } this.selA=null; this.selG=null; audio.order(); }
       return true; }
     if((id==='ally'||id==='unally')&&m.tgtNode){ const nat=m.tgtNode.owner; this.sel=null; this.selA=null; this.selG=null;
@@ -1031,19 +1040,20 @@ class BigWar{
     if(n.count<=0){ const prev=n.owner; n.owner=a.owner; n.type=a.type; n.count=a.count; n.food=(n.food||0); this.ring(n,BW.facPal(a.owner).color); this.checkCamp(n,a.owner,prev); return; }
     if(n.owner===a.owner){ // gộp quân + TIẾP LƯƠNG từ kho
       n.count+=a.count;
-      if(n.eco==='train'&&n.trainType){ if(n.type!==n.trainType||a.type!==n.trainType){ n.type=n.trainType; if(a.owner===F){ txt(`⚒️ Switched to ${UNIT[n.trainType].name}!`,'#93c5fd',true); audio.recruit(); } } }
-      else if(n.count-a.count<a.count) n.type=a.type;
+      if(n.eco==='train'&&n.trainType){ if(n.type!==n.trainType||a.type!==n.trainType||n.mix){ n.type=n.trainType; n.mix=null; if(a.owner===F){ txt(`⚒️ Switched to ${UNIT[n.trainType].name}!`,'#93c5fd',true); audio.recruit(); } } }
+      else this.mixAdd(n,a.type,a.count,n.count-a.count);
       n.food=(n.food||0)+Math.round((a.food||0)*0.5);
       if(a.owner===F){ txt('+'+Math.round(a.count),'#7dffcf'); audio.pickup(); }
       this.ring(n,'#ffffff'); return; }
     if(n.owner===2){ // trung lập: đông hơn thì quy thuận; ít hơn -> MỞ TRẬN
-      if(a.count<n.count){
+      const DK=this.D&&!this.royale&&!this.cfg.p2p&&!this.cfg.classic? this.D : null, needK= DK? DK.defK : 1;   /* (5.4) ải cao: quân trung lập khó dụ hơn — phải đông gấp k lần mới chịu quy thuận, và chỉ một phần theo ta */
+      if(a.count<n.count*needK){
         a.done=false; a.x=n.x; a.y=n.y+70;
         this.startBattle(n.x,n.y-6,n.ter,n.id,
           {fid:a.owner,e:{kind:'army',ref:a,c0:a.count}},
           {fid:2,e:{kind:'node',ref:n,c0:n.count}}, this.defMul(n));
         return; }
-      const gain=n.count; const prev=n.owner; n.owner=a.owner; n.type=a.type; n.count=a.count+gain; n.food=(n.food||0)+Math.round((a.food||0)*0.5);
+      const gain=Math.round(n.count*(DK? DK.defG : 1)); const prev=n.owner; n.owner=a.owner; n.type=a.type; n.count=a.count+gain; n.food=(n.food||0)+Math.round((a.food||0)*0.5);
       if(a.owner===F){ this.stats.eat+=gain; txt(`+${gain} defected to you!`,'#ffd54a',true); audio.recruit(); if(n.x>BW.W*0.45) this.nextAI=Math.min(this.nextAI,4); }
       this.ring(n,'#ffd54a'); this.burst(n,'#ffd54a'); this.checkCamp(n,a.owner,prev); return; }
     // CÔNG THÀNH -> mở TRẬN kéo dài (phục kích node thì x2–x10)
@@ -1141,6 +1151,7 @@ class BigWar{
     let budget= D.budget+(!this.royale&&this.aiWave%3===0? 1:0);
     const tier=BW_AI_TIER(this.lv,this.royale);
     // 0) phòng thủ
+    this.aiAlarm(fid,announce); if(this.aiSnipe(fid,en)) budget--;
     if(D.iq>=2){ budget=this.aiDefend(fid,budget,announce); if(D.iq>=3&&!this.royale) budget=this.aiIntercept(fid,en,budget,announce); }
     else for(const atk of this.armies){ if(budget<=0) break; if(!this.isFoe(atk.owner,fid)) continue; if(atk.owner===F&&(atk.smokeT>0||!this.aiVis(atk.x,atk.y,fid))) continue;   /* 💨 đạo quân trong khói: máy không thấy */
       const tgt=atk.to>=0?this.nodes[atk.to]:null; if(!tgt||tgt.owner!==fid) continue;
@@ -1197,7 +1208,7 @@ class BigWar{
       if(best){ this.aiSend(best[0],best[1]); budget--; } }
     // 4) đánh node thù địch nếu chắc thắng (ngoài tầm nhìn người chơi thì chỉ đoán)
     if(budget>0){ let best=null,bs=-1e9;
-      for(const e of en){ for(const m of mine){ if(m.owner===F&&!this.royale&&!this.stormRush&&(this.pA(m)<D.safe-0.02||(this._raidT||0)>this.time||(m.camp&&this.time<240))) continue; if(m.owner===F&&this.royale&&this.time<D.grace) continue;   /* 4 phút đầu máy chưa đụng tới đại bản doanh của ta */ if(m.ambush) continue; const d=dist(e,m); if(d>BW.range) continue;
+      for(const e of en){ for(const m of mine){ if(m.owner===F&&!this.royale&&!this.stormRush&&(this.pA(m)<D.safe-0.02||(this._raidT||0)>this.time||(m.camp&&this.time<240&&!(D.iq>=3&&this.time>100&&m.count<200&&this.armies.some(q=>q.owner===F&&!q.done&&q.count>1500&&this.pA(q)>0.5))))) continue;   /* 4 phút đầu máy chưa đụng trại ta — TRỪ KHI (ải 8+) ta dốc đại quân sang nửa bên kia và bỏ trống trại */ if(m.owner===F&&this.royale&&this.time<D.grace) continue;   /* 4 phút đầu máy chưa đụng tới đại bản doanh của ta */ if(m.ambush) continue; const d=dist(e,m); if(d>BW.range) continue;
         const est=this.aiSee(m,fid);
         const [ra]=bwResolve(e.type,Math.round(e.count*(1-D.keep)*this.aiOver()),est.type,est.count,this.defMul({...m,type:est.type})); if(ra<=0) continue;
         let sc=ra*1.2+(m.eco?350+(D.iq>=2&&m.owner===F?450:0):0)+(m.camp?5000:0)-d*0.2-est.count*0.2+(m.owner===F?hate:0);
@@ -1751,7 +1762,7 @@ class BigWar{
       c.globalAlpha=this.rallyPick||this.rallyOpen?1:0.85; c.fillStyle=this.rallyPick?'rgba(255,213,74,0.95)':'rgba(30,24,54,0.85)'; c.strokeStyle='rgba(255,213,74,0.8)'; c.lineWidth=2;
       rr(c,bx,by,bs,bs,24); c.fill(); c.stroke(); c.textAlign='center'; if(this.rallyPick){ c.font=`900 26px ${FONT}`; c.fillStyle='#3a2405'; c.fillText('✕',bx+bs/2,by+34); } else { c.font='24px system-ui'; c.fillText('📣',bx+bs/2,by+33); } c.globalAlpha=1;
       this._rallyRects=[];
-      if(this.rallyOpen){ const opts=[[5,'📣 Call 5 nearest camps'],[10,'📣 Call 10 nearest camps'],[Infinity,'🚩 General mobilization'],[0,'✖ Cancel']];
+      if(this.rallyOpen){ const opts=[[5,'📣 Call 5 nearest camps'],[10,'📣 Call 10 nearest camps'],[-1,'🚑 Rescue a camp under attack'],[Infinity,'🚩 General mobilization'],[0,'✖ Cancel']];
         const mwMax=L.X1-8-(bx+bs+8); let fs=16, tw=0; for(;fs>=12;fs--){ c.font=`800 ${fs}px ${FONT}`; tw=0; for(const o of opts) tw=Math.max(tw,c.measureText(o[1]).width); if(tw+30<=mwMax) break; } fs=Math.max(12,fs);
         const mx=bx+bs+8, mw=Math.max(170,Math.min(mwMax,tw+30)), yTop=(L.bar&&mx<L.bar.x+L.bar.w+6)? L.bar.y+L.bar.h+6 : L.Y0+8;
         const ih=Math.min(42,Math.floor((L.Y1-8-yTop-10)/opts.length)), mh=opts.length*ih+10, my2=Math.max(yTop,Math.min(L.Y1-mh-8,by+bs-mh));
@@ -1760,7 +1771,7 @@ class BigWar{
         opts.forEach(([n,t],i)=>{ const oy=my2+5+i*ih; c.fillStyle=i%2?'rgba(255,255,255,0.04)':'rgba(255,255,255,0.08)'; rr(c,mx+5,oy,mw-10,ih-5,9); c.fill();
           c.font=`800 ${fs}px ${FONT}`; c.fillStyle=n?'#ffe9c9':'#f6b1a4'; c.fillText(t,mx+14,oy+(ih-5)/2+fs*0.36); this._rallyRects.push({x:mx+5,y:oy,w:mw-10,h:ih-5,n}); });
         c.textAlign='center'; }
-      if(this.rallyPick){ const t=`📍 Tap a rally point (${this.rallyPick===Infinity?'general mobilization':'call '+this.rallyPick+' camps'}) — tap ✖ to cancel`;
+      if(this.rallyPick){ const t= this.rallyPick<0? '🚑 Tap the camp to rescue — tap ✖ to cancel' : `📍 Tap a camp or a spot to rally at (${this.rallyPick===Infinity?'general mobilization':'call '+this.rallyPick+' camps'}) — tap ✖ to cancel`;
         // nằm sát đáy, bên phải nút ✖ — không che thông báo và không tràn màn hình hẹp
         const x0=bx+bs+10, xR=L.X1-66, maxW=xR-x0-24; let fs=15, lines=null; for(;fs>=13;fs--){ c.font=`800 ${fs}px ${FONT}`; if(c.measureText(t).width<=maxW){ lines=[t]; break; } }
         if(!lines){ fs=13; c.font=`800 ${fs}px ${FONT}`; lines=bwWrap(c,t,maxW,3); }
@@ -1775,10 +1786,11 @@ class BigWar{
           l1=`👥 ${grp.length} armies · ${Math.round(tot)} troops`; l2=Object.keys(by).sort((p,q)=>by[q]-by[p]).slice(0,4).map(t=>`${UNIT[t]?UNIT[t].emoji:''} ${Math.round(by[t])}`).join('   '); }
         else { const u=one, t=u.type, ter=u.ter||this.terAt(u.x,u.y), M=bwMatch(t,ter), cv=this.civOf(u.owner), em=(arr)=>arr.slice(0,4).map(x=>UNIT[x].emoji).join(' ');
           l1=`${UNIT[t]?UNIT[t].emoji:'⚔️'} ${bwTypeName(t,1)} ×${Math.round(u.count)}${cv&&cv.sig===t?' ⭐':''} · on ${BW.terIcon[ter]||''} ${BW.terName[ter]||ter}`;
-          const slow=Math.round((1-BW.sizeSpd(u.count))*100), mv= (t==='cavalry'? BW_TYPE_MOVE.cavalry : u.count>=BW.bigArmy? '🚩 large army: open ground & roads only' : (BW_TYPE_MOVE[t]||'🚶 any terrain'))+(slow>=8? ` · 🐢 −${slow}% speed` : '');
+          const slow=Math.round((1-BW.sizeSpd(u.count))*100), mix= u===this.sel? this.mixList(u) : [], mv= (BW_TYPE_MOVE[t]||'🚶 any terrain')+(slow>=8? ` · 🐢 −${slow}% speed` : '');
           let sup='';   /* 🌾 lương của đạo quân ngoài đồng: còn bao nhiêu, đủ đi bao lâu, đang gom lương hay xe lương đang tới */
           if(u===this.selA&&!this.sel){ const fv=Math.round(u.food??100), left=Math.round(this.packT(u)*fv/100/(u.camped?0.5:1));
             sup= (u.prep>0? `🌾 preparing ${Math.ceil(u.prep)}s` : `🌾 ${fv}% ≈ ${left}s`+(u._cv? ' · 🐂 convoy coming' : fv<BW.food.low? ' · ⚠️ no depot in range' : ''))+'   '; }
+          if(mix.length>1) l1=`🏰 ${Math.round(u.count)} troops: `+mix.slice(0,4).map(q=>`${UNIT[q[0]]?UNIT[q[0]].emoji:''} ${Math.round(q[1])}`).join(' · ')+` · on ${BW.terIcon[ter]||''} ${BW.terName[ter]||ter}`;
           l2=`${sup}${M.good.length? '▲ beats '+em(M.good)+'   ' : ''}${M.bad.length? '▼ weak to '+em(M.bad)+'   ' : ''}${mv}`; }
         const up= L.narrow&&L.vh>L.vw;   /* máy dọc hẹp: thẻ nằm trên nút 📣; còn lại (kể cả máy ngang nhỏ): hàng đáy, bên phải nút mai phục */
         const x0= up? L.X0+10 : L.amb.x+L.amb.w+10, maxW=L.X1-66-x0-20, bottom= up? L.rally.y-8 : L.Y1-10;
@@ -1795,6 +1807,12 @@ class BigWar{
       const zc=L.narrow?0:66, mwMax=Math.min(360,L.W-20-zc); let fs=18, tw=0; for(;fs>=12;fs--){ c.font=`800 ${fs}px ${FONT}`; tw=0; for(const o of m.opts) tw=Math.max(tw,c.measureText(o.s).width); if(tw+38<=mwMax) break; } fs=Math.max(12,fs); // máy hẹp: menu (hộp chặn) được phủ cột nút ＋－
       // 🌾 dòng dự báo hậu cần (chuẩn bị lương bao lâu · đi bao lâu · lương có đủ không): chữ nhỏ, tự xuống dòng, không bấm được
       let inf=null, ihd=0; if(m.info){ c.font=`700 12px ${FONT}`; const iw=Math.max(190,Math.min(mwMax,Math.max(Math.ceil(tw)+38,Math.ceil(c.measureText(m.info.s).width)+30))); inf=bwWrap(c,m.info.s,iw-28,2); let w2=0; for(const q of inf) w2=Math.max(w2,c.measureText(q).width); tw=Math.max(tw,w2-10); ihd=inf.length*15+7; }
+      /* (5.4) hàng chọn BINH CHỦNG (khi kho có ≥2 loại) và hàng chọn LƯỢNG quân — chỉ khi ra lệnh từ một cứ điểm của ta */
+      let selN=null, selRows=[], selH=0; if(m.src&&m.src.kind==='node'&&m.src.ref&&m.src.ref.owner===this.localFid&&m.src.ref.count>=BW.sendMin*2&&m.opts.some(o=>o.id==='attack'||o.id==='move'||o.id==='siege'||o.id==='hunt'||o.id==='merge'||o.id==='join')){ selN=m.src.ref;
+        const S=this.sendSel&&this.sendSel.node===selN.id? this.sendSel : {type:null,frac:1}, ml=this.mixList(selN);
+        if(ml.length>1) selRows.push([{s:'All types',on:!S.type||!(this.mixOf(selN)[S.type]>0),sel:{node:selN.id,type:null}}].concat(ml.slice(0,4).map(q=>({s:`${UNIT[q[0]]?UNIT[q[0]].emoji:''} ${Math.round(q[1])}`,on:S.type===q[0],sel:{node:selN.id,type:q[0]}}))));
+        selRows.push(BW.sendFracs.map(q=>({s:q[1],on:(S.frac||1)===q[0],sel:{node:selN.id,frac:q[0]}})).concat([{s:`→ ${this.selGoing(selN)}`,lab:1}]));
+        selH=selRows.length*36+2; ihd+=selH; tw=Math.max(tw, selRows.reduce((w,r)=>Math.max(w,r.length*58-38),0)); }
       const mw=Math.max(190,Math.min(mwMax,Math.ceil(tw)+38)), ih=Math.min(46,Math.floor((L.Y1-L.Y0-30-ihd)/m.opts.length)), mh=m.opts.length*ih+14+ihd;
       mx=Math.max(L.X0+10,Math.min(L.X1-mw-Math.max(10,zc),mx+30)); my2=Math.max(L.Y0+8,Math.min(L.Y1-mh-8,my2-mh/2));
       // không chui xuống dưới cụm nút 🏠↻⏸: nút HTML nằm trên canvas sẽ che mất dòng lệnh
@@ -1804,6 +1822,10 @@ class BigWar{
       c.strokeStyle='#ffd54a'; c.lineWidth=2.5; rr(c,mx,my2,mw,mh,14); c.stroke();
       c.textAlign='left';
       if(inf){ c.font=`700 12px ${FONT}`; c.fillStyle= m.info.warn? '#ffb4a8' : '#cfe9b5'; inf.forEach((q,i)=>c.fillText(q,mx+16,my2+19+i*15)); }
+      if(selN){ const y0=my2+7+ihd-selH; selRows.forEach((row,ri)=>{ const n=row.length, gap=5, cw=(mw-16-gap*(n-1))/n, cy=y0+ri*36; row.forEach((q,ci)=>{ const cx=mx+8+ci*(cw+gap);
+            if(q.lab){ c.font=`800 13px ${FONT}`; c.fillStyle='#7dffcf'; c.textAlign='center'; c.fillText(q.s,cx+cw/2,cy+20); c.textAlign='left'; return; }
+            c.fillStyle= q.on? '#ffd54a' : 'rgba(255,255,255,0.12)'; rr(c,cx,cy,cw,30,9); c.fill(); c.font=`800 ${cw<52?12:14}px ${FONT}`; c.fillStyle= q.on? '#2b1d00' : '#ffe9c9'; c.textAlign='center'; c.fillText(q.s,cx+cw/2,cy+20); c.textAlign='left';
+            this._menuRects.push({x:cx,y:cy-2,w:cw,h:34,sel:q.sel,id:'sel'}); }); }); }
       m.opts.forEach((o,i)=>{ const oy=my2+7+ihd+i*ih;
         c.fillStyle= i%2? 'rgba(255,255,255,0.04)':'rgba(255,255,255,0.08)'; rr(c,mx+6,oy,mw-12,ih-6,10); c.fill();
         c.font=`800 ${fs}px ${FONT}`; c.fillStyle= o.id==='cancel'? '#f6b1a4':'#ffe9c9'; c.fillText(o.s,mx+18,oy+(ih-6)/2+fs*0.36);

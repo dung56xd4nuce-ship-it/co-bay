@@ -5,7 +5,7 @@
 BW.DIFF_NAMES=['Easy','Normal','Hard'];
 BW.brain=function(lv,royale,diff){
   if(royale){ const d=Math.max(0,Math.min(2,diff==null?1:diff|0));
-    return {royale:true,diff:d,iq:[1,1,3][d],safe:0,fly:[2,3,5][d],budget:[1,1,2][d],keep:[0,0,0.2][d],over:null,raidCd:0,grace:[420,300,240][d],pw:[0.9,1,1.1][d],grow:[0.72,1,1.3][d],tempo:[1.4,1,0.75][d],hate:[-700,0,600][d],force:1,me:[1.35,1,0.9][d]}; }
+    return {royale:true,diff:d,iq:[1,1,3][d],safe:0,fly:[2,3,5][d],budget:[1,1,2][d],keep:[0,0,0.2][d],over:null,raidCd:0,grace:[420,300,240][d],pw:[0.9,1,1.1][d],grow:[0.72,1,1.3][d],tempo:[1.4,1,0.75][d],hate:[-700,0,600][d],force:1,defK:1,defG:1,me:[1.35,1,0.9][d]}; }
   const l=Math.max(1,Math.min(10,typeof lv==='number'?lv:1)), i=l-1;
   return {royale:false,diff:null,lv:l,
     iq:[0,0,1,1,2,2,2,3,3,3][i],
@@ -16,10 +16,12 @@ BW.brain=function(lv,royale,diff){
     keep:[0,0,0.1,0.15,0.2,0.22,0.25,0.28,0.3,0.3][i],
     over:[0.85,0.95,1,1,0.97,0.96,0.95,0.94,0.93,0.92][i],
     pw:[0.9,0.93,0.96,1,1,1.03,1.05,1.07,1.09,1.12][i],
+    defK:[1,1,1.15,1.3,1.5,1.7,1.9,2.1,2.3,2.5][i], defG:[1,1,0.95,0.9,0.85,0.8,0.75,0.7,0.65,0.6][i],
     force:BW.FORCE[i], grow:1,tempo:1,hate:0,me:1};
 };
-BW.FORCE=(typeof process!=="undefined"&&process.env&&process.env.FORCE? process.env.FORCE.split(",").map(Number) : [1,0.6,0.32,0.22,0.155,0.125,0.105,0.09,0.078,0.075]);   /* quân khởi điểm của boss theo ải — đã đo bằng máy tự chơi: boss bớt đông, thêm KHÔN */
-BW.BOSS_ARMY=[8300,10200,9200,9200,10200,11000,11900,12700,13800,15700];   /* quân boss lúc khai trận (đo thực tế, làm tròn) — hiện trên thẻ ải */
+BW.FORCE=(typeof process!=="undefined"&&process.env&&process.env.FORCE? process.env.FORCE.split(",").map(Number) : [1,0.6,0.34,0.27,0.24,0.22,0.19,0.17,0.13,0.135]);   /* quân khởi điểm của boss theo ải — đã đo bằng máy tự chơi: boss bớt đông, thêm KHÔN */
+BW.BOSS_ARMY=[8300,10200,10400,11800,16400,19300,22300,24000,23800,30900];   /* quân boss lúc khai trận (đo thực tế, làm tròn) — hiện trên thẻ ải */
+BW.CAMP_F=(typeof process!=="undefined"&&process.env&&process.env.CAMPF? process.env.CAMPF.split(",").map(Number) : [1,0.9,0.85,0.85,0.9,0.9,0.9,1,1,1]);   /* (5.4) quân giữ trại boss lúc khai trận so với bảng ải: trại KHÔNG teo theo hệ số quân đồn nữa — đánh thẳng vào trại phải gặp trại đông */
 BW.TACTICS=[['🌾 Hoards troops, rarely leaves home'],['🪤 Sets ambushes on your routes'],['🛡️ Keeps home guards','🔥 Raids your farms & rear','🚑 Rushes troops back to defend'],['🎯 Intercepts your armies on the road','⚔️ Two-pronged assaults','🏃 Abandons hopeless posts to regroup']];
 BigWar.prototype.pwOf=function(fid){ const D=this.D; return (D&&fid!==this.localFid&&fid!==2&&!this.cfg.p2p&&!this.cfg.classic)? D.pw : 1; };
 BigWar.prototype.aiOver=function(){ const D=this.D; return D&&D.over!=null? D.over*D.pw : this.L.aiPow; };
@@ -56,3 +58,26 @@ BigWar.prototype.aiTwoProng=function(fid,src,tgt,mine,need){ const F=this.localF
   const k=1-(this.D.keep||0); if(!B.length||sa*k<need*n1||sb*k<Math.max(1.3,need*0.8)*n2) return false;
   this.sendCoordinated(A,tgt); this.sendCoordinated(B,t2); return t2; };
 if(typeof setupMenus==='function'){ try{ setupMenus(); }catch(e){} }   /* dựng lại menu khi bảng ải đã nạp xong (nút CONTINUE cần tên ải) */
+// 🚨 (5.4) BÁO ĐỘNG: người chơi gom một đạo lớn kéo thẳng vào trại → boss KHÔNG ngồi chờ chết.
+//   iq≥1: mọi đồn trong tầm dồn quân về giữ trại (bỏ qua giới hạn số lệnh mỗi lượt)   iq≥2: các đạo quân đang đóng ngoài đồng cũng quay về
+//   iq≥3: nếu ta dốc sạch quân đi, bỏ trống đại bản doanh → boss cho một cánh đánh úp trại ta (không còn 4 phút ân hạn)
+BigWar.prototype.aiAlarm=function(fid,announce){ const D=this.D, F=this.localFid; if(this.royale||D.iq<1) return false;
+  const camp=this.nodes.find(n=>n.camp&&n.owner===fid&&!n.sieged); if(!camp) return false;
+  let threat=0, lead=null; for(const a of this.armies){ if(a.owner!==F||a.done||a.count<=0) continue; const d=hyp(a.x-camp.x,a.y-camp.y); const aimed= a.to===camp.id || (a.btl&&camp.btl===a.btl);
+    if(aimed? d<2600 : (d<1300&&a.count>camp.count*0.4)){ threat+=a.count; if(!lead||a.count>lead.count) lead=a; } }
+  if(!lead||threat<camp.count*0.45){ this._alarm=0; return false; }
+  const k=BW.counter(camp.type,lead.type,camp.ter)*this.defMul(camp)*D.pw, need=threat*BW.counter(lead.type,camp.type,camp.ter)*1.35/Math.max(0.5,k);
+  let have=camp.count; for(const a of this.armies) if(a.owner===fid&&!a.done&&a.to===camp.id) have+=a.count;
+  if(have>=need) return false;
+  const reach=BW.range*(D.iq>=3? 2.6 : D.iq>=2? 2.0 : 1.5), src=this.nodes.filter(e=>e.owner===fid&&e!==camp&&!e.btl&&e.count>120&&hyp(e.x-camp.x,e.y-camp.y)<=reach).sort((p,q)=>hyp(p.x-camp.x,p.y-camp.y)-hyp(q.x-camp.x,q.y-camp.y));
+  let sent=0; for(const e of src){ if(have>=need) break; const a=this.aiSend(e,camp,e.eco?0.3:0.1); if(a){ for(const q of this._lastSent) have+=q.count; sent++; } }
+  if(D.iq>=2) for(const a of this.armies){ if(have>=need) break; if(a.owner!==fid||a.done||a.btl||!a.camped||a.count<100||hyp(a.x-camp.x,a.y-camp.y)>reach) continue; a.camped=false; a.ambush=false; a.hunt=null; a.to=camp.id; have+=a.count; sent++; }
+  if(sent&&(this._alarm||0)<this.time){ this._alarm=this.time+25; this.note('🚨 The enemy pulls its garrisons back to defend the camp!',camp.x,camp.y,'🚨'); }
+  return sent>0; };
+// 🗡️ (5.4) ĐÁNH ÚP (iq 3): trại ta bỏ trống mà có đồn địch đủ sức lấy ngay → đây là nước ưu tiên số một của boss (trước cả việc chiếm đồn trung lập)
+BigWar.prototype.aiSnipe=function(fid,en){ const D=this.D, F=this.localFid; if(this.royale||D.iq<3||(this._snipeT||0)>this.time) return false;
+  const m=this.nodes.find(n=>n.camp&&n.owner===F&&!n.btl); if(!m||m.ambush) return false;
+  const committed=this.time>100&&m.count<200&&this.armies.some(q=>q.owner===F&&!q.done&&q.count>1500&&this.pA(q)>0.5); if(this.time<240&&!committed) return false;
+  if(this.armies.some(a=>a.owner===fid&&!a.done&&a.to===m.id)) return false;
+  let best=null, bs=0; for(const e of en){ if(e.btl||e.eco||e.count<200) continue; const d=hyp(e.x-m.x,e.y-m.y); if(d>BW.range*1.6) continue; const est=this.aiSee(m,fid); const ra=bwResolve(e.type,Math.round(e.count*(1-D.keep)*this.aiOver()),est.type,est.count,this.defMul({...m,type:est.type}))[0]; if(ra>e.count*0.25&&ra-d*0.2>bs){ bs=ra-d*0.2; best=e; } }
+  if(!best) return false; if(!this.aiSend(best,m)) return false; this._snipeT=this.time+30; this.note('🗡️ The enemy strikes at your undefended camp!',m.x,m.y,'🗡️'); audio.drum&&audio.drum(true); return true; };

@@ -2,9 +2,21 @@
 // In: thời gian thắng, số cứ điểm ta bị máy chiếm, số đợt máy xuất quân đánh ta, tương quan lực lượng theo thời gian.
 import fs from 'fs';
 const SRC=process.env.SRC||new URL('../src',import.meta.url).pathname;
-const BWSRC=['09_bigwar.js','09a_terrain.js','09c_civ.js','09d_supply.js','09e_gear.js','09f_brain.js'].filter(f=>fs.existsSync(SRC+'/'+f)).map(f=>fs.readFileSync(SRC+'/'+f,'utf8')).join('\n');
+const BWSRC=['09_bigwar.js','09a_terrain.js','09c_civ.js','09d_supply.js','09e_gear.js','09f_brain.js','09g_mix.js'].filter(f=>fs.existsSync(SRC+'/'+f)).map(f=>fs.readFileSync(SRC+'/'+f,'utf8')).join('\n');
 const M=new Function("const audio=new Proxy({},{get:()=>()=>{}});const ArtImages={};const makeUnitSprite=()=>null;const recolorUnit=()=>null;const rr=()=>{};\n"+fs.readFileSync(SRC+'/01_config.js','utf8')+fs.readFileSync(SRC+'/02_map.js','utf8')+BWSRC+'\nreturn {BigWar,BW,bwResolve,BW_LEVELS,BW_AI_TIER};')();
 const {BigWar,BW,bwResolve,BW_LEVELS,BW_AI_TIER}=M;
+// Máy thử "ĐÁNH THẲNG" (5.4): gom hết quân vào một đồn, ăn đồn trung lập cho đông, đủ gấp 2,2 lần quân trại địch thì kéo thẳng vào trại.
+export function rush(lv,map,civ='rome',opt={}){ const bw=new BigWar(lv,Object.assign({map,civ,autoMenu:true},opt.cfg||{})); bw.lv=lv; const hy=Math.hypot, eat=opt.eat??8;
+  const ecamp=()=>bw.nodes.find(n=>n.camp&&n.owner===1); let eaten=0, log=[], atk=false, base=null, step=0, hits=0;
+  const hub=bw.nodes.filter(n=>n.owner===0&&!n.camp&&!n.eco).sort((a,b)=>b.count-a.count)[0]; bw.rallyCall(Infinity,hub.x,hub.y); base=hub;
+  const s0=bw.send.bind(bw); bw.send=function(a,b,...r){ if(a&&a.owner===1&&b&&(b.owner===0)) hits++; return s0(a,b,...r); };
+  while(!bw.over&&bw.time<(opt.limit||20)*60){ bw.update(0.05); step++; if(step%20) continue;
+    const mine=bw.armies.filter(a=>a.owner===0&&!a.done&&a.count>0); if(mine.length) continue;      // đợi quân tới nơi / đánh xong
+    const n=bw.nodes.filter(q=>q.owner===0&&!q.btl&&q.count>0).sort((a,b)=>b.count-a.count)[0]; if(!n||n.count<50) continue; const ec=ecamp(); if(!ec) continue;
+    const need=(opt.ratio||2.2)*ec.count; if(n.count<need&&bw.time<(opt.wait||12)*60){ const tgt=bw.nodes.filter(q=>q.owner===2&&q.count>0&&q.count<n.count*0.85).sort((a,b)=>hy(a.x-n.x,a.y-n.y)-hy(b.x-n.x,b.y-n.y))[0]; if(tgt){ bw.send(n,tgt); eaten++; continue; }
+      if(step%400===0){ bw.rallyCall(Infinity,n.x,n.y); } continue; }
+    log.push(Math.round(bw.time)+'s: '+Math.round(n.count)+' vs camp '+Math.round(ec.count)); atk=true; bw.send(n,ec); }
+  return {win:!!(bw.result&&bw.result.win),over:bw.over,t:bw.time,log,hits}; }
 export function play(lv,map,civ,opt={}){ const bw=new BigWar(lv,Object.assign({map,civ,autoMenu:true},opt.cfg||{})); bw.lv=lv;
   let sends=0, lost=0, aiAtk=0, aiSend=0; const LIMIT=(opt.limit||40)*60, R=1500, series=[]; const own=bw.nodes.map(n=>n.owner);
   const send0=bw.send.bind(bw); bw.send=function(s,t,...r){ if(s&&s.owner===1){ aiSend++; if(t&&t.owner===0) aiAtk++; } return send0(s,t,...r); };
@@ -26,7 +38,11 @@ export function play(lv,map,civ,opt={}){ const bw=new BigWar(lv,Object.assign({m
     const front=[...mine].sort((a,b)=>bw.pA(b)-bw.pA(a))[0]; for(const s of mine){ if(s===front||s.camp||s.eco) continue; if(d2(s,front)<=R&&s.count>150) return [s,front]; }
     return null; };
   let nextS=0, minRatio=1e9, campHit=0; const camp=bw.nodes.find(n=>n.camp&&n.owner===0);
-  while(!bw.over&&bw.time<LIMIT){ const mv=decide(); if(mv){ const a=send0(mv[0],mv[1]); if(a) sends++; }
+  let nextR=0;
+  while(!bw.over&&bw.time<LIMIT){
+    /* opt.defend: người chơi biết phòng thủ tối thiểu — thấy địch kéo tới trại/đồn yếu của mình thì bấm 🚑 Cứu trại */
+    if(opt.defend&&bw.time>=nextR){ const th=bw.armies.find(a=>a.owner===1&&!a.done&&a.to>=0&&bw.nodes[a.to].owner===0&&(bw.nodes[a.to].camp||bw.nodes[a.to].eco)&&bw.nodes[a.to].count<a.count*1.1); if(th){ const n=bw.nodes[th.to]; bw.rallyCall(-1,n.x,n.y); nextR=bw.time+12; } }
+    const mv=decide(); if(mv){ const a=send0(mv[0],mv[1]); if(a) sends++; }
     for(let k=0;k<40&&!bw.over;k++) bw.update(0.05);
     for(let i=0;i<bw.nodes.length;i++){ const o=bw.nodes[i].owner; if(own[i]===0&&o===1) lost++; own[i]=o; }
     if(camp.btl) campHit++;

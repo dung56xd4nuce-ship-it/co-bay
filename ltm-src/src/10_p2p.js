@@ -49,11 +49,11 @@ const P2P={
     ch.onmessage=(e)=>{ let m; try{ m=JSON.parse(e.data); }catch(err){ return; }
       if(m.op==='hello'){ this.civ2=BW_CIV[m.civ]? m.civ : null; if(this.role==='host'&&this._go) this._go(); }
       else if(m.op==='init'&&this.role==='guest'){ this._inited=true; clearInterval(this._helloT); this.start(m.seed,m.civ,m.civ2); }
-      else if(m.op==='rally'&&this.role==='host'&&G.bw){ G.bw.asFid(1,()=>G.bw.rallyCall(m.n||Infinity,m.wx,m.wy)); }
+      else if(m.op==='rally'&&this.role==='host'&&G.bw){ G.bw.asFid(1,()=>G.bw.rallyCall(m.n<0? -1 : (m.n||Infinity),m.wx,m.wy)); }
       else if(m.op==='box'&&this.role==='host'&&G.bw){ G.bw.asFid(1,()=>G.bw.boxSelectWorld(m.x0,m.y0,m.x1,m.y1)); }
       else if(m.op==='note'&&this.role==='guest'&&G.bw){ G.bw.note(m.text,m.x,m.y,m.icon); }
       else if(m.op==='tap'&&this.role==='host'&&G.bw){ G.bw.asFid(1,()=>G.bw.tap(m.wx,m.wy)); }
-      else if(m.op==='menu'&&this.role==='host'&&G.bw){ G.bw.asFid(1,()=>G.bw.menuPick(m.id)); }
+      else if(m.op==='menu'&&this.role==='host'&&G.bw){ G.bw.asFid(1,()=>{ const bw=G.bw, keep=bw.sendSel, sn=bw.menu&&bw.menu.src&&bw.menu.src.kind==='node'? bw.menu.src.ref : null; bw.sendSel= m.sel&&sn? {node:sn.id,type:(typeof m.sel.type==='string'&&BW_TYPES.indexOf(m.sel.type)>=0)? m.sel.type : null,frac:(m.sel.frac===0.5||m.sel.frac===0.25)? m.sel.frac : 1} : null; try{ bw.menuPick(m.id); } finally { bw.sendSel=keep; } }); }
       else if(m.op==='amb'&&this.role==='host'&&G.bw){ const n=G.bw.nodes[m.ni]; if(n&&n.owner===1) n.ambush=!!m.v; }
       else if(m.op==='pause'){ if(this.role==='host'){ G.paused=!!m.v; pause(!!m.v); }
         else { G.paused=!!m.v; pause(!!m.v); } }
@@ -76,14 +76,14 @@ const P2P={
     if(this.role==='host'){ this.lastSnap-=dt; if(this.lastSnap<=0){ this.lastSnap=0.12; try{ this.ch.send(JSON.stringify(this.snap(G.bw))); }catch(e){} } }
   },
   snap(bw){ return {op:'snap', t:bw.time, p:G.paused?1:0, over:bw.over, win:bw.result&&bw.result.win,
-    n:bw.nodes.map(n=>[n.owner,Math.round(n.count),BW_TYPES.indexOf(n.type), n.ambush?1:0, Math.round(n.food||0), n.scoutT!=null?Math.round(bw.time-n.scoutT):-1, n.sieged?1:0, n.btl?1:0]),
+    n:bw.nodes.map(n=>[n.owner,Math.round(n.count),BW_TYPES.indexOf(n.type), n.ambush?1:0, Math.round(n.food||0), n.scoutT!=null?Math.round(bw.time-n.scoutT):-1, n.sieged?1:0, n.btl?1:0, (n.mix&&n.mixO===n.owner)? Object.keys(n.mix).map(t=>[BW_TYPES.indexOf(t),Math.round(n.mix[t]*1000)]) : 0]),
     a:bw.armies.filter(a=>!a.done).map(a=>[a.owner,Math.round(a.x),Math.round(a.y),Math.round(a.count),BW_TYPES.indexOf(a.type),a.camped?1:0,a.ambush?1:0,Math.round(a.food||0),a.btl?1:0,Math.round((a.prep||0)*10),Math.round((a.prep0||0)*10)]),
     c:(bw.convoys||[]).filter(c=>!c.done).map(c=>[c.owner,Math.round(c.x),Math.round(c.y),Math.round(c.pct),(c.hx||1)<0?1:0]),
     b:bw.battles.filter(b=>!b.done).map(b=>[Math.round(b.x),Math.round(b.y),Math.round(bw.bSideSum(b.A)),Math.round(bw.bSideSum(b.B)),b.A.fid,b.B.fid]) }; },
   applySnap(m){ const bw=G.bw; if(!bw) return;
     if(!!m.p!==!!G.paused){ G.paused=!!m.p; pause(!!m.p); }
     bw.time=m.t;
-    m.n.forEach((r,i)=>{ const n=bw.nodes[i]; if(!n) return; n.owner=r[0]; n.count=r[1]; n.type=BW_TYPES[r[2]]||n.type; n.ambush=!!r[3]; n.food=r[4];
+    m.n.forEach((r,i)=>{ const n=bw.nodes[i]; if(!n) return; n.owner=r[0]; n.count=r[1]; n.type=BW_TYPES[r[2]]||n.type; n.ambush=!!r[3]; n.food=r[4]; if(r[8]&&r[8].length){ const mx={}; for(const q of r[8]) if(BW_TYPES[q[0]]) mx[BW_TYPES[q[0]]]=q[1]/1000; n.mix=mx; n.mixO=n.owner; } else n.mix=null;
       n.scoutT= r[5]>=0? bw.time-r[5] : null; n.sieged=!!r[6]; n.btl=r[7]?1:null; });
     // đạo quân: thay cả mảng bằng bản ảnh nhẹ (giữ lựa chọn theo chỉ số gần nhất)
     const selIdx=bw.selA? bw.armies.indexOf(bw.selA):-1, grpIdx=(bw.selG||[]).map(a=>bw.armies.indexOf(a)).filter(i=>i>=0);
@@ -101,7 +101,7 @@ const P2P={
   sendOp(o){ if(this.ch&&this.ch.readyState==='open') this.ch.send(JSON.stringify(o)); },
   setPause(v){ if(this.role==='host'){ G.paused=!!v; } this.sendOp({op:'pause',v:v?1:0}); },
   guestTap(wx,wy){ if(this.ch&&this.ch.readyState==='open') this.ch.send(JSON.stringify({op:'tap',wx,wy})); },
-  guestMenu(id){ if(this.ch&&this.ch.readyState==='open') this.ch.send(JSON.stringify({op:'menu',id})); },
+  guestMenu(id,sel){ if(this.ch&&this.ch.readyState==='open') this.ch.send(JSON.stringify({op:'menu',id,sel:sel||undefined})); },
   drop(msg){ this.connected=false; try{ this.pc&&this.pc.close(); }catch(e){} this.pc=null; this.ch=null;
     if(G.bw&&G.bw.cfg&&G.bw.cfg.p2p&&!G.bw.over){ G.bw.over=true; G.bw.result={win:true}; G.bw._p2pNote=msg; }
   },

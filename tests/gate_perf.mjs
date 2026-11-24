@@ -31,7 +31,12 @@ async function measure(url,mode,label){
   out.err=T.errs.slice(0,2); await T.ctx.close(); console.log(label,JSON.stringify(out)); return out; }
 const PH=['vào trận','đứng yên','kéo bản đồ','toàn cảnh','giữa trận','giữa trận · kéo'];
 for(const mode of ['1v1','royale']){ console.log(`— ${mode==='royale'?'Quần Hùng 37 nước':'Đánh Boss 1v1'} · CPU chậm ${RATE}× —`);
-  const N=await measure(undefined,mode,'  bản mới'); const O=hasOld? await measure(OLD,mode,'  '+oldName) : null;
+  /* (5.4) Đo XEN KẼ mới–cũ–mới–cũ rồi lấy lần tốt hơn của mỗi bên cho từng cảnh: máy thử (2 nhân, vẽ bằng phần mềm) nhiễu tới mức
+     đem một bản so với CHÍNH NÓ vẫn có lúc "chậm hơn 50%" ở khung chậm nhất — một lần đo đơn lẻ không nói lên điều gì. */
+  const best=(A,B)=>{ if(!B) return A; const R={err:A.err.concat(B.err)}; for(const ph of PH){ const a=A[ph], b=B[ph]; R[ph]=Object.assign({},a,{fps:Math.max(a.fps,b.fps),max:Math.min(a.max,b.max),upd:Math.min(a.upd,b.upd)}); } return R; };
+  const N1=await measure(undefined,mode,'  bản mới'); const O1=hasOld? await measure(OLD,mode,'  '+oldName) : null;
+  const N2=hasOld? await measure(undefined,mode,'  bản mới (lần 2)') : null; const O2=hasOld? await measure(OLD,mode,'  '+oldName+' (lần 2)') : null;
+  const N=best(N1,N2), O=O1? best(O1,O2) : null;
   ok(N.err.length===0,`${mode}: không lỗi JS khi máy chậm`+(N.err.length?': '+N.err.join(' | '):''));
   for(const ph of PH){ const n=N[ph], o=O&&O[ph];
     // máy thử vẽ bằng phần mềm nên con số tuyệt đối thấp hơn điện thoại thật; lấy bản v4.2 (đo cùng lúc, cùng máy) làm mốc

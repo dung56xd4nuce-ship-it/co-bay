@@ -77,7 +77,7 @@ function civPerks(cv){ const out=[], u=UNIT[cv.sig]? UNIT[cv.sig].name : cv.sig,
   if(cv.pass&&cv.pass.indexOf('m')>=0) out.push('⛰️ Infantry of any size crosses mountains quickly');
   return out; }
 // binh chủng: đi được đâu (khắc ai/sợ ai tính trực tiếp từ bảng khắc chế + địa hình, xem bwMatch)
-const BW_TYPE_MOVE={ cavalry:'🛣️ open ground & roads only · fast', shield:'🚶 any terrain · slow', assassin:'🌲 fast through forest & mountain' };
+const BW_TYPE_MOVE={ cavalry:'🐎 fast on open ground · slow in forest & mountain', shield:'🚶 any terrain · slow', assassin:'🌲 fast through forest & mountain' };
 // tại địa hình ter, binh chủng t khắc những loại nào (good) và ngại những loại nào (bad)
 function bwMatch(t,ter){ const good=[], bad=[]; for(const b of BW_TYPES){ if(b===t) continue; const r=BW.counter(t,b,ter)/Math.max(0.01,BW.counter(b,t,ter)); if(r>=1.25) good.push(b); else if(r<=0.8) bad.push(b); } return {good,bad}; }
 function bwTypeName(t,pl){ const n=UNIT[t]? UNIT[t].name : t; return pl? (/man$/.test(n)? n.replace(/man$/,'men') : n+'s') : n; }

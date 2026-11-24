@@ -18,7 +18,7 @@ if(!(await up())){ spawn('python3',['-m','http.server','8766'],{cwd:'/tmp/solo',
 const exists=(f)=>fs.existsSync(ROOT+'test/'+f);
 const LIST=[
   ['soát mã bị nuốt vào chú thích + cú pháp','lint_swallow.mjs','exit',60],
-  ['luật chơi (309 tình huống)','rules.mjs','rules',480,0,1],        // nặng CPU: chạy riêng ở chặng 2
+  ['luật chơi (338 tình huống)','rules.mjs','rules',480,0,1],        // nặng CPU: chạy riêng ở chặng 2
   ['bố cục HUD mọi cỡ máy','audit_layout.mjs','exit',420],
   ['luồng người chơi','gate_flows.mjs','exit',240],
   ['điều khiển cảm ứng trong trận','gate_touch.mjs','exit',300],
@@ -29,12 +29,13 @@ const LIST=[
   ['lương thảo & đại quân','gate_supply.mjs','exit',300],
   ['quân nhu · lò rèn · xu (như người chơi)','gate_gear.mjs','exit',480],
   ['chiến dịch 10 ải · lưu ván 1v1 · mức khó Quần Hùng (như người chơi)','gate_camp.mjs','exit',600],
-  ['độ khó tăng thật theo ải (bot đánh 30 ván)','gate_ramp.mjs','exit',240],
+  ['độ khó tăng thật theo ải + chống "đánh thẳng vào trại" (bot đánh 60 ván)','gate_ramp.mjs','exit',1200],
+  ['tách binh chủng · tách quân · cứu trại · hiệu lệnh bắt dính (như người chơi)','gate_mix.mjs','exit',600],
   ['bộ art được dùng hết','gate_art.mjs','exit',300],
   ['nâng cấp từ v4.2 (ván lưu cũ)','gate_upgrade.mjs','exit',300],
   ['chạm ngẫu nhiên (khỉ)','gate_monkey.mjs','exit',600],
   ['mượt & đỡ pin (nhịp khung hình, ô bản đồ)','gate_smooth.mjs','exit',420,0,1],   // đo nhịp vẽ → chạy riêng
-  ['hiệu năng máy yếu','gate_perf.mjs','exit',400,0,1],            // phần tử thứ 6 = chạy RIÊNG một mình (đo thời gian, không để nhóm khác tranh CPU)
+  ['hiệu năng máy yếu','gate_perf.mjs','exit',900,0,1],            // phần tử thứ 6 = chạy RIÊNG một mình (đo thời gian, không để nhóm khác tranh CPU)
   ['bot đánh 10 ải','gate_bot.mjs','exit',900,1,1],
   ['ngâm Quần Hùng','gate_soak.mjs','exit',900,1,1],
   ...['handplay','touchdrag','touchpinch','selectarmy','edgecorner','boxselect','camera_maps','capital','territory','rally','rally_refill','afterbattle','afterbattle_ui','saveload','bigmap','royale_ai','royale_ally','boss10','supplycap','p2pui','frame','en_tour'].map(n=>['khói · '+n,n+'.mjs','smoke',n==='camera_maps'?900:240,n==='camera_maps'?1:0]),
