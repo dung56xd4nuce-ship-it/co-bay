@@ -53,7 +53,7 @@ for(const [dn,dev,tall] of [...DEVICES.map(d=>[...d,false]),[PORTRAIT[1][0],PORT
   await p.reload(); await p.waitForFunction(()=>window.__ltm&&document.getElementById('menu')); await p.waitForTimeout(400); s=await inv(T);
   ok(s.xu===210&&s.inv.bun===2&&s.inv.tea===1&&s.inv.smoke===1&&s.inv.compass===1&&s.pack.join()==='bun,tea,compass'&&s.up.speed===1&&s.up.weapon===1&&s.shown[0]===210,'mở lại game: xu, kho, túi 3 món và nâng cấp còn nguyên');
   // ---------- VÀO TRẬN 1v1 ----------
-  await T.startBattle({map:3,civ:'rome'},2); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.lastVw>0); await T.hookDraw();
+  await T.startBattle({map52:3,civ:'rome'},2); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.lastVw>0); await T.hookDraw(); await T.ev(()=>{ __ltm.bw.nextAI=1e9; __ltm.bw.nextWaveF={1:1e9}; });   /* (5.3) boss nay chủ động hơn: cho máy đứng yên để bài thử quân nhu không phụ thuộc nước đi của máy */
   const a0=await T.ev(()=>{ const bw=__ltm.bw; bw.skipIntro(); bw.aiTurn=()=>{}; bw.nextWaveF={1:1e9}; bw.notes=[]; const c=bw.nodes.find(n=>n.camp&&n.owner===0);
     const a={owner:0,type:'spear',count:900,x:c.x+330,y:c.y+170,to:-1,tx:c.x+330,ty:c.y+170,trail:0,camped:true,food:22}; bw.armies.push(a); window.__a=a;
     return {gear:bw.gear.map(g=>g.id).join(),up:bw.up&&bw.up.speed,x:a.x,y:a.y,hud:Object.keys(bw.hudRects())}; }); await p.waitForTimeout(500);
@@ -109,7 +109,7 @@ for(const [dn,dev,tall] of [...DEVICES.map(d=>[...d,false]),[PORTRAIT[1][0],PORT
   r=await tapSel(T,'[data-buy="tea"]'); await p.waitForTimeout(150); const s2=await inv(T); ok(r.ok&&s2.inv.tea===1&&s2.xu===s.xu-40,'mua Trà gừng ngay từ đây');
   await T.ev(()=>document.querySelector('#gear .card').scrollTo(0,1e5)); await p.waitForTimeout(120); r=await T.tapEl('#gear [data-back]'); await p.waitForTimeout(250);
   ok(r.ok&&await T.vis('#result')&&!(await T.visible('#gear')),'Back: quay lại đúng màn kết quả (không văng về menu)');
-  r=await T.tapEl('#bNext'); await p.waitForTimeout(700); ok(r.ok&&await T.ev(()=>__ltm.bw&&__ltm.bw.lv===3&&__ltm.bw.gear.map(g=>g.id).join()==='bun,tea'),'Next stage: sang ải 3, mang theo bánh và trà vừa mua');
+  r=await T.tapEl('#bNext'); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.lv===3&&__ltm.bw.lastVw>0,null,{timeout:8000}).catch(()=>{}); await p.waitForTimeout(300); ok(r.ok&&await T.ev(()=>__ltm.bw&&__ltm.bw.lv===3&&__ltm.bw.gear.map(g=>g.id).join()==='bun,tea'),'Next stage: sang ải 3, mang theo bánh và trà vừa mua');
   // ---------- QUẦN HÙNG: xu trả ngay khi hạ một nước; lưu ván giữ thời gian hồi ----------
   if(!tall){ await T.ev(()=>{ localStorage.removeItem('ltm_royale_save_v1'); save.inv.compass=2; save.pack=['compass','bun','tea']; Save.set(save); });
     await T.startBattle({royale:36,seed:61,map:1,civ:'rome'},5); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.royale&&__ltm.bw.lastVw>0); const x0=(await inv(T)).xu;

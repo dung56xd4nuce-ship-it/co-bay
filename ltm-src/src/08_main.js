@@ -265,18 +265,19 @@ function setupMenus(){
   $('bPlay').onclick=()=>{ audio.init(); startLevel(Math.max(1,Math.min(40,save.max||1))); };
   $('bMini').onclick=()=>{ audio.init(); startLevel('mini'); };
   $('bBW').onclick=()=>{ audio.init(); refreshContinue(); $('bossPick').classList.remove('hidden'); };
-  $('bBoss1v1').onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); const mx=Math.min(BW_LEVELS.length,save.bwMax||1);
-    CivPick.open({stageMax:mx, stage:mx, onPick:(id,st)=>{ G.bwCfg={civ:id}; startBigWar(st||mx); }, onBack:()=>$('bossPick').classList.remove('hidden')}); };
-  $('bBossRoyale').onclick=()=>{ audio.click(); const go=()=>{ $('bossPick').classList.add('hidden'); CivPick.open({go:'🌏 Start Warlords', onPick:(id)=>{ try{ localStorage.removeItem(RSAVE); }catch(e){} G.bwCfg={royale:36, seed: 61+((Math.random()*999)|0), civ:id}; startBigWar(5); }, onBack:()=>$('bossPick').classList.remove('hidden')}); };
+  { const cl=campCleared(), cur=Math.min(CAMP_N,cl+1); $('bBoss1v1').innerHTML= cl>=CAMP_N? '⚔️ 1 vs 1 CAMPAIGN<br><small>👑 All 10 stages cleared — replay any stage</small>' : `⚔️ 1 vs 1 CAMPAIGN<br><small>Stage ${cur} of ${CAMP_N} · ${cl} cleared</small>`; }
+  $('bBoss1v1').onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); Campaign.open(); };
+  $('bBossRoyale').onclick=()=>{ audio.click(); const go=()=>{ $('bossPick').classList.add('hidden'); CivPick.open({go:'🌏 Start Warlords', diff:true, onPick:(id,st,df)=>{ try{ localStorage.removeItem(RSAVE); }catch(e){} G.bwCfg={royale:36, seed: 61+((Math.random()*999)|0), civ:id, diff:df, bio:1}; startBigWar(5); }, onBack:()=>$('bossPick').classList.remove('hidden')}); };
     const sv=royaleLoadInfo(); // đang có ván lưu: hỏi lại, kẻo chạm nhầm là mất cả ván chơi dài
     if(sv){ const nat=new Set(sv.nodes.filter(n=>n.camp&&n.owner!==2).map(n=>n.owner)).size, mm=Math.floor((sv.sc.time||0)/60);
       ask('Start a NEW Warlords game?',`Your saved game (${nat} nations left, ${mm} min played) will be erased when the new game starts.`,'🌏 New game',go); }
     else go(); };
   const refreshContinue=()=>{ const sv=royaleLoadInfo(), bc=$('bBossContinue');
     if(bc){ if(sv){ const d=new Date(sv.savedAt), nat=new Set(sv.nodes.filter(n=>n.camp&&n.owner!==2).map(n=>n.owner)).size, mm=Math.floor((sv.sc.time||0)/60);
-        bc.style.display=''; bc.innerHTML=`▶ CONTINUE WARLORDS<br><small>${nat} nations · played ${mm} min · saved ${d.toLocaleString('en-US',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'short'})}</small>`;
+        bc.style.display=''; bc.innerHTML=`▶ CONTINUE WARLORDS<br><small>${DIFF_N[sv.cfg.diff==null?1:sv.cfg.diff]} · ${nat} nations · played ${mm} min · saved ${d.toLocaleString('en-US',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'short'})}</small>`;
         bc.onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); royaleResume(); }; }
-      else bc.style.display='none'; } }; refreshContinue();
+      else bc.style.display='none'; }
+    const ss=soloLoadInfo(), sc=$('bSoloContinue'); if(sc){ if(ss){ sc.style.display=''; sc.innerHTML=`▶ CONTINUE STAGE ${ss.lv}<br><small>${stageName(ss.lv)} · played ${Math.floor((ss.sc.time||0)/60)} min</small>`; sc.onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); soloResume(); }; } else sc.style.display='none'; } }; refreshContinue();
   $('bBossClose').onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); };
   $('bP2P').onclick=()=>{ audio.init(); P2P.open(); };
   $('bFull').onclick=()=>{ audio.init(); audio.click(); goFullscreen(); };
@@ -292,7 +293,7 @@ function setupMenus(){
     ask(bw.royale? 'Restart Warlords from the beginning?' : 'Restart this battle?', bw.royale? 'Your current conquest will be lost.' : 'Progress in this battle will be lost.', '↻ Restart', bwRestart); };
   $('bLevels').onclick=()=>{ audio.init(); buildLevels(); showScreen('levels'); };
   $('bHelp').onclick=()=>{ audio.init(); G.helpFrom='menu'; showScreen('help'); };
-  document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{ if((!$('forge').classList.contains('hidden')||!$('gear').classList.contains('hidden')) && G.forgeFrom==='result'){ $('forge').classList.add('hidden'); $('gear').classList.add('hidden'); $('result').classList.remove('hidden'); return; } if(G.helpFrom==='pause'){ G.helpFrom=null; $('help').classList.add('hidden'); $('pause').classList.remove('hidden'); } else showScreen('menu'); });
+  document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{ if((!$('forge').classList.contains('hidden')||!$('gear').classList.contains('hidden')) && G.forgeFrom==='campaign'){ $('forge').classList.add('hidden'); $('gear').classList.add('hidden'); Campaign.open(); return; } if((!$('forge').classList.contains('hidden')||!$('gear').classList.contains('hidden')) && G.forgeFrom==='result'){ $('forge').classList.add('hidden'); $('gear').classList.add('hidden'); $('result').classList.remove('hidden'); return; } if(G.helpFrom==='pause'){ G.helpFrom=null; $('help').classList.add('hidden'); $('pause').classList.remove('hidden'); } else showScreen('menu'); });
   $('tc').onclick=()=>{ if(G.world&&G.ren){ const d=G.world.drum; G.ren.centerOn(d.x,d.y); } };
   $('bPause').onclick=()=>{ audio.init(); pause(true); };
   $('bResume').onclick=()=>bwSetPause(false);
@@ -381,12 +382,12 @@ const CivPick={ sel:null, reg:'all', q:'', opts:null, stage:1,
   list(){ const q=this.norm(this.q.trim()); return BW_CIVS.filter(c=>(this.reg==='all'||c.reg===this.reg)&&(!q||this.norm(c.name+' '+c.era).includes(q))); },
   open(opts){ this.opts=opts||{}; this.reg='all'; this.q=''; $('civSearch').value='';
     this.sel= BW_CIV[save.civ]? save.civ : BW_CIVS[(Math.random()*BW_CIVS.length)|0].id;
-    this.stageMax=this.opts.stageMax||0; this.stage=this.opts.stage||this.stageMax||1;
+    this.stageMax=this.opts.stageMax||0; this.stage=this.opts.stage||this.stageMax||1; this.diff= save.rdiff==null? 1 : save.rdiff;
     $('civGo').textContent=this.opts.go||'⚔️ Start';
     $('civSearch').oninput=()=>{ this.q=$('civSearch').value; this.renderGrid(); };
     $('civRandom').onclick=()=>{ audio.click(); const L=this.list().filter(c=>c.id!==this.sel); const pool=L.length? L : BW_CIVS; this.pick(pool[(Math.random()*pool.length)|0].id,true); };
     $('civBack').onclick=()=>{ audio.click(); this.close(); if(this.opts.onBack) this.opts.onBack(); };
-    $('civGo').onclick=()=>{ audio.click(); const id=this.sel; save.civ=id; Save.set(save); this.close(); this.opts.onPick&&this.opts.onPick(id,this.stage); };
+    $('civGo').onclick=()=>{ audio.click(); const id=this.sel; save.civ=id; Save.set(save); if(this.opts.diff) save.rdiff=this.diff; Save.set(save); this.close(); this.opts.onPick&&this.opts.onPick(id,this.stage,this.diff); };
     this.renderTabs(); this.renderGrid(); this.renderInfo(); this.renderStage(); $('civPick').classList.remove('hidden');
     const on=$('civGrid').querySelector('.civ.on'); if(on&&on.scrollIntoView) on.scrollIntoView({block:'nearest'}); },
   close(){ $('civPick').classList.add('hidden'); },
@@ -402,7 +403,10 @@ const CivPick={ sel:null, reg:'all', q:'', opts:null, stage:1,
   renderInfo(){ const c=BW_CIV[this.sel], reg=(BW_REGIONS.find(r=>r[0]===c.reg)||[])[1]||'';
     $('civInfo').innerHTML=`<h3>${c.icon} ${c.name}</h3><div class="era">${c.era} · ${reg}</div><div style="margin:3px 0">${c.blurb}</div><ul>${civPerks(c).map(t=>`<li>${t}</li>`).join('')}</ul>`
       +`<div style="margin-top:4px;opacity:.85">Starting army: ${c.roster.map(t=>UNIT[t].emoji+' '+bwTypeName(t,1)).join(' · ')}</div>`; },
-  renderStage(){ const el=$('civStage'); if(!this.stageMax){ el.innerHTML=''; return; }
+  renderStage(){ const el=$('civStage');
+    if(this.opts.diff){ el.innerHTML=BW.DIFF_NAMES.map((n,i)=>`<button class="btn dif${i===this.diff?' on':''}" data-dif="${i}">${['🙂','⚔️','💀'][i]} ${n}</button>`).join(''); el.querySelectorAll('.dif').forEach(b=>b.onclick=()=>{ audio.click(); this.diff=+b.dataset.dif; this.renderStage(); }); return; }
+    if(this.opts.fixed){ el.innerHTML=`<span>Stage ${this.stage}/${BW_LEVELS.length}</span>`; return; }
+    if(!this.stageMax){ el.innerHTML=''; return; }
     el.innerHTML=`<button class="btn" id="civStPrev">◀</button><span>Stage ${this.stage}/${BW_LEVELS.length}</span><button class="btn" id="civStNext">▶</button>`;
     $('civStPrev').disabled=this.stage<=1; $('civStNext').disabled=this.stage>=this.stageMax;
     $('civStPrev').onclick=()=>{ audio.click(); this.stage=Math.max(1,this.stage-1); this.renderStage(); }; $('civStNext').onclick=()=>{ audio.click(); this.stage=Math.min(this.stageMax,this.stage+1); this.renderStage(); }; },
@@ -412,7 +416,7 @@ function ask(title,sub,yes,cb){ const was=G.paused; G.paused=true; $('askT').tex
   const close=(ok)=>{ $('ask').classList.add('hidden'); G.paused=was; if(ok) cb(); };
   $('askY').onclick=()=>{ audio.click(); close(true); }; $('askN').onclick=()=>{ audio.click(); close(false); }; }
 // chơi lại ĐÚNG chế độ/bản đồ đang chơi (trước đây nút ↻ làm ván Quần Hùng biến thành ải 1v1)
-function bwRestart(){ const lv=(G.bw&&G.bw.lv)||1; G.paused=false; G.bwCfg=Object.assign({},G.lastBwCfg||{}); if(G.bwCfg.royale){ try{ localStorage.removeItem(RSAVE); }catch(e){} } startBigWar(lv); }
+function bwRestart(){ const lv=(G.bw&&G.bw.lv)||1; G.paused=false; G.bwCfg=Object.assign({},G.lastBwCfg||{}); if(G.bwCfg.royale){ try{ localStorage.removeItem(RSAVE); }catch(e){} } else if(!G.bwCfg.p2p) soloClear(); startBigWar(lv); }
 // băng "xoay ngang" (chỉ hiện khi cầm dọc) nằm sát đáy: báo chiều cao của nó cho CSS (--rot-h) để các màn hình menu chừa chỗ, không bị băng che nút
 function rotSync(){ const r=$('rotate'); if(!r) return; const h=(getComputedStyle(r).display==='none')? 0 : Math.ceil(r.getBoundingClientRect().height); document.documentElement.style.setProperty('--rot-h',h+'px'); }
 function rotateHint(show){ const r=$('rotate'); clearTimeout(G._rotT); r.classList.remove('off'); if(show) G._rotT=setTimeout(()=>{ r.classList.add('off'); rotSync(); },6000); rotSync(); }
@@ -426,40 +430,73 @@ function startBigWar(lv){
   document.body.classList.remove('mini');
   ['menu','levels','help','pause','result','forge','gear','artscr'].forEach(id=>$(id).classList.add('hidden'));
   $('hud').classList.add('hidden'); $('bwbar').classList.remove('hidden'); $('ask').classList.add('hidden'); $('civPick').classList.add('hidden'); $('bossPick').classList.add('hidden');
+  $('campaign').classList.add('hidden'); stageIntro(G.bw,!!G.bwResume); G.bwResume=false;
   $('bwRetry').style.display= G.bw.cfg&&G.bw.cfg.p2p? 'none':''; rotateHint(true); // băng "xoay ngang" chỉ hiện 6 giây đầu trận rồi nhường chỗ cho bản đồ
 }
 // 💾 Lưu ván Quần Hùng vào bộ nhớ máy: tự lưu 15 giây/lần, khi ẩn app, khi về menu
 const RSAVE='ltm_royale_save_v1';
-function royaleSave(){ try{ const bw=G.bw; if(!bw||!bw.royale||bw.cfg.p2p) return false;
-  if(bw.over){ localStorage.removeItem(RSAVE); return false; }
-  localStorage.setItem(RSAVE, JSON.stringify(bw.saveState())); return true; }catch(e){ console.warn('save fail',e); return false; } }
+const SSAVE='ltm_solo_save_v1';   /* (5.3) ván 1v1 đang đánh dở cũng được lưu: thoát app rồi vào đánh tiếp */
+function royaleSave(){ try{ const bw=G.bw; if(!bw||bw.cfg.p2p||bw.cfg.classic) return false; const K=bw.royale? RSAVE : SSAVE;
+  if(bw.over){ localStorage.removeItem(K); return false; } if(!bw.royale&&bw.time<15) return false;
+  localStorage.setItem(K, JSON.stringify(bw.saveState())); return true; }catch(e){ console.warn('save fail',e); return false; } }
+function soloLoadInfo(){ try{ const sv=JSON.parse(localStorage.getItem(SSAVE)||'null'); return sv&&sv.v===1&&sv.lv>=1&&sv.lv<=CAMP_N&&sv.cfg&&!sv.cfg.royale? sv : null; }catch(e){ return null; } }
+function soloResume(){ const sv=soloLoadInfo(); if(!sv) return false; G.bwCfg=Object.assign({},sv.cfg); G.bwResume=true; startBigWar(sv.lv); G.bw.loadState(sv); return true; }
+function soloClear(){ try{ localStorage.removeItem(SSAVE); }catch(e){} }
+const CAMP_N=10, DIFF_N=['Easy','Normal','Hard'];   /* dùng được ngay lúc dựng menu (bảng BW_LEVELS/BW nằm ở tệp nạp sau) */
+function campCleared(){ return Math.max(0,Math.min(CAMP_N,(save.bwMax||1)-1)); }
+function stageName(lv){ try{ return BW_LEVELS[lv-1].name; }catch(e){ return 'Stage '+lv; } }
+// 🗺️ MÀN CHIẾN DỊCH: 10 ải — đã qua (✔ + kỷ lục) · đang tới (▶) · còn khoá (🔒); mỗi ải ghi rõ vùng đất và boss khôn tới đâu
+const Campaign={
+  open(){ this.render(); $('campaign').classList.remove('hidden'); $('campBack').onclick=()=>{ audio.click(); $('campaign').classList.add('hidden'); $('bossPick').classList.remove('hidden'); setupMenus(); };
+    $('campForge').onclick=()=>{ audio.click(); G.forgeFrom='campaign'; $('campaign').classList.add('hidden'); renderGear(); $('gear').classList.remove('hidden'); };
+    const cur=$('campList').querySelector('.stg.cur'); if(cur&&cur.scrollIntoView) cur.scrollIntoView({block:'nearest'}); },
+  info(lv){ const L=BW_LEVELS[lv-1], D=BW.brain(lv,false), bio=BW_BIOMES[BW_MAPS.solo[(lv-1)*3][2]], tac=BW.TACTICS[D.iq]; return {L,D,bio,brains:'🧠'.repeat(D.iq+1),tac:tac[(lv-1)%tac.length],army:BW.BOSS_ARMY[lv-1]}; },
+  render(){ const cl=campCleared(), N=BW_LEVELS.length, cur=Math.min(N,cl+1), best=(save.camp&&save.camp.best)||{};
+    $('campProg').innerHTML=`<span>${cl>=N? '👑 Complete' : 'Cleared '+cl+'/'+N}</span><span class="pips">${BW_LEVELS.map((_,i)=>`<i class="${i<cl?'on':i===cl?'cur':''}"></i>`).join('')}</span>`;
+    const box=$('campList'); box.innerHTML='';
+    for(let lv=1;lv<=N;lv++){ const I=this.info(lv), st= lv<=cl? 'cleared' : lv===cur? 'cur' : 'lock', b=document.createElement('button'); b.className='stg '+st; b.dataset.lv=lv; b.dataset.st=st;
+      b.innerHTML=`<i class="no">${lv}</i><span class="nm"><b>${I.L.name}</b><small>${I.bio.icon} ${I.bio.name} · ${I.brains} · ⚔️${(Math.round(I.army/100)/10).toFixed(1)}k</small><small>${I.tac}</small></span><em>${st==='cleared'? '✔ Cleared'+(best[lv]? '<br>⏱️ '+fmt(best[lv]) : '') : st==='cur'? '▶ PLAY' : '🔒'}</em>`;
+      if(st==='lock') b.onclick=()=>{ audio.block&&audio.block(); toast({text:`🔒 Clear Stage ${lv-1} first`,kind:'bad'}); };
+      else b.onclick=()=>{ audio.click(); this.pick(lv); };
+      box.appendChild(b); } },
+  pick(lv){ const go=()=>{ $('campaign').classList.add('hidden'); CivPick.open({stageMax:lv, stage:lv, fixed:true, go:`⚔️ Start Stage ${lv}`, onPick:(id)=>{ soloClear(); G.bwCfg={civ:id}; startBigWar(lv); }, onBack:()=>Campaign.open()}); };
+    const ss=soloLoadInfo(); if(ss) ask(`Start Stage ${lv} from the beginning?`,`Your battle in progress (Stage ${ss.lv}, ${Math.floor((ss.sc.time||0)/60)} min played) will be erased.`,'⚔️ Start',go); else go(); },
+};
+// 🎬 băng giới thiệu đầu trận: đang ở ải mấy, vùng đất nào, boss khôn tới đâu
+function stageIntro(bw,resumed){ const el=$('stageIntro'); if(!el) return; if(bw.cfg.p2p||bw.cfg.classic){ el.classList.add('hidden'); return; }
+  if(bw.royale){ const d=bw.D.diff; $('siTop').textContent='WARLORDS · '+BW.DIFF_NAMES[d].toUpperCase(); $('siName').textContent=bw.mapName; $('siLand').textContent=`${bw.biome.icon} ${bw.biome.name} · ${bw.cfg.royale} rival nations`; $('siBoss').textContent= resumed? '▶ Game resumed' : ['🙂 Rivals grow slowly and leave you alone at first','⚔️ Rivals fight each other — and you','💀 Rivals grow fast, guard their land and gang up on you'][d]; }
+  else { const I=Campaign.info(bw.lv); $('siTop').textContent=`STAGE ${bw.lv} / ${BW_LEVELS.length}`; $('siName').textContent=I.L.name; $('siLand').textContent=`${bw.biome.icon} ${bw.biome.name} · “${bw.mapName}”`; $('siBoss').textContent= resumed? '▶ Battle resumed' : `Boss ${I.brains} · ${I.tac}`; }
+  el.classList.remove('hidden'); el.style.animation='none'; void el.offsetWidth; el.style.animation=''; clearTimeout(G._siT); G._siT=setTimeout(()=>el.classList.add('hidden'),4700); }
 function royaleLoadInfo(){ try{ const sv=JSON.parse(localStorage.getItem(RSAVE)||'null'); return sv&&sv.v===1? sv : null; }catch(e){ return null; } }
 function royaleResume(){ const sv=royaleLoadInfo(); if(!sv) return false;
-  G.bwCfg=Object.assign({},sv.cfg); startBigWar(sv.lv); G.bw.loadState(sv); return true; }
+  G.bwCfg=Object.assign({},sv.cfg); G.bwResume=true; startBigWar(sv.lv); G.bw.loadState(sv); return true; }
 // (5.1) vẫn tự lưu 15 giây/lần, nhưng không chen vào lúc ngón tay đang thao tác: đợi lúc rảnh tay (chờ tối đa 20 giây) rồi mới ghi
-let saveDue=0; setInterval(()=>{ if(G.bw&&G.bw.royale&&!G.paused&&!saveDue) saveDue=performance.now(); },15000);
-setInterval(()=>{ if(!saveDue) return; if(!G.bw||!G.bw.royale){ saveDue=0; return; } const now=performance.now(); if((ptrs.size===0&&now-PACE.inT>900)||now-saveDue>20000){ saveDue=0; royaleSave(); } },500);
+let saveDue=0; setInterval(()=>{ if(G.bw&&!G.bw.cfg.p2p&&!G.paused&&!saveDue) saveDue=performance.now(); },15000);
+setInterval(()=>{ if(!saveDue) return; if(!G.bw||G.bw.cfg.p2p){ saveDue=0; return; } const now=performance.now(); if((ptrs.size===0&&now-PACE.inT>900)||now-saveDue>20000){ saveDue=0; royaleSave(); } },500);
 document.addEventListener('visibilitychange',()=>{ if(document.hidden) royaleSave(); });
 window.addEventListener('pagehide',()=>royaleSave());
 function stopBigWar(toMenu){ royaleSave(); G.bw=null; $('bwbar').classList.add('hidden'); rotateHint(false); if(toMenu){ showScreen('menu'); setupMenus(); } }
 function showBwResult(){
-  const bw=G.bw, r=bw.result; G.resultShown=true; if(bw.royale){ try{ localStorage.removeItem(RSAVE); }catch(e){} } const win=r.win; const lv=bw.lv;
+  const bw=G.bw, r=bw.result; G.resultShown=true; if(bw.royale){ try{ localStorage.removeItem(RSAVE); }catch(e){} } else if(!(bw.cfg&&bw.cfg.p2p)) soloClear(); const win=r.win; const lv=bw.lv; $('stageIntro').classList.add('hidden');
   $('rTitle').textContent= win? '🎉 VICTORY!' : '💀 DEFEAT';
   $('rTitle').style.color= win? '#ffd54a' : '#f87171';
   const bk= win? 'ui:win':'ui:lose'; if(artOK(bk)) $('rTitle').innerHTML=`<img src="${ArtUrls[bk]}" style="max-width:min(70vw,460px);max-height:17vh">`;
   const meC=bw.civOf(bw.localFid), enC=bw.civOf(bw.localFid===0?1:0);
   $('rSub').textContent= bw.royale? (win? `The whole realm belongs to ${meC.icon} ${meC.name} — every nation has fallen!` : 'Your last camp has fallen — the realm belongs to others...') : (win? `${meC.icon} ${meC.name} has defeated ${enC.icon} ${enC.name}!` : `${enC.icon} ${enC.name} has taken our last camp...`);
   const xu=Math.round(bw.stats.eat/40 + bw.stats.win*4 + (win? 30+18*lv : 8));
-  save.xu=(save.xu||0)+xu; if(win){ save.bwMax=Math.max(save.bwMax||1,lv+1); } Save.set(save); refreshXu();
+  const solo=!bw.royale&&!(bw.cfg&&bw.cfg.p2p)&&!(bw.cfg&&bw.cfg.classic), NL=BW_LEVELS.length; let first=false, rec=false;
+  save.xu=(save.xu||0)+xu; if(win&&solo){ first=(save.bwMax||1)<lv+1; save.bwMax=Math.max(save.bwMax||1,lv+1); const cp=save.camp||(save.camp={best:{}}); cp.best=cp.best||{}; const t=Math.round(bw.time); if(!cp.best[lv]||t<cp.best[lv]){ rec=!!cp.best[lv]; cp.best[lv]=t; } } Save.set(save); refreshXu();
+  $('rStage').innerHTML= !solo? '' : win? (lv>=NL? `👑 STAGE ${lv} CLEARED — CAMPAIGN COMPLETE!<span class="unl">You have beaten all ${NL} bosses. Replay any stage for a better time.</span>` : `✔ STAGE ${lv} / ${NL} CLEARED`+(first? `<span class="unl">🔓 Stage ${lv+1} unlocked: ${BW_LEVELS[lv].name}</span>` : '')+(rec? '<span class="rec">⏱️ New best time!</span>' : '')) : `Stage ${lv} / ${NL} — not cleared yet<span class="rec">Tip: upgrade in the Armory, guard your farms, strike where the boss is thin</span>`;
   $('rStats').innerHTML=`<div>⏱️ Time: <b>${fmt(bw.time)}</b></div><div>🤝 Defected to you: <b>${bw.stats.eat}</b> troops</div><div>⚔️ Battles won: <b>${bw.stats.win}</b></div><div>💥 Armies routed: <b>${bw.stats.lose}</b></div><div>👥 Peak strength: <b>${bw.stats.peak}</b></div><div>🪙 Coins earned: <b>+${xu}</b>${bw.stats.coins? ` <span style="opacity:.8">(+${bw.stats.coins} paid during play)</span>` : ''}</div>`;
   $('rXu').innerHTML='';
   const solo1v1=!bw.royale&&!(bw.cfg&&bw.cfg.p2p);
   const next= solo1v1 && win && lv<BW_LEVELS.length;
   $('bNext').classList.toggle('hidden',!next);
+  if(next) $('bNext').textContent=`Next: Stage ${lv+1} ▶`;
   $('bNext').onclick=()=>{ $('result').classList.add('hidden'); G.bwCfg={civ:bw.cfg.civ}; startBigWar(Math.min(lv+1,BW_LEVELS.length)); };
   $('bAgain').classList.toggle('hidden',!!(bw.cfg&&bw.cfg.p2p)); // P2P: muốn đấu lại thì hai máy kết nối lại
   $('bAgain').textContent= bw.royale? '🌏 New Warlords game' : '↻ Play again';
-  $('bAgain').onclick=()=>{ $('result').classList.add('hidden'); if(bw.royale){ G.bwCfg={royale:36, seed: 61+((Math.random()*999)|0), civ:bw.cfg.civ}; startBigWar(5); } else bwRestart(); };
+  $('bAgain').onclick=()=>{ $('result').classList.add('hidden'); if(bw.royale){ G.bwCfg={royale:36, seed: 61+((Math.random()*999)|0), civ:bw.cfg.civ, diff:bw.cfg.diff, bio:1}; startBigWar(5); } else bwRestart(); };
   $('bRMenu').onclick=()=>{ stopBigWar(false); G.world=null; showScreen('menu'); setupMenus(); };
   if(win){ audio.win(); } $('result').classList.remove('hidden'); $('bwbar').classList.add('hidden');
 }

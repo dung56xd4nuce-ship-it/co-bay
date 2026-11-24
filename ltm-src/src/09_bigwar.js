@@ -66,15 +66,34 @@ function bwResolve(ta,ca,tb,cb,def,ter){ // trả [cònA, cònB]; def=1.12 khi B
   if(ea>eb) return [Math.max(1,Math.round(ca*Math.sqrt(1-(eb/ea)*(eb/ea)))), 0];
   return [0, Math.max(1,Math.round(cb*Math.sqrt(1-(ea/eb)*(ea/eb))))];
 }
+// (5.3) 10 KIỂU ĐỊA HÌNH — mỗi kiểu đổi hẳn màu đất, mật độ núi/rừng/sa mạc và dòng sông; mỗi ải 1v1 đánh trên một kiểu riêng (3 bản đồ/ải)
+const BW_BIOMES={
+  plain:  {icon:'🌾',name:'Grassland'},
+  rivers: {icon:'🏞️',name:'River Land',  river:{amp:2.4,fq:0.0065}, valley:2, forest:1.2},
+  forest: {icon:'🌲',name:'Deep Forest', tint:'#174a22',a:0.42, forest:2.3, mtn:0.5, desert:0},
+  autumn: {icon:'🍁',name:'Autumn Hills',tint:'#e08a1e',a:0.55, forest:1.5, mtn:1.2, desert:0},
+  marsh:  {icon:'🪷',name:'Marshland',   tint:'#3e6b5e',a:0.5, valley:4.5, forest:1.1, mtn:0.25, desert:0, river:{amp:2.0,fq:0.009}},
+  desert: {icon:'🏜️',name:'Desert',      tint:'#ecd18e',a:0.62, forest:0.25, desert:3.2, mtn:0.9, valley:0.5, river:'none'},
+  canyon: {icon:'🪨',name:'Red Canyon',  tint:'#c4572c',a:0.68, mtn:1.8, forest:0.2, desert:1.6, river:{amp:0.5,fq:0.004}},
+  snow:   {icon:'❄️',name:'Snowfield',   tint:'#f3f7ff',a:0.66, mtn:1.7, forest:0.9, desert:0, river:{amp:0.7,fq:0.003}},
+  highland:{icon:'⛰️',name:'Highlands',  tint:'#cfc77c',a:0.52,  mtn:1.5, valley:3, forest:0.7, desert:0.5, river:{amp:1.6,fq:0.005}},
+  ash:    {icon:'🌋',name:'Ashlands',    tint:'#3a3033',a:0.68,  mtn:1.6, forest:0.3, desert:1.2, valley:0.5, river:'none'},
+};
 const BW_MAPS={
-  solo:[['Fields of Ambition',11],['Twin Rivers',23],['Snow Mountain Pass',37],['Sacred Forest',41],['Golden Sands',53],
-    ['Windy Valley',67],['Old Ferry Crossing',71],['Cloud Pass',83],['Nine-Bend River',97],['Wasteland',101],
-    ['Border Town',113],['Red Canyon',127],['Reed Marsh',131],['Stone Plateau',139],['Bamboo Garden',149],
-    ['Old Frontier Pass',151],['Silt Flats',163],['Ancient Pines',167],['Northern Wastes',173],['River Fork',179]],
-  royale:[['Warlords Clash',211],['Vassals of Chaos',223],['Eight Trigrams Maze',227],['Ten Thousand Beacons',229],['Realm Split Five Ways',233],
-    ['Eighteen Warlords',239],['Rivers and Banners',241],['Hundred Towns Rising',251],['Great Desert Storm',257],['Picturesque Realm',263],
-    ['Heroes of Four Corners',269],['Reed Banner Rising',271],['Nine Provinces Ablaze',277],['Hoofbeats on the Frontier',281],['Oath by the Great River',283],
-    ['War Drums Rolling',293],['Rain of Arrows',307],['West Citadel Burning',311],['Call to Arms',313],['Dragon vs Tiger',317]],
+  solo:[['Fields of Ambition',11,'plain',0],['Border Town',113,'plain',1],['Thunder Plains',191,'plain',2],
+    ['Twin Rivers',23,'rivers',1],['Nine-Bend River',97,'rivers',0],['River Fork',179,'rivers',2],
+    ['Sacred Forest',41,'forest',2],['Bamboo Garden',149,'forest',0],['Ancient Pines',167,'forest',1],
+    ['Old Frontier Pass',151,'autumn',0],['Amber Woods',193,'autumn',1],['Windy Valley',67,'autumn',2],
+    ['Reed Marsh',131,'marsh',1],['Silt Flats',163,'marsh',2],['Lotus Delta',197,'marsh',0],
+    ['Golden Sands',53,'desert',0],['Sunset Dunes',199,'desert',2],['Oasis Road',211,'desert',1],
+    ['Red Canyon',127,'canyon',2],['Wasteland',101,'canyon',0],['Stone Plateau',139,'canyon',1],
+    ['Snow Mountain Pass',37,'snow',1],['Cloud Pass',83,'snow',2],['Northern Wastes',173,'snow',0],
+    ['Jade Highlands',223,'highland',0],['Dragon Spine Ridge',227,'highland',2],['Old Ferry Crossing',71,'highland',1],
+    ['Ember Wastes',229,'ash',2],['Black Sand Coast',233,'ash',1],['Throne of Cinders',239,'ash',0]],
+  royale:[['Warlords Clash',211,'plain'],['Vassals of Chaos',223,'autumn'],['Eight Trigrams Maze',227,'forest'],['Ten Thousand Beacons',229,'highland'],['Realm Split Five Ways',233,'rivers'],
+    ['Eighteen Warlords',239,'plain'],['Rivers and Banners',241,'rivers'],['Hundred Towns Rising',251,'autumn'],['Great Desert Storm',257,'desert'],['Picturesque Realm',263,'highland'],
+    ['Heroes of Four Corners',269,'snow'],['Reed Banner Rising',271,'marsh'],['Nine Provinces Ablaze',277,'ash'],['Hoofbeats on the Frontier',281,'canyon'],['Oath by the Great River',283,'rivers'],
+    ['War Drums Rolling',293,'canyon'],['Rain of Arrows',307,'forest'],['West Citadel Burning',311,'ash'],['Call to Arms',313,'snow'],['Dragon vs Tiger',317,'marsh']],
 };
 const BW_LEVELS=[
   { name:'Fields of ambition', seed:11, mid:6,  en:7,  enMin:280, enMax:1500, camp:1400, myN:3, myC:430, ai:7.5, aiPow:0.85, farms:4, trains:2, wave:75, grow:26, enGrow:16 },
@@ -102,9 +121,13 @@ class BigWar{
     this.lv=lv; const Lbase=Object.assign({},BW_LEVELS[Math.min(lv,BW_LEVELS.length)-1],this.cfg.L||{});
     Lbase.mid=Math.round((Lbase.mid||6)*1.45)+2; Lbase.farms=(Lbase.farms||4)+1; Lbase.en=Math.round((Lbase.en||7)*1.2);
     const L=this.L=Lbase;
+    const D=this.D=BW.brain(lv,!!this.cfg.royale,this.cfg.diff); if(!this.cfg.royale&&!this.cfg.p2p&&!this.cfg.classic){ L.enMin=Math.round(L.enMin*D.force); L.enMax=Math.round(L.enMax*D.force); }
     const mapList=BW_MAPS[this.cfg.royale?'royale':'solo'];
-    const mIdx=this.cfg.classic? 0 : (this.cfg.map!=null)? (this.cfg.map%mapList.length) : (Math.random()*mapList.length)|0;
+    const soloCamp=!this.cfg.royale&&!this.cfg.p2p&&typeof lv==='number';
+    const mIdx=this.cfg.classic? 0 : (this.cfg.map!=null)? (this.cfg.map%mapList.length) : soloCamp? ((Math.min(10,Math.max(1,lv))-1)*3+((Math.random()*3)|0)) : (Math.random()*mapList.length)|0;   /* 1v1: mỗi ải có 3 bản đồ riêng cùng một kiểu địa hình */
     this.cfg.map=mIdx; this.mapName=this.cfg.classic?'Classic':mapList[mIdx][0]; this.mapSeed=this.cfg.classic?(L.seed||7):mapList[mIdx][1];
+    if(this.cfg.map52!=null&&!this.cfg.royale){ this.mapSeed=[11,23,37,41,53,67,71,83,97,101,113,127,131,139,149,151,163,167,173,179][this.cfg.map52%20]; this.mapName='Map '+this.cfg.map52; }   /* bài thử: dựng lại đúng bản đồ của bản 5.2 */
+    { const M=mapList[mIdx], old=this.cfg.royale&&!this.cfg.bio; this.biomeId=(this.cfg.classic||old||(this.cfg.map52!=null&&!this.cfg.royale))? 'plain' : (M[2]||'plain'); this.biome=BW_BIOMES[this.biomeId]; }   /* ván Quần Hùng lưu từ bản cũ giữ nguyên địa hình cũ */
     this.rnd=mulberry32((this.cfg.seed||(L.seed*31+this.mapSeed))*7919+(typeof lv==='number'?lv:1));
     this.assignCivs(); // 🏛️ mỗi phe một nền văn minh (src/09c_civ.js)
     this.nodes=[]; this.armies=[]; this.fx=[]; this.texts=[]; this.rings=[];
@@ -122,7 +145,7 @@ class BigWar{
     // quân của mỗi nước: phần lớn là binh chủng sở trường + vài loại bổ trợ trong biên chế của nền văn minh đó
     const tOf=(fid)=> R()<0.62? this.civType(fid,(R()*4)|0) : BW_TYPES[(R()*BW_TYPES.length)|0];
     { const c0=node(170, H*0.5, 0, this.civType(0), 0, true); c0.home=0; c0.capOf=0; }
-    { const c1=node(W-170, H*0.5, 1, this.civType(1), L.camp, true); c1.home=1; c1.capOf=1; }
+    { const c1=node(W-170, H*0.5, 1, this.civType(1), L.camp*(this.cfg.p2p||this.cfg.classic? 1 : Math.min(1,Math.max(0.45,D.force*2))), true); c1.home=1; c1.capOf=1; }
     // đạo quân của ta quanh trại
     for(let i=0;i<L.myN;i++) node(320+((i%2)*130), H*(0.26+0.48*(L.myN<2?0.5:i/(L.myN-1))), 0, this.civType(0,i), L.myC*(0.85+R()*0.3));
     // vùng giữa: trung lập để nuốt (to dần về bên phải)
@@ -249,6 +272,7 @@ class BigWar{
     this.visR=600; this.scouts=[]; this.fxs=[]; // 15 ô x 40px
     for(const n of this.nodes) if(n.owner!==0) n.known=null;
     this._updateVision();
+    if(D.me!==1) for(const n of this.nodes) if(n.owner===0) n.count=Math.round(n.count*D.me);   /* Quần Hùng Dễ/Khó: quân khởi điểm của ta nhiều/ít hơn */
     { const me=this.civOf(0), en=this.civOf(1); this.note(this.royale? `${me.icon} ${me.name} rises — ${this.cfg.royale} rival nations on the map “${this.mapName}”` : `${me.icon} ${me.name} vs ${en.icon} ${en.name} — ${this.mapName}`,this.nodes[0].x,this.nodes[0].y,me.icon); }
   }
   // (5.1) TÁCH CỨ ĐIỂM CHỒNG NHAU: cứ điểm bị dồn ra mép bản đồ (hoặc bị đẩy khỏi sông) có khi nằm đè lên nhau — có cặp trùng hẳn một chỗ,
@@ -521,7 +545,7 @@ class BigWar{
     const side=(S)=>({fid:S.fid,mul:S.mul,es:S.es.map(e=>({kind:e.kind,c0:e.c0,r:ref(e.ref)})).filter(e=>e.r)});
     const K=['time','nextAI','aiWave','nextAiScout','regenT','reinT','enFed','_bid','_rid','_rr','stormRush','camX','camY','zoom','visR','coinT'];
     const sc={}; for(const k of K) if(this[k]!==undefined) sc[k]=this[k];
-    return { v:1, savedAt:Date.now(), lv:this.lv, cfg:{royale:this.cfg.royale,seed:this.cfg.seed,map:this.cfg.map,L:this.cfg.L,civ:this.cfg.civ,civ2:this.cfg.civ2},
+    return { v:1, savedAt:Date.now(), lv:this.lv, cfg:{royale:this.cfg.royale,diff:this.cfg.diff,bio:this.cfg.bio,seed:this.cfg.seed,map:this.cfg.map,L:this.cfg.L,civ:this.cfg.civ,civ2:this.cfg.civ2},
       sc, stats:this.stats, fed:this.fed, nextWaveF:this.nextWaveF||{}, cap0:this.cap0||{}, n0:this.n0||{}, allies:[...this.allies],
       nodes:this.nodes.map(n=>Object.assign({},n)),
       armies:this.armies.map(a=>Object.assign({},a,{hunt:ref(a.hunt),mergeInto:ref(a.mergeInto),path:undefined,_pk:undefined,pi:undefined,pvT:undefined})),
@@ -549,7 +573,7 @@ class BigWar{
     if(!this.nodes.some(n=>n.capOf!=null)){ const seen=new Set(); for(const n of this.nodes){ if(n.camp&&n.owner!==2&&(n.home??n.owner)===n.owner&&!seen.has(n.owner)){ n.capOf=n.owner; seen.add(n.owner); } } }
     this.intro=null; this.over=false; this.result=null; this._updateVision&&this._updateVision();
     const c0=this.nodes.find(n=>n.camp&&n.owner===this.localFid)||this.nodes[0];
-    this.note('💾 Warlords game loaded — continue!',c0.x,c0.y,'💾');
+    this.note(this.royale? '💾 Warlords game loaded — continue!' : '💾 Battle loaded — continue!',c0.x,c0.y,'💾');
   }
   menuPick(id){
     const m=this.menu; if(!m) return false; this.menu=null;
@@ -837,8 +861,8 @@ class BigWar{
       const sa=this.bSideSum(b.A), sb=this.bSideSum(b.B);
       if(sa<=0.5||sb<=0.5||!b.A.es.length||!b.B.es.length){ this.bEnd(b, sa>sb?b.A:b.B, sa>sb?b.B:b.A); continue; }
       const domA=this.bDom(b.A), domB=this.bDom(b.B);
-      let effA=0; for(const e of b.A.es) effA+=e.ref.count*BW.counter(e.ref.type,domB,b.ter)*this.civAtk(e.ref.owner,e.ref.type,b.ter); effA*=b.A.mul;
-      let effB=0; for(const e of b.B.es) effB+=e.ref.count*BW.counter(e.ref.type,domA,b.ter)*this.civAtk(e.ref.owner,e.ref.type,b.ter); effB*=b.B.mul;
+      let effA=0; for(const e of b.A.es) effA+=e.ref.count*BW.counter(e.ref.type,domB,b.ter)*this.civAtk(e.ref.owner,e.ref.type,b.ter); effA*=b.A.mul*this.pwOf(b.A.fid);
+      let effB=0; for(const e of b.B.es) effB+=e.ref.count*BW.counter(e.ref.type,domA,b.ter)*this.civAtk(e.ref.owner,e.ref.type,b.ter); effB*=b.B.mul*this.pwOf(b.B.fid);
       let dA=effB*b.K*dt, dB=effA*b.K*dt;
       dA=Math.min(dA,sa*dt/3); dB=Math.min(dB,sb*dt/3); // không bên nào bay hơi nhanh hơn 1/3 mỗi giây
       for(const e of b.A.es){ const q=e.ref.count/sa; e.ref.count=Math.max(0,e.ref.count-dA*q); }
@@ -922,7 +946,7 @@ class BigWar{
           if(hyp(a.x-n.x,a.y-n.y)<260){ n.sieged=true; break; } } }
       for(const n of this.nodes){ if(!n.eco||n.owner===2||n.sieged||n.btl) continue;
         const ci=this.capInfo[n.owner]; const capFull= ci&&ci.full;
-        const cvG=this.civOf(n.owner), grow=(n.owner===F? this.L.grow : this.L.enGrow)*(cvG&&cvG.grow? cvG.grow : 1);
+        const cvG=this.civOf(n.owner), grow=(n.owner===F? this.L.grow : this.L.enGrow*this.D.grow)*(cvG&&cvG.grow? cvG.grow : 1);
         const slow=Math.max(0.15,1-n.count/(n.cap||900)); // 3) càng đầy càng hồi chậm
         const base= capFull? 0 : n.eco==='farm'? Math.round(grow*slow) : n.eco==='granary'? 0 : Math.round(grow*0.45*slow);
         if(base&&n.count<(n.cap||900)){ n.count=Math.min(n.cap||900, n.count+base);
@@ -959,7 +983,7 @@ class BigWar{
         const campCap=Math.round(this.L.camp*(this.royale?0.7:1.6)), slow2=Math.max(0.15,1-n.count/campCap);
         const gm=((this.civOf(n.owner)||{}).grow||1)*(this.up? this.upMul('aura',n.owner) : 1);   /* ⚒️ Lò rèn: Recruiting */
         if(n.owner===F){ n.count+=Math.round((24+6*(typeof this.lv==='number'?this.lv:1))*slow2*gm); if(n.type==='general') n.type=this.civType(n.owner); n.food=Math.min(600,(n.food||0)+20); }
-        else if(n.owner!==2){ n.count=Math.min(campCap, n.count+Math.round((this.royale?7:14)*this.L.aiPow*slow2*gm)); n.food=Math.min(400,(n.food||0)+12); } }
+        else if(n.owner!==2){ n.count=Math.min(campCap, n.count+Math.round((this.royale?7:14)*this.L.aiPow*this.D.grow*slow2*gm)); n.food=Math.min(400,(n.food||0)+12); } }
     }
     // AI các phe
     this.nextAI-=dt;
@@ -969,7 +993,7 @@ class BigWar{
         for(let k=0;k<Math.min(5,foes.length);k++){ const fid=foes[(this._rr+k)%foes.length]; if(Q.indexOf(fid)<0) Q.push(fid); }
         this._rr+=5; this._aiDip=true; }
       else for(const fid of foes) this.aiTurn(fid);
-      this.nextAI=this.L.ai*(0.8+this.rnd()*0.5)*(this.royale?0.7:1);
+      this.nextAI=this.L.ai*(0.8+this.rnd()*0.5)*(this.royale?0.7:1)*this.D.tempo;
     }
     // (5.1) Quần Hùng: mỗi khung hình chỉ MỘT nước ra quyết định (trước đây 5 nước cùng nghĩ trong một khung hình → thỉnh thoảng khựng hình); xong lượt thì mới xét bang giao
     if(this._aiQ&&this._aiQ.length){ const fid=this._aiQ.shift(); if(this.nodes.some(n=>n.owner===fid&&(n.count>0||n.camp))) this.aiTurn(fid); }
@@ -1103,7 +1127,7 @@ class BigWar{
     return pick;
   }
   sendCoordinated(srcs,tgt){ // hợp đồng tác chiến: cánh gần chờ cánh xa để cùng ập vào
-    const eta=srcs.map(e=>this.pathEta(e,tgt.x,tgt.y)), as=srcs.map(e=>this.send(e,tgt)), tot=as.map((a,i)=>a? eta[i]+(a.prep||0) : 0), mx=Math.max(...tot);   // tới nơi = chuẩn bị lương + đi đường
+    const eta=srcs.map(e=>this.pathEta(e,tgt.x,tgt.y)), as=srcs.map(e=>this.aiSend(e,tgt)), tot=as.map((a,i)=>a? eta[i]+(a.prep||0) : 0), mx=Math.max(...tot);   // tới nơi = chuẩn bị lương + đi đường
     as.forEach((a,i)=>{ if(a&&mx-tot[i]>1) a.holdT=Math.min(40,mx-tot[i]); }); }
   aiTurn(fid){ fid=fid??1;
     const L=this.L; this.aiWave=(this.aiWave||0)+1;
@@ -1111,17 +1135,18 @@ class BigWar{
     const mine=this.nodes.filter(n=>this.isFoe(n.owner,fid)&&n.count>0&&!n.btl); // mọi mục tiêu thù địch (gồm cả nước AI khác)
     const en=this.nodes.filter(n=>n.owner===fid&&!n.camp&&n.count>120&&!n.btl);
     const flying=this.armies.filter(a2=>a2.owner===fid).length;
-    if(flying>=(this.royale?3:3)) return;
+    const D=this.D, hate= this.time>300? D.hate : Math.min(0,D.hate); if(flying>=D.fly) return;   /* mức Khó: 5 phút đầu các nước chưa hùa nhau đánh ta */
     const dist=(p2,q)=>hyp(p2.x-q.x,p2.y-q.y);
     const announce=(e,s2)=>{ if(!this.royale||fid===1) this.texts.push({x:e.x,y:e.y-85,s:s2,col:'#ff8a8a',t:0,max:1.5,big:1}); };
-    let budget= this.royale? 1 : (this.aiWave%3===0? 2:1);
+    let budget= D.budget+(!this.royale&&this.aiWave%3===0? 1:0);
     const tier=BW_AI_TIER(this.lv,this.royale);
     // 0) phòng thủ
-    for(const atk of this.armies){ if(budget<=0) break; if(!this.isFoe(atk.owner,fid)) continue; if(atk.owner===F&&(atk.smokeT>0||!this.aiVis(atk.x,atk.y,fid))) continue;   /* 💨 đạo quân trong khói: máy không thấy */
+    if(D.iq>=2){ budget=this.aiDefend(fid,budget,announce); if(D.iq>=3&&!this.royale) budget=this.aiIntercept(fid,en,budget,announce); }
+    else for(const atk of this.armies){ if(budget<=0) break; if(!this.isFoe(atk.owner,fid)) continue; if(atk.owner===F&&(atk.smokeT>0||!this.aiVis(atk.x,atk.y,fid))) continue;   /* 💨 đạo quân trong khói: máy không thấy */
       const tgt=atk.to>=0?this.nodes[atk.to]:null; if(!tgt||tgt.owner!==fid) continue;
       const [ra]=bwResolve(atk.type,atk.count,tgt.type,tgt.count,this.defMul(tgt),tgt.ter); if(ra<=0) continue;
       let hp=null,hd=1e9; for(const e of en){ if(e===tgt) continue; const d=dist(e,tgt); if(d<=BW.range&&d<hd&&e.count>200){ hd=d; hp=e; } }
-      if(hp){ this.send(hp,tgt); announce(hp,'🛡️ Enemy reinforcements!'); budget--; } }
+      if(hp){ this.aiSend(hp,tgt); announce(hp,'🛡️ Enemy reinforcements!'); budget--; } }
     // 0b) GIẢI VÂY: node bị vây mà đủ mạnh thì xuất kích đánh quân vây
     for(const n of this.nodes){ if(budget<=0) break; if(n.owner!==fid||!n.sieged||n.count<300) continue;
       let bes=null; for(const a2 of this.armies){ if(a2.sieging===n.id&&this.isFoe(a2.owner,fid)){ bes=a2; break; } }
@@ -1134,8 +1159,8 @@ class BigWar{
       const nSrc= this.royale? 3 : tier===3? 4 : tier===2? 3 : (2+((typeof this.lv==='number'&&this.lv>2)?1:0));
       let src=[...en].filter(e=>!e.ambush&&!e.btl&&!e.aiAmbush).sort((x,y)=>y.count-x.count).slice(0,nSrc);
       const reach=this.royale? 3200 : 1e9;
-      let tgt=null,td=-1e9; for(const m of mine){ if(m.ambush) continue; if(this.royale&&src[0]&&dist(m,src[0])>reach) continue;
-        const see=this.aiSee(m,fid); let sc=(m.owner===F?300:0)+(fid===1&&!this.royale? this.pA(m)*4800:0)+(m.eco?400:0)-see.count*0.4-dist(m,src[0]||m)*0.1;
+      let tgt=null,td=-1e9; for(const m of mine){ if(m.ambush) continue; if(m.owner===F&&(this.royale? this.time<D.grace : (m.camp&&this.time<240))) continue; if(this.royale&&src[0]&&dist(m,src[0])>reach) continue;
+        const see=this.aiSee(m,fid); let sc=(m.owner===F?300+hate:0)+(fid===1&&!this.royale? this.pA(m)*4800*(D.iq>=2?0.35:1):0)+(m.eco?400:0)-see.count*0.4-dist(m,src[0]||m)*0.1;
         if(this.royale){ if(m.owner===F){ if(this.coalition) sc+=2500+see.count*0.3; else if(this.playerWeak) sc-=900; }
           else if(this.natAtWar(m.owner,m.owner)||this.battles.some(b=>!b.done&&(b.A.fid===m.owner||b.B.fid===m.owner))) sc+=600; // thừa lúc nước khác đang bận đánh nhau
           if(m.camp) sc+=900; }
@@ -1143,7 +1168,7 @@ class BigWar{
       if(tgt&&tier>=2) src=this.aiCombo(fid,tgt,en,nSrc,reach);
       if(tgt&&src.length){ // bậc 2-3 chỉ xuất quân khi tổng lực áp đảo mục tiêu (đã tính theo tầm nhìn)
         const need= tier===3? 1.9 : tier===2? 1.45 : 0;
-        const sum=src.reduce((t,e)=>t+e.count,0), seen=this.aiSee(tgt,fid).count||tgt.count;
+        const sum=src.reduce((t,e)=>t+e.count,0)*(1-D.keep), seen=this.aiSee(tgt,fid).count||tgt.count;
         // 🤝 LIÊN QUÂN: khi thiên hạ chống ta, các đồng minh gần đó cùng góp quân đánh một mục tiêu
         if(this.royale&&this.coalition&&tgt.owner===F){
           const parts=[...new Set(this.nodes.filter(n=>n.owner!==F&&n.owner!==2&&n.owner!==fid&&this.allied(fid,n.owner)).map(n=>n.owner))];
@@ -1151,8 +1176,9 @@ class BigWar{
           for(const g of parts){ const enG=this.nodes.filter(n=>n.owner===g&&!n.camp&&n.count>120&&!n.btl); const pk=this.aiCombo(g,tgt,enG,2,reach); if(pk.length){ all=all.concat(pk); nat++; } if(nat>=4) break; }
           const tot=all.reduce((t,e)=>t+e.count,0);
           if(nat>=2&&tot>=1.2*seen){ this.sendCoordinated(all,tgt); this.note(`⚔️ ALLIED ARMIES of ${nat} nations are marching on you!`,tgt.x,tgt.y,'⚔️'); return; } }
-        if(sum>=need*seen){ if(tier>=2&&src.length>1) this.sendCoordinated(src,tgt); else for(const s2 of src){ this.send(s2,tgt); } announce(tgt,`🌊 ALL-OUT ATTACK!`); audio.drum&&audio.drum(this.royale?false:true); return; }
-        else if(tier>=2){ this.nextWaveF[fid]=this.time+L.wave*0.5; /* gom thêm quân rồi đánh */ } else { for(const s2 of src){ this.send(s2,tgt); } announce(tgt,`🌊 ALL-OUT ATTACK!`); audio.drum&&audio.drum(this.royale?false:true); return; } } }
+        if(sum>=need*seen){ if(D.iq>=3&&!this.royale){ const t2=this.aiTwoProng(fid,src,tgt,mine,need); if(t2){ this.note('⚔️ TWO-PRONGED ASSAULT — the enemy strikes two of your strongholds at once!',t2.x,t2.y,'⚔️'); audio.drum&&audio.drum(true); return; } }
+          if(tier>=2&&src.length>1) this.sendCoordinated(src,tgt); else for(const s2 of src){ this.aiSend(s2,tgt); } announce(tgt,`🌊 ALL-OUT ATTACK!`); audio.drum&&audio.drum(this.royale?false:true); return; }
+        else if(tier>=2){ this.nextWaveF[fid]=this.time+L.wave*0.5; /* gom thêm quân rồi đánh */ } else { for(const s2 of src){ this.aiSend(s2,tgt); } announce(tgt,`🌊 ALL-OUT ATTACK!`); audio.drum&&audio.drum(this.royale?false:true); return; } } }
     // 2) khắc chế: đổi binh chủng ở lò luyện
     if(budget>0 && this.aiWave%2===0 && mine.length){
       const seen=mine.filter(m=>m.owner!==F||((this.aiVis(m.x,m.y,fid))&&!m.ambush));
@@ -1160,24 +1186,24 @@ class BigWar{
       const trains=this.nodes.filter(n=>n.owner===fid&&n.eco==='train');
       for(const tr of trains){ if(budget<=0) break; if(BW.counter(tr.trainType,big.type)<1.15) continue;
         let src2=null,sd=1e9; for(const e of en){ if(e.eco) continue; const d=dist(e,tr); if(d<=BW.range&&d<sd&&e.count>300&&e.type!==tr.trainType){ sd=d; src2=e; } }
-        if(src2){ this.send(src2,tr); budget--; } } }
+        if(src2){ this.aiSend(src2,tr); budget--; } } }
     // 3) bành trướng trung lập/kinh tế
     if(budget>0 && !((typeof this.lv==='number'&&this.lv<=2) && this.aiWave%2===1)){ let best=null,bs=-1e9;
-      for(const e of en){ for(const n of this.nodes){ if(n.owner!==2||n.btl) continue; if(!this.royale&&this.pA(n)<0.30) continue; const d=dist(e,n); if(d>BW.range) continue;
-        let ok2= e.count>n.count; let gain= ok2? n.count : 0;
-        if(!ok2){ const [ra]=bwResolve(e.type,Math.round(e.count*L.aiPow),n.type,n.count,BW.defBonus); ok2=ra>0; gain=ra*0.3; }
+      for(const e of en){ for(const n of this.nodes){ if(n.owner!==2||n.btl) continue; if(!this.royale&&this.pA(n)<D.safe) continue; const d=dist(e,n); if(d>BW.range) continue;
+        let ok2= e.count*(1-D.keep)>n.count; let gain= ok2? n.count : 0;
+        if(!ok2){ const [ra]=bwResolve(e.type,Math.round(e.count*(1-D.keep)*this.aiOver()),n.type,n.count,BW.defBonus); ok2=ra>0; gain=ra*0.3; }
         if(!ok2) continue; const sc=gain+(n.eco?500+(n.eco==='farm'?200:0):0)-d*0.2;
         if(sc>bs){bs=sc;best=[e,n];} } }
-      if(best){ this.send(best[0],best[1]); budget--; } }
+      if(best){ this.aiSend(best[0],best[1]); budget--; } }
     // 4) đánh node thù địch nếu chắc thắng (ngoài tầm nhìn người chơi thì chỉ đoán)
     if(budget>0){ let best=null,bs=-1e9;
-      for(const e of en){ for(const m of mine){ if(m.owner===F&&this.pA(m)<0.28&&!this.royale&&!this.stormRush) continue; if(m.ambush) continue; const d=dist(e,m); if(d>BW.range) continue;
+      for(const e of en){ for(const m of mine){ if(m.owner===F&&!this.royale&&!this.stormRush&&(this.pA(m)<D.safe-0.02||(this._raidT||0)>this.time||(m.camp&&this.time<240))) continue; if(m.owner===F&&this.royale&&this.time<D.grace) continue;   /* 4 phút đầu máy chưa đụng tới đại bản doanh của ta */ if(m.ambush) continue; const d=dist(e,m); if(d>BW.range) continue;
         const est=this.aiSee(m,fid);
-        const [ra]=bwResolve(e.type,Math.round(e.count*L.aiPow),est.type,est.count,this.defMul({...m,type:est.type})); if(ra<=0) continue;
-        let sc=ra*1.2+(m.eco?350:0)+(m.camp?5000:0)-d*0.2-est.count*0.2;
+        const [ra]=bwResolve(e.type,Math.round(e.count*(1-D.keep)*this.aiOver()),est.type,est.count,this.defMul({...m,type:est.type})); if(ra<=0) continue;
+        let sc=ra*1.2+(m.eco?350+(D.iq>=2&&m.owner===F?450:0):0)+(m.camp?5000:0)-d*0.2-est.count*0.2+(m.owner===F?hate:0);
         if(this.royale&&m.owner===F){ if(this.coalition) sc+=1500; else if(this.playerWeak) sc-=700; }
         if(sc>bs){bs=sc;best=[e,m];} } }
-      if(best&&bs>-200){ const [e,m]=best; this.send(e,m); announce(e,'⚔️ Enemy on the march!'); audio.flag&&audio.flag(); budget--; } }
+      if(best&&bs>-200){ const [e,m]=best; this.aiSend(e,m); if(m.owner===F) this._raidT=this.time+D.raidCd; announce(e, m.owner===F&&m.eco&&D.iq>=2? '🔥 Enemy raid on your supply!' : '⚔️ Enemy on the march!'); audio.flag&&audio.flag(); budget--; } }
     // 6) PHỤC KÍCH (từ màn 2): chọn địa hình rừng/thung lũng/sông nằm trên đường quân ta để chờ
     if(tier>=1){ let abud= tier>=2? 2:1;
       const pas=this.armies.filter(a=>(this.royale? this.isFoe(a.owner,fid) : a.owner===F)&&!a.done&&a.count>0&&!a.btl&&(a.to>=0||a.tx!=null||a.hunt)&&!(a.owner===F&&a.smokeT>0)&&(a.owner!==F||!this.royale||this.aiVis(a.x,a.y,fid)));
@@ -1199,7 +1225,9 @@ class BigWar{
     if(budget>0 && !this.royale && en.length>=2){
       const front=[...en].sort((x,y)=>this.pA(x)-this.pA(y))[0];
       let rear=null,rb2=-1e9; for(const e of en){ if(e===front||e.eco) continue; if(this.pA(e)-this.pA(front)>0.06 && dist(e,front)<=BW.range && e.count>400){ const sc=e.count; if(sc>rb2){rb2=sc;rear=e;} } }
-      if(rear && front.count<rear.count){ this.send(rear,front); budget--; }
+      if(rear && front.count<rear.count){ this.aiSend(rear,front); budget--; }
+      /* (5.3) iq≥1: trại địch không ngồi ôm quân — dư quân thì điều ra đồn tiền tuyến gần nhất */
+      if(budget>0&&D.iq>=1){ const c=this.nodes.find(n=>n.camp&&n.owner===fid&&!n.btl), cc=Math.round(L.camp*1.6); if(c&&c.count>cc*0.62){ let to=null,tb=1e9; for(const e of en){ if(e.eco) continue; const d=dist(e,c); if(d<=BW.range*1.4&&this.pA(e)<tb){ tb=this.pA(e); to=e; } } if(to&&this.aiSend(c,to,0.6)){ announce(c,'📯 Enemy camp sends troops to the front!'); budget--; } } }
     }
   }
   // ---- vẽ
@@ -1627,7 +1655,7 @@ class BigWar{
       for(const a of this.armies) if(this.isFoe(a.owner,F)&&this.visAt(a.x,a.y)) en+=a.count;
       const cap=this.supplyCap(F), t1=`⚔️${my}/${cap}`, enT=(unk?'~':'')+Math.round(en)+(unk?'?':'');
       let nNat=0; if(this.royale){ const seen=this._natSeen||(this._natSeen=new Uint8Array(256)); seen.fill(0); for(const n of this.nodes){ if(n.camp&&n.owner!==2&&n.owner>=0&&n.owner<256&&!seen[n.owner]){ seen[n.owner]=1; nNat++; } } }
-      const nat=this.royale? `🌏 ${nNat} nations` : `🔥 Stage ${this.lv}`;
+      const nat=this.royale? `🌏 ${nNat} nations` : (this.cfg.p2p||this.cfg.classic? `🔥 Stage ${this.lv}` : `🔥 Stage ${this.lv}/${BW_LEVELS.length}`);
       const mapN=this.mapName.length>11? this.mapName.slice(0,10)+'…' : this.mapName;
       c.font=`800 13px ${FONT}`; const room=topW-18-(c.measureText(enT).width+12);
       let t2='', fs=11; // chữ tự rút gọn theo bề rộng thanh: đủ → bỏ tên bản đồ → chỉ còn quân số

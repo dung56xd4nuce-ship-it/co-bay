@@ -11,11 +11,14 @@ const ROOT=new URL('..',import.meta.url).pathname;
 execSync('node build.mjs',{cwd:ROOT,stdio:'ignore'}); fs.mkdirSync('/tmp/solo',{recursive:true}); fs.copyFileSync(ROOT+'dist/index.html','/tmp/solo/index.html');
 const up=()=>new Promise(r=>{ const q=http.get('http://localhost:8766/index.html',s=>{ s.resume(); r(s.statusCode===200); }); q.on('error',()=>r(false)); q.setTimeout(1500,()=>{ q.destroy(); r(false); }); });
 if(!(await up())){ spawn('python3',['-m','http.server','8766'],{cwd:'/tmp/solo',detached:true,stdio:'ignore'}).unref(); for(let i=0;i<20&&!(await up());i++) await new Promise(r=>setTimeout(r,300)); }
+// bản phát hành trước (repo co-bay/www) phục vụ ở cổng 8770 để nhóm hiệu năng có mốc so sánh trên chính máy này
+{ const prev='/home/claude/co-bay/www/index.html', up2=()=>new Promise(r=>{ const q=http.get('http://localhost:8770/index.html',s=>{ s.resume(); r(s.statusCode===200); }); q.on('error',()=>r(false)); q.setTimeout(1500,()=>{ q.destroy(); r(false); }); });
+  if(fs.existsSync(prev)&&!(await up2())){ fs.mkdirSync('/tmp/prev',{recursive:true}); fs.copyFileSync(prev,'/tmp/prev/index.html'); spawn('python3',['-m','http.server','8770'],{cwd:'/tmp/prev',detached:true,stdio:'ignore'}).unref(); for(let i=0;i<20&&!(await up2());i++) await new Promise(r=>setTimeout(r,300)); } }
 // 2) danh sách: [tên, file, kiểu, giới hạn giây, chạy-lâu?]
 const exists=(f)=>fs.existsSync(ROOT+'test/'+f);
 const LIST=[
   ['soát mã bị nuốt vào chú thích + cú pháp','lint_swallow.mjs','exit',60],
-  ['luật chơi (290 tình huống)','rules.mjs','rules',480,0,1],        // nặng CPU: chạy riêng ở chặng 2
+  ['luật chơi (309 tình huống)','rules.mjs','rules',480,0,1],        // nặng CPU: chạy riêng ở chặng 2
   ['bố cục HUD mọi cỡ máy','audit_layout.mjs','exit',420],
   ['luồng người chơi','gate_flows.mjs','exit',240],
   ['điều khiển cảm ứng trong trận','gate_touch.mjs','exit',300],
@@ -25,6 +28,8 @@ const LIST=[
   ['màn hình menu mọi cỡ máy','audit_screens.mjs','exit',300],
   ['lương thảo & đại quân','gate_supply.mjs','exit',300],
   ['quân nhu · lò rèn · xu (như người chơi)','gate_gear.mjs','exit',480],
+  ['chiến dịch 10 ải · lưu ván 1v1 · mức khó Quần Hùng (như người chơi)','gate_camp.mjs','exit',600],
+  ['độ khó tăng thật theo ải (bot đánh 30 ván)','gate_ramp.mjs','exit',240],
   ['bộ art được dùng hết','gate_art.mjs','exit',300],
   ['nâng cấp từ v4.2 (ván lưu cũ)','gate_upgrade.mjs','exit',300],
   ['chạm ngẫu nhiên (khỉ)','gate_monkey.mjs','exit',600],

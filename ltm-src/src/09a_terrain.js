@@ -17,21 +17,23 @@ BW.typeSpeed={cavalry:1.35,shield:0.8,assassin:1.1};
 BigWar.prototype.genTerrain=function(R,W,H){
   const area=W*H/(6600*1520), S=this.terSeeds=[];
   const add=(x,y,ter,r)=>{ if(x<-r||x>W+r||y<-r||y>H+r) return null; const s={x,y,ter,r,p1:R()*6.28,p2:R()*6.28}; S.push(s); return s; };
-  this.riverX0=W*(0.4+R()*0.16); this.riverAmp=110+R()*70; this.riverPh=R()*7;
-  this.riverX=(y)=>this.riverX0+Math.sin(y*0.004+this.riverPh)*this.riverAmp;
+  const B=this.biome||{}, bf=(k)=>B[k]==null? 1 : B[k];   /* (5.3) kiểu địa hình của bản đồ */
+  this.riverX0=W*(0.4+R()*0.16); this.riverAmp=110+R()*70; this.riverPh=R()*7; this.riverFq=0.004;
+  if(B.river==='none'){ this.riverX0=-99999; this.riverAmp=0; this.noRiver=true; } else if(B.river){ this.riverAmp=Math.min(this.big? 900 : 420, this.riverAmp*(B.river.amp||1)); this.riverFq=(B.river.fq||0.004)*(this.big? 0.45 : 1); }
+  this.riverX=(y)=>this.riverX0+Math.sin(y*this.riverFq+this.riverPh)*this.riverAmp;
   // DÃY NÚI: chuỗi 3–5 khối nối nhau theo một hướng; chân núi thường có thung lũng
-  const nRange=Math.max(3,Math.round(4.2*area));
+  const nRange=Math.max(bf('mtn')<1?1:3,Math.round(4.2*area*bf('mtn')));
   for(let i=0;i<nRange;i++){ let x=W*(0.08+R()*0.84), y=H*(0.16+R()*0.72); const an=R()*Math.PI, n=3+((R()*3)|0); let last=null;
     for(let k=0;k<n;k++){ const r=165+R()*100; last=add(x,y,'mountain',r)||last; x+=Math.cos(an)*r*1.2+(R()-0.5)*50; y+=Math.sin(an)*r*0.85+(R()-0.5)*50; }
     if(last&&R()<0.75){ const va=an+Math.PI/2*(R()<0.5?1:-1), vr=190+R()*90; add(last.x+Math.cos(va)*(last.r+vr*0.55), last.y+Math.sin(va)*(last.r+vr*0.55)*0.8,'valley',vr); } }
   // RỪNG: cụm 2–3 khối chồng nhau
-  const nForest=Math.max(6,Math.round(9.5*area));
+  const nForest=Math.max(bf('forest')<1?2:6,Math.round(9.5*area*bf('forest')));
   for(let i=0;i<nForest;i++){ let x=W*(0.05+R()*0.9), y=H*(0.14+R()*0.76); const n=2+((R()*2)|0);
     for(let k=0;k<n;k++){ const r=210+R()*130; add(x,y,'forest',r); const an=R()*6.28; x+=Math.cos(an)*r*0.9; y+=Math.sin(an)*r*0.6; } }
   // SA MẠC + thung lũng lẻ
-  const nDesert=Math.max(1,Math.round(2*area));
+  const nDesert=bf('desert')<=0? 0 : Math.max(1,Math.round(2*area*bf('desert')));
   for(let i=0;i<nDesert;i++){ const x=W*(0.08+R()*0.84), y=H*(0.2+R()*0.62), r=280+R()*140; add(x,y,'desert',r); if(R()<0.6) add(x+(R()-0.5)*r,y+(R()-0.5)*r*0.6,'desert',r*0.7); }
-  const nValley=Math.max(1,Math.round(2*area)); for(let i=0;i<nValley;i++) add(W*(0.1+R()*0.8),H*(0.2+R()*0.62),'valley',200+R()*90);
+  const nValley=Math.max(1,Math.round(2*area*bf('valley'))); for(let i=0;i<nValley;i++) add(W*(0.1+R()*0.8),H*(0.2+R()*0.62),'valley',200+R()*90);
   // tra cứu hạt địa hình theo ô 500px
   const SB=500; this._sb=new Map();
   for(const s of S){ const rr=s.r*1.3; for(let bx=Math.floor((s.x-rr)/SB);bx<=Math.floor((s.x+rr)/SB);bx++) for(let by=Math.floor((s.y-rr)/SB);by<=Math.floor((s.y+rr)/SB);by++){ const key=bx*4096+by; let arr=this._sb.get(key); if(!arr) this._sb.set(key,arr=[]); arr.push(s); } }
@@ -47,7 +49,7 @@ BigWar.prototype.genTerrain=function(R,W,H){
 // ---- đường cái + lưới tra cứu (gọi SAU khi vị trí cứ điểm đã chốt; gọi lại khi nạp ván lưu) ----
 BigWar.prototype.genRoads=function(){
   const W=BW.W, H=BW.H, ns=this.nodes, nN=ns.length;
-  this.bridges=(this.big? [0.05,0.14,0.23,0.32,0.41,0.5,0.59,0.68,0.77,0.86,0.95] : [0.18,0.42,0.64,0.86]).map(fy=>({x:this.riverX(H*fy),y:H*fy}));
+  this.bridges=(this.big? [0.05,0.14,0.23,0.32,0.41,0.5,0.59,0.68,0.77,0.86,0.95] : [0.18,0.42,0.64,0.86]).map(fy=>({x:this.riverX(H*fy),y:H*fy})); if(this.noRiver) this.bridges=[];   /* sa mạc/đất tro: không có sông thì không có bến */
   this.nearBridge=(x,y,r2)=>{ r2=r2||BW.fordR; for(const b of this.bridges){ if(Math.abs(y-b.y)<r2&&hyp(x-b.x,y-b.y)<r2) return b; } return null; };
   const side=(p)=>p.x<this.riverX(p.y)?0:1, sd=ns.map(side);
   const wet=(A,B)=>{ const d=hyp(B.x-A.x,B.y-A.y), k=Math.max(2,Math.ceil(d/40)); for(let i=1;i<k;i++){ const x=A.x+(B.x-A.x)*i/k, y=A.y+(B.y-A.y)*i/k; if(Math.abs(x-this.riverX(y))<74) return true; } return false; };

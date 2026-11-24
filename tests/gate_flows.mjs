@@ -8,6 +8,7 @@ for(const [dn,dev] of DEVICES){ console.log(dn);
   r=await T.tapEl('#bBW'); ok(r.ok,'menu: chạm được nút BATTLE '+(r.why||''));
   ok(await T.vis('#bossPick'),'hiện bảng chọn chế độ');
   r=await T.tapEl('#bBoss1v1'); ok(r.ok,'chạm được nút 1 vs 1 '+(r.why||'')); await p.waitForTimeout(400);
+  ok(await T.vis('#campaign'),'1v1: hiện màn CHIẾN DỊCH 10 ải'); r=await T.tapEl('.stg.cur'); ok(r.ok,'chạm được thẻ ải đang tới '+(r.why||'')); await p.waitForTimeout(400);
   ok(await T.vis('#civPick'),'1v1: hiện màn CHỌN NƯỚC trước khi vào trận');
   r=await T.tapEl('#civGo'); ok(r.ok,'chạm được nút Start '+(r.why||'')); await p.waitForTimeout(600);
   ok(await T.ev(()=>!!__ltm.bw&&!__ltm.bw.royale),'vào trận 1v1');

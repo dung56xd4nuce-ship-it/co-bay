@@ -2,9 +2,10 @@
 // trong 4 cảnh người chơi hay gặp: đứng yên · kéo bản đồ · toàn cảnh · giữa trận. So với bản cũ v4.2 (cổng 8767) nếu máy chủ còn chạy.
 import { launch, open, ok, finish, DEVICES } from './lib.mjs';
 import http from 'http';
-const OLD='http://localhost:8767/index.html', RATE=+((process.argv.find(a=>a.startsWith('--rate='))||'').slice(7))||4;
+let OLD='http://localhost:8767/index.html'; const PREV='http://localhost:8770/index.html', RATE=+((process.argv.find(a=>a.startsWith('--rate='))||'').slice(7))||4;
 const up=(u)=>new Promise(r=>{ const q=http.get(u,s=>{ s.resume(); r(s.statusCode===200); }); q.on('error',()=>r(false)); q.setTimeout(1500,()=>{ q.destroy(); r(false); }); });
-const hasOld=await up(OLD); const b=await launch();
+let hasOld=await up(OLD), oldName='v4.2'; if(!hasOld&&await up(PREV)){ OLD=PREV; hasOld=true; oldName='bản phát hành trước'; }   /* máy thử mỗi phiên nhanh chậm khác nhau: luôn so với một bản cũ đo trên CHÍNH máy này */
+const b=await launch();
 const q=(a,f)=>{ if(!a.length) return 0; const s=[...a].sort((x,y)=>x-y); return s[Math.min(s.length-1,Math.floor(s.length*f))]; };
 async function measure(url,mode,label){
   const T=await open(b,DEVICES[0][1],{url}); const {p,cdp}=T; await p.waitForTimeout(1500);   // chờ bộ art giải nén xong ở menu
@@ -30,13 +31,13 @@ async function measure(url,mode,label){
   out.err=T.errs.slice(0,2); await T.ctx.close(); console.log(label,JSON.stringify(out)); return out; }
 const PH=['vào trận','đứng yên','kéo bản đồ','toàn cảnh','giữa trận','giữa trận · kéo'];
 for(const mode of ['1v1','royale']){ console.log(`— ${mode==='royale'?'Quần Hùng 37 nước':'Đánh Boss 1v1'} · CPU chậm ${RATE}× —`);
-  const N=await measure(undefined,mode,'  bản mới'); const O=hasOld? await measure(OLD,mode,'  bản v4.2') : null;
+  const N=await measure(undefined,mode,'  bản mới'); const O=hasOld? await measure(OLD,mode,'  '+oldName) : null;
   ok(N.err.length===0,`${mode}: không lỗi JS khi máy chậm`+(N.err.length?': '+N.err.join(' | '):''));
   for(const ph of PH){ const n=N[ph], o=O&&O[ph];
     // máy thử vẽ bằng phần mềm nên con số tuyệt đối thấp hơn điện thoại thật; lấy bản v4.2 (đo cùng lúc, cùng máy) làm mốc
     if(o){ const tol= ph==='vào trận'? 0.68 : 0.8;   // 4 giây đầu trận bản mới còn dựng bản đồ chi tiết (một lần) nên cho phép chậm hơn chút; phép đo này cũng nhiễu nhất
-      ok(n.fps>=o.fps*tol,`${mode} · ${ph}: ${n.fps} khung/giây — v4.2: ${o.fps} (không được chậm hơn quá ${Math.round((1-tol)*100)}%)`);
-      ok(n.max<=Math.max(o.max*1.5,200),`${mode} · ${ph}: khung chậm nhất ${n.max} ms — v4.2: ${o.max} ms`); }
+      ok(n.fps>=o.fps*tol,`${mode} · ${ph}: ${n.fps} khung/giây — ${oldName}: ${o.fps} (không được chậm hơn quá ${Math.round((1-tol)*100)}%)`);
+      ok(n.max<=Math.max(o.max*1.5,200),`${mode} · ${ph}: khung chậm nhất ${n.max} ms — ${oldName}: ${o.max} ms`); }
     else { ok(n.fps>=10,`${mode} · ${ph}: ${n.fps} khung/giây`); ok(n.max<=400,`${mode} · ${ph}: khung chậm nhất ${n.max} ms`); }
     ok(n.upd<=4,`${mode} · ${ph}: tính toán trận ${n.upd} ms/khung (cần ≤4)`); } }
 await finish('HIỆU NĂNG MÁY YẾU',b);

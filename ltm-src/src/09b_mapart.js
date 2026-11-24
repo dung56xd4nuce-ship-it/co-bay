@@ -63,6 +63,7 @@ BigWar.prototype.mapTileGen=function*(lod,tx,ty){
     tc.globalCompositeOperation='source-in'; tc.fillStyle=fillOf(tc,name); tc.fillRect(0,0,MAP_TPX,MAP_TPX); yield 'fill';
     c.drawImage(tmp,0,0); yield 'layer'; }
   mapScratchPut(SCR);
+  { const B=this.biome; if(B&&B.tint){ c.save(); c.globalAlpha=B.a; c.fillStyle=B.tint; c.fillRect(0,0,MAP_TPX,MAP_TPX); c.restore(); } }   /* (5.3) màu đất theo kiểu địa hình: tuyết trắng, cát vàng, đất đỏ, tro núi lửa... */
   c.save(); c.scale(k,k); c.translate(-x0,-y0); c.lineCap='round'; c.lineJoin='round';
   // tô nét bằng ô nền lặp: đường nét dựng theo toạ độ bản đồ, còn hoa văn tô trong hệ điểm ảnh của ô (liền mạch giữa các ô)
   const strokeTex=(name,w)=>{ const f=fillOf(c,name); c.save(); c.setTransform(1,0,0,1,0,0); c.strokeStyle=f; c.lineWidth=w*k; c.lineCap='round'; c.lineJoin='round'; c.stroke(); c.restore(); };

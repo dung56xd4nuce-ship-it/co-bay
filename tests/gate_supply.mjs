@@ -5,7 +5,7 @@ import { launch, open, ok, finish, DEVICES, PORTRAIT } from './lib.mjs';
 const b=await launch();
 for(const [dn,dev] of [DEVICES[0],DEVICES[1],PORTRAIT[0]]){ console.log(dn);
   const T=await open(b,dev); const {p}=T; await T.hookDraw();
-  await T.startBattle({map:6,civ:'daiviet'},5);
+  await T.startBattle({map52:6,civ:'daiviet'},5);
   const W=await T.ev(()=>{ const bw=__ltm.bw; bw.aiTurn=()=>{}; bw.nextAI=1e9; bw.supplyCap=()=>1e9; bw.time=30; bw.notes=[]; for(const n of bw.nodes){ n.ambush=false; if(n.owner===1&&!n.camp) n.count=Math.min(n.count,30); }
     const c=bw.nodes.find(n=>n.camp&&n.owner===0); c.count=12000; c.type='spear'; c.food=0;
     const far=bw.nodes.filter(n=>n.owner===2&&!n.camp&&bw.findPath('H',c.x,c.y,n.x,n.y).ok).sort((a,b)=>Math.hypot(b.x-c.x,b.y-c.y)-Math.hypot(a.x-c.x,a.y-c.y))[0]; far.count=1;
@@ -64,7 +64,7 @@ for(const [dn,dev] of [DEVICES[0],DEVICES[1],PORTRAIT[0]]){ console.log(dn);
   ok(T.errs.length===0,'không lỗi JS'+(T.errs.length?': '+T.errs.slice(0,3).join(' | '):''));
   await T.ctx.close(); }
 // Quần Hùng: lệnh đi QUÁ XA so với lương mang theo → menu cảnh báo trước
-{ const T=await open(b,DEVICES[0][1]); const {p}=T; await T.hookDraw(); await T.startBattle({royale:36,seed:91,map:2,civ:'rome'},5);
+{ const T=await open(b,DEVICES[0][1]); const {p}=T; await T.hookDraw(); await T.startBattle({royale:36,seed:91,map52:2,civ:'rome'},5);
   const W=await T.ev(()=>{ const bw=__ltm.bw; bw.aiTurn=()=>{}; bw.nextAI=1e9; if(bw.aiDiplomacy) bw.aiDiplomacy=()=>{}; bw.supplyCap=()=>1e9; bw.time=30; bw.notes=[]; const c=bw.nodes.find(n=>n.camp&&n.owner===0); c.count=20000; c.type='swordsman';
     const far=bw.nodes.filter(n=>n.owner===2&&!n.camp).sort((a,b)=>Math.hypot(b.x-c.x,b.y-c.y)-Math.hypot(a.x-c.x,a.y-c.y))[0]; return {c:[c.x,c.y,c.id],far:[far.x,far.y,far.id],dist:Math.round(Math.hypot(far.x-c.x,far.y-c.y))}; });
   await T.aim(W.c[0],W.c[1]); await T.settle(); let s=await T.scr(W.c[0],W.c[1]); await T.tap(s[0],s[1]); await T.until((id)=>__ltm.bw.sel&&__ltm.bw.sel.id===id,W.c[2],2500);
@@ -76,7 +76,7 @@ for(const [dn,dev] of [DEVICES[0],DEVICES[1],PORTRAIT[0]]){ console.log(dn);
   ok(T.errs.length===0,'Quần Hùng: không lỗi JS'); await T.ctx.close(); }
 // (5.1) CHỈ RỜI CỨ ĐIỂM CÓ KHO (trại / thành / kho lương) MỚI PHẢI CHUẨN BỊ LƯƠNG — quân đóng ở đất trống hay ngoài đồng thì đi ngay, chặng ngắn gần như không chờ
 for(const [dn,dev] of [DEVICES[0],PORTRAIT[1]]){ console.log(dn+' · chuẩn bị lương chỉ khi rời cứ điểm có kho');
-  const T=await open(b,dev); const {p}=T; await T.hookDraw(); await T.startBattle({map:6,civ:'daiviet'},5);
+  const T=await open(b,dev); const {p}=T; await T.hookDraw(); await T.startBattle({map52:6,civ:'daiviet'},5);
   const W=await T.ev(()=>{ const bw=__ltm.bw; bw.aiTurn=()=>{}; bw.nextAI=1e9; bw.supplyCap=()=>1e9; bw.time=30; bw.notes=[]; for(const n of bw.nodes){ n.ambush=false; if(n.owner!==0&&!n.camp) n.count=Math.min(n.count,30); }
     const d=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y), cap=bw.nodes.find(n=>n.camp&&n.owner===0);
     const near=(n)=>bw.nodes.filter(m=>m!==n&&!m.camp&&d(m,n)<900&&bw.findPath('H',n.x,n.y,m.x,m.y).ok).sort((a,b)=>d(a,n)-d(b,n))[0];

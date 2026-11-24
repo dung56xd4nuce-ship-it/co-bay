@@ -7,7 +7,7 @@ const STAGES=((process.argv.find(a=>a.startsWith('--stages='))||'').slice(9)||'1
 const CIV=(process.argv.find(a=>a.startsWith('--civ='))||'').slice(6)||'rome';
 const b=await launch(); const T=await open(b,DEVICES[0][1]); const {p}=T; const rows=[];
 for(const lv of STAGES){
-  const r=await p.evaluate(([lv,civ])=>{ const BWc=__ltm.BigWar, bwResolve=__ltm.bwResolve; const bw=new BWc(lv,{map:(lv*3)%20,civ,autoMenu:true}); bw.lv=lv;
+  const r=await p.evaluate(([lv,civ])=>{ const BWc=__ltm.BigWar, bwResolve=__ltm.bwResolve; const bw=new BWc(lv,{map:(lv-1)*3,civ,autoMenu:true}); bw.lv=lv;
     let nan=0, sends=0, lastProg=0, lastPow=0, stuck=0, rallyT=-1e9; const LIMIT=30*60, R=1500, dbg=[];
     const decide=()=>{ const mine=bw.nodes.filter(n=>n.owner===0&&n.count>0&&!n.btl).sort((a,b)=>b.count-a.count); if(!mine.length) return null;
       if(bw.armies.filter(a=>a.owner===0&&!a.camped).length>=4) return null;

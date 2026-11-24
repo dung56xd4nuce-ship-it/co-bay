@@ -5,7 +5,7 @@ const b=await launch();
 for(const [dn,dev] of DEVICES){ console.log(dn);
   const T=await open(b,dev); const {p}=T; let r;
   await T.ev(()=>{ localStorage.removeItem('ltm_royale_save_v1'); });
-  await T.tapEl('#bBW'); await p.waitForTimeout(150); await T.tapEl('#bBoss1v1'); await p.waitForTimeout(400);
+  await T.tapEl('#bBW'); await p.waitForTimeout(150); await T.tapEl('#bBoss1v1'); await p.waitForTimeout(400); await T.tapEl('.stg.cur'); await p.waitForTimeout(400);
   ok(await T.vis('#civPick'),'màn chọn nước hiện ra');
   const n0=await T.ev(()=>document.querySelectorAll('#civGrid .civ').length); ok(n0>=40,`có ${n0} nền văn minh để chọn (≥40)`);
   ok(await T.ev(()=>['daiviet','tang','japan','goguryeo','maya'].every(id=>!!document.querySelector(`#civGrid .civ[data-civ="${id}"]`))),'có đủ Việt Nam (Đại Việt), Trung Quốc (Đường), Nhật, Hàn (Goguryeo), Maya');
@@ -48,12 +48,12 @@ for(const [dn,dev] of DEVICES){ console.log(dn);
   // --- chọn ải đã mở
   await T.ev(()=>{ stopBigWar(true); save.bwMax=5; Save.set(save); }); await p.waitForTimeout(300);
   await T.tapEl('#bBW'); await p.waitForTimeout(150); await T.tapEl('#bBoss1v1'); await p.waitForTimeout(400);
-  ok(/Stage 5\/10/.test(await T.ev(()=>document.getElementById('civStage').textContent)),'đã mở tới ải 5: bảng chọn hiện "Stage 5/10"');
-  await T.tapEl('#civStPrev'); await p.waitForTimeout(150); await T.tapEl('#civStPrev'); await p.waitForTimeout(150); await T.tapEl('#civGo'); await p.waitForTimeout(700);
-  ok(await T.ev(()=>__ltm.bw&&__ltm.bw.lv===3),'lùi 2 nấc rồi Start: vào đúng ải 3 (chơi lại ải cũ được)');
+  ok(await T.ev(()=>document.querySelectorAll('.stg.cleared').length===4&&document.querySelector('.stg.cur').dataset.lv==='5'&&document.querySelectorAll('.stg.lock').length===5),'đã mở tới ải 5: màn chiến dịch hiện 4 ải đã qua, ải 5 đang tới, 5 ải còn khoá');
+  await T.tapEl('.stg[data-lv="3"]'); await p.waitForTimeout(300); ok(/Stage 3\/10/.test(await T.ev(()=>document.getElementById('civStage').textContent)),'chọn lại ải 3: bảng chọn nước ghi "Stage 3/10"'); await T.tapEl('#civGo'); await p.waitForTimeout(700);
+  ok(await T.ev(()=>__ltm.bw&&__ltm.bw.lv===3),'Start: vào đúng ải 3 (chơi lại ải cũ được)');
   // --- nút Back
-  await T.ev(()=>stopBigWar(true)); await p.waitForTimeout(250); await T.tapEl('#bBW'); await p.waitForTimeout(150); await T.tapEl('#bBoss1v1'); await p.waitForTimeout(300); await T.tapEl('#civBack'); await p.waitForTimeout(250);
-  ok(!(await T.visible('#civPick'))&&await T.visible('#bossPick')&&await T.ev(()=>!__ltm.bw),'Back: quay về bảng chọn chế độ, chưa vào trận');
+  await T.ev(()=>stopBigWar(true)); await p.waitForTimeout(250); await T.tapEl('#bBW'); await p.waitForTimeout(150); await T.ev(()=>soloClear()); await T.tapEl('#bBoss1v1'); await p.waitForTimeout(300); await T.tapEl('.stg.cur'); await p.waitForTimeout(300); await T.tapEl('#civBack'); await p.waitForTimeout(250);
+  ok(!(await T.visible('#civPick'))&&await T.visible('#campaign')&&await T.ev(()=>!__ltm.bw),'Back: quay về màn chiến dịch, chưa vào trận'); await T.tapEl('#campBack'); await p.waitForTimeout(250); ok(await T.visible('#bossPick'),'Back lần nữa: về bảng chọn chế độ');
   // --- Quần Hùng: 37 nước khác nhau; lưu rồi chơi tiếp giữ nguyên các nước
   await T.tapEl('#bBossRoyale'); await p.waitForTimeout(350); await p.fill('#civSearch','rome'); await p.waitForTimeout(200); await T.tapEl('#civGrid .civ[data-civ="rome"]'); await p.waitForTimeout(150); await T.tapEl('#civGo'); await p.waitForTimeout(1200);
   const ro=await T.ev(()=>{ const bw=__ltm.bw; bw.skipIntro(); const ids=Object.keys(bw.civs).map(f=>bw.civs[f].id); const camps=bw.nodes.filter(n=>n.camp&&n.owner!==2);
@@ -68,7 +68,7 @@ for(const [dn,dev] of DEVICES){ console.log(dn);
 // màn chọn nước ở màn dọc + máy nhỏ: mọi nút bấm được, không bị che, không tràn màn hình
 for(const [dn,dev] of [...PORTRAIT,['Android nhỏ ngang 640×360',{viewport:{width:640,height:360},deviceScaleFactor:2,isMobile:true,hasTouch:true}],['Rất hẹp dọc 320×568',{viewport:{width:320,height:568},deviceScaleFactor:2,isMobile:true,hasTouch:true}]]){ console.log(dn);
   const T=await open(b,dev); const {p}=T;
-  await T.tapEl('#bBW'); await p.waitForTimeout(150); await T.tapEl('#bBoss1v1'); await p.waitForTimeout(400);
+  await T.tapEl('#bBW'); await p.waitForTimeout(150); await T.tapEl('#bBoss1v1'); await p.waitForTimeout(400); await T.tapEl('.stg.cur'); await p.waitForTimeout(400);
   const lay=await T.ev(()=>{ const vw=innerWidth, vh=innerHeight, out=[]; for(const id of ['civSearch','civRandom','civBack','civGo','civTabs','civGrid','civInfo']){ const r=document.getElementById(id).getBoundingClientRect(); if(r.left<-1||r.top<-1||r.right>vw+1||r.bottom>vh+1) out.push(id+' tràn màn hình'); if(r.width<30||r.height<24) out.push(id+' quá nhỏ'); }
     const g=document.getElementById('civGrid').getBoundingClientRect(); if(g.height<60) out.push('danh sách nước chỉ cao '+Math.round(g.height)+'px');
     const a=document.getElementById('civBack').getBoundingClientRect(), c=document.getElementById('civGo').getBoundingClientRect(); if(a.right>c.left+1&&a.bottom>c.top+1&&a.top<c.bottom-1) out.push('Back đè Start'); return out; });

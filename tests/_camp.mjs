@@ -1,0 +1,23 @@
+// (5.3) Hành trình chiến dịch 1v1 như người chơi: chụp từng bước để soát bằng mắt. node test/_camp.mjs W H tag
+import { chromium } from 'playwright';
+const b=await chromium.launch(); const W=+(process.argv[2]||395), H=+(process.argv[3]||859), tag=process.argv[4]||'p';
+const ctx=await b.newContext({viewport:{width:W,height:H},deviceScaleFactor:2,isMobile:true,hasTouch:true}); const p=await ctx.newPage(); const errs=[]; p.on('pageerror',e=>errs.push(String(e)));
+await p.goto('http://localhost:8766/index.html'); await p.waitForFunction(()=>window.__ltm); await p.waitForTimeout(400);
+const shot=(n)=>p.screenshot({path:`/tmp/shots/c-${tag}-${n}.png`}); const tap=async(sel)=>{ const e=await p.$(sel); const q=await e.boundingBox(); await p.touchscreen.tap(q.x+q.width/2,q.y+q.height/2); await p.waitForTimeout(350); };
+await tap('#bBW'); await shot('1-chooser'); await tap('#bBoss1v1'); await shot('2-campaign-new');
+await tap('.stg[data-lv="1"]'); await shot('3-civ'); await tap('#civGo'); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.lastVw>0); await p.waitForTimeout(900); await shot('4-intro1');
+await p.evaluate(()=>{ const bw=__ltm.bw; bw.over=true; bw.result={win:true}; }); await p.waitForSelector('#result:not(.hidden)'); await p.waitForTimeout(400); await shot('5-win1');
+await tap('#bNext'); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.lv===2&&__ltm.bw.lastVw>0); await p.waitForTimeout(900); await shot('6-intro2');
+await p.evaluate(()=>{ const bw=__ltm.bw; for(let i=0;i<1200;i++) bw.update(0.05); }); await p.waitForTimeout(5200); await shot('7-play2');
+const before=await p.evaluate(()=>({t:Math.round(__ltm.bw.time),mine:__ltm.bw.nodes.filter(n=>n.owner===0).length,pow:Math.round(__ltm.bw.myPower()),map:__ltm.bw.mapName,en:__ltm.bw.civOf(1).name}));
+await tap('#bwBack'); const ask=await p.evaluate(()=>!document.getElementById('ask').classList.contains('hidden')); if(ask) await tap('#askY'); await p.waitForTimeout(300);
+await p.reload(); await p.waitForFunction(()=>window.__ltm); await p.waitForTimeout(400); await tap('#bBW'); await shot('8-chooser-continue');
+await tap('#bSoloContinue'); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.lastVw>0); await p.waitForTimeout(900); await shot('9-resumed');
+const after=await p.evaluate(()=>({t:Math.round(__ltm.bw.time),mine:__ltm.bw.nodes.filter(n=>n.owner===0).length,pow:Math.round(__ltm.bw.myPower()),map:__ltm.bw.mapName,en:__ltm.bw.civOf(1).name,lv:__ltm.bw.lv}));
+console.log('save/resume',JSON.stringify(before),JSON.stringify(after));
+await p.evaluate(()=>{ const bw=__ltm.bw; bw.over=true; bw.result={win:false}; }); await p.waitForSelector('#result:not(.hidden)'); await p.waitForTimeout(400); await shot('10-lose2');
+await p.evaluate(()=>{ const s=JSON.parse(localStorage.ltm_save); s.bwMax=7; s.camp={best:{1:215,2:340,3:402,4:515,5:633,6:780}}; localStorage.ltm_save=JSON.stringify(s); }); await p.reload(); await p.waitForFunction(()=>window.__ltm); await p.waitForTimeout(300);
+await tap('#bBW'); await shot('11-chooser-mid'); await tap('#bBoss1v1'); await shot('12-campaign-mid'); await tap('.stg[data-lv="9"]'); await shot('13-locked-tap');
+await tap('#campBack'); await tap('#bBossRoyale'); await p.waitForTimeout(300); await shot('14-royale-diff'); await tap('.dif[data-dif="2"]'); await shot('15-royale-hard'); await tap('#civGo'); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.royale&&__ltm.bw.lastVw>0); await p.waitForTimeout(1000); await shot('16-royale-intro');
+console.log('royale',await p.evaluate(()=>({diff:__ltm.bw.cfg.diff,D:__ltm.bw.D.fly,bio:__ltm.bw.biomeId})),'errs',errs.slice(0,3));
+await b.close();
