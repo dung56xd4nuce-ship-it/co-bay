@@ -22,7 +22,7 @@ await p.waitForTimeout(400); out.biDichChiemLai_toi=await lum(r.x,r.y+40);
 await p.screenshot({path:`/tmp/terr_${tag}_2.png`});
 // đường nối 2 cứ điểm ta sáng
 const rd=await p.evaluate(()=>{ const bw=__ltm.bw; const rr=bw.roads.find(q=>q.a!=null&&Math.hypot(q.x2-q.x1,q.y2-q.y1)>700); bw.nodes[rr.a].owner=0; bw.nodes[rr.b].owner=0; bw.nodes[rr.a].count=0; bw.nodes[rr.b].count=0;
-  const mx=(rr.x1+rr.x2)/2, my=(rr.y1+rr.y2)/2; const s=bw.scale0; bw.camX=mx-(bw.lastVw)/s/2; bw.camY=Math.max(0,my-(bw.lastVh)/s/2); bw._updateVision(); return {mx,my,L:Math.round(Math.hypot(rr.x2-rr.x1,rr.y2-rr.y1))}; });
+  const mx=rr.mx, my=rr.my; const s=bw.scale0; bw.camX=mx-(bw.lastVw)/s/2; bw.camY=Math.max(0,my-(bw.lastVh)/s/2); bw._updateVision(); return {mx,my,L:Math.round(Math.hypot(rr.x2-rr.x1,rr.y2-rr.y1))}; });
 await p.waitForTimeout(400); out.giuaDuongNoi=rd.L+'px, sáng='+await lum(rd.mx,rd.my);
 // AI phục kích: điểm phục không nằm trong vùng sáng của mục tiêu
 const amb=await p.evaluate(()=>{ G.bwCfg={map:3}; startBigWar(10); const bw=__ltm.bw; bw.intro=null; bw.nextAI=1e9; bw.nextWaveF={};

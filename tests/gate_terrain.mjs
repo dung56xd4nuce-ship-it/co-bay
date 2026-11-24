@@ -24,10 +24,14 @@ for(const [dn,dev] of DEVICES){ console.log(dn);
   let o=await order('cav'); ok(o.picked,'chạm chọn được đạo kỵ binh'); ok(o.menu.some(m=>/^move\|.*⛔/.test(m)),'menu báo trước: kỵ binh chỉ tới được BÌA rừng — '+(o.menu[0]||''));
   ok(await T.ev(()=>{ const a=window.__cav; return !a.camped&&a.path&&a.path.length>=1&&a.pathOk===false&&a.pvT>0; }),'ra lệnh xong: có lộ trình (đường nét đứt) dẫn tới bìa rừng');
   ok(await T.ev(()=>__ltm.bw.texts.some(t=>/can't enter/.test(t.s||''))),'hiện dòng báo "⛔ Cavalry can\'t enter Forest"');
+  // giữ chân đạo vừa nhận lệnh trong lúc ra lệnh cho các đạo sau: nếu để nó chạy tới sát điểm đích thì cú chạm vào đích sẽ trúng chính nó (ra menu gộp quân) — bài thử không được phụ thuộc máy chạy nhanh hay chậm
+  await T.ev(()=>{ window.__cav.holdT=1e9; });
   // BỘ BINH NHỎ + ĐẠI QUÂN
   o=await order('foot'); ok(o.picked&&o.menu.some(m=>/^move\|/.test(m)&&!/⛔/.test(m)),'bộ binh nhỏ: menu cho hành quân thẳng vào rừng');
+  await T.ev(()=>{ window.__foot.holdT=1e9; });
   o=await order('big'); ok(o.picked&&o.menu.some(m=>/^move\|.*⛔/.test(m)),'đại quân 2600: menu báo chỉ tới được bìa rừng');
   // cho chạy tới nơi (tua nhanh) và soi vị trí từng khung
+  await T.ev(()=>{ window.__cav.holdT=0; window.__foot.holdT=0; });
   const R=await T.ev((deep)=>{ const bw=__ltm.bw, deepIn=(a)=>[[0,0],[45,0],[-45,0],[0,45],[0,-45]].every(([dx,dy])=>bw.terAt(a.x+dx,a.y+dy)==='forest'); let cIn=0,bIn=0,n=0;
     while(n++<20*200&&!(window.__cav.camped&&window.__foot.camped&&window.__big.camped)){ bw.update(0.05); for(const a of [window.__cav,window.__foot,window.__big]) a.food=100; window.__big.count=Math.max(2600,window.__big.count); if(deepIn(window.__cav)) cIn++; if(deepIn(window.__big)) bIn++; }
     const d=(a)=>Math.round(Math.hypot(a.x-deep[0],a.y-deep[1])); return {cIn,bIn,cav:{camped:!!window.__cav.camped,d:d(window.__cav),ter:bw.terAt(window.__cav.x,window.__cav.y)},foot:{camped:!!window.__foot.camped,d:d(window.__foot),amb:!!window.__foot.ambush},big:{camped:!!window.__big.camped,d:d(window.__big),ter:bw.terAt(window.__big.x,window.__big.y)}}; },S.deep);
@@ -52,7 +56,7 @@ for(const [dn,dev] of DEVICES){ console.log(dn);
   await T.startBattle({map:3,civ:'rome'},3); await T.ev(()=>{ const bw=__ltm.bw; bw.aiTurn=()=>{}; bw.notes=[]; bw.drawFog=()=>{}; bw.drawHud=()=>{}; }); 
   const px=async(wx,wy)=>{ const s=await T.scr(wx,wy); return T.ev(([x,y])=>{ const cv=document.getElementById('game'), k=cv.width/cv.getBoundingClientRect().width, d=cv.getContext('2d').getImageData(Math.round(x*k)-2,Math.round(y*k)-2,5,5).data; let r=0,g=0,b2=0; for(let i=0;i<d.length;i+=4){ r+=d[i]; g+=d[i+1]; b2+=d[i+2]; } const n=d.length/4; return [Math.round(r/n),Math.round(g/n),Math.round(b2/n)]; },s); };
   for(const z of [0.45,1,2.4]){ const info=await T.ev((z)=>{ const bw=__ltm.bw; bw.zoom=bw.zoomTgt=z; const r=bw.roads.filter(r=>r.a!=null&&r.b!=null).sort((a,b)=>Math.hypot(b.x2-b.x1,b.y2-b.y1)-Math.hypot(a.x2-a.x1,a.y2-a.y1))[3];
-      const mx=(r.x1+r.x2)/2, my=(r.y1+r.y2)/2; bw.camX=mx-bw.lastVw/(bw.scale0*z)/2; bw.camY=my-bw.lastVh/(bw.scale0*z)/2;
+      const mx=r.mx, my=r.my; bw.camX=mx-bw.lastVw/(bw.scale0*z)/2; bw.camY=my-bw.lastVh/(bw.scale0*z)/2;
       let f=null; for(let x=300;x<BW.W&&!f;x+=40) for(let y=260;y<BW.H-100;y+=40){ if([[0,0],[60,0],[-60,0],[0,60],[0,-60]].every(([dx,dy])=>bw.terAtRaw(x+dx,y+dy)==='plain')&&bw.distRoad(x,y)>160&&Math.abs(x-bw.riverX(y))>300&&!bw.nodes.some(n=>Math.hypot(n.x-x,n.y-y)<200)){ f=[x,y]; break; } }
       return {road:[mx,my],grass:f,river:[bw.riverX(BW.H*0.5),BW.H*0.5]}; },z);
     await p.waitForTimeout(1900);

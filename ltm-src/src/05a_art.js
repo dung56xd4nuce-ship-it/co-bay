@@ -91,7 +91,7 @@ const ART_BY_KEY = Object.fromEntries(ART_LIST.map(a=>[a.key,a]));
 const ArtUrls = {};
 const ArtListeners = [];
 function onArt(fn){ ArtListeners.push(fn); }
-function artChanged(){ SpriteCache.clear(); TintCache.clear(); for(const fn of ArtListeners) try{ fn(); }catch(e){} }
+function artChanged(){ SpriteCache.clear(); TintCache.clear(); TINT_GEN++; for(const fn of ArtListeners) try{ fn(); }catch(e){} }
 
 // ---- IndexedDB: ảnh người chơi tự nạp (chỉ trong trình duyệt này)
 const ArtDB = {
@@ -159,12 +159,15 @@ async function importArtFiles(files){
 }
 
 // ---- Đổi màu phe cho ảnh nhân vật: xoay sắc độ vùng xanh dương sang màu phe
-const TintCache=new Map();
+const TintCache=new Map(); let TINT_GEN=1;
+// (5.1) Ảnh đổi màu được nhớ NGAY TRÊN ảnh gốc. Trước đây khoá tra cứu là cả chuỗi dữ liệu của ảnh (hàng chục nghìn ký tự) ghép thêm số phe —
+// mỗi lần vẽ một cái lều là ghép và băm lại chuỗi đó: nguồn xả rác bộ nhớ lớn nhất của cả game (≈0,85 MB mỗi giây).
+function tintSlot(im){ if(im._tg!==TINT_GEN){ im._tg=TINT_GEN; im._tints=new Map(); } return im._tints; }
 function hexToHsl(hex){ const n=parseInt(hex.slice(1),16); let r=(n>>16)/255,g=((n>>8)&255)/255,b=(n&255)/255; const mx=Math.max(r,g,b), mn=Math.min(r,g,b); let h=0,s=0,l=(mx+mn)/2; if(mx!==mn){ const d=mx-mn; s=l>0.5?d/(2-mx-mn):d/(mx+mn); h= mx===r? (g-b)/d+(g<b?6:0) : mx===g? (b-r)/d+2 : (r-g)/d+4; h/=6; } return [h,s,l]; }
 function recolorUnit(im, fi){
-  const key=(im.src||'')+'|'+fi; if(TintCache.has(key)) return TintCache.get(key);
-  const S=256; const cv=document.createElement('canvas'); cv.width=cv.height=S; const c=cv.getContext('2d',{willReadFrequently:true}); c.drawImage(im,0,0,S,S); if(fi===0){ TintCache.set(key,cv); return cv; }
-  if(fi!==0){ let img; try{ img=c.getImageData(0,0,S,S); }catch(e){ TintCache.set(key,cv); return cv; } const d=img.data;
+  const slot=tintSlot(im), hit=slot.get(fi); if(hit) return hit; const key=fi, TC=slot;
+  const S=256; const cv=document.createElement('canvas'); cv.width=cv.height=S; const c=cv.getContext('2d',{willReadFrequently:true}); c.drawImage(im,0,0,S,S); if(fi===0){ TC.set(key,cv); return cv; }
+  if(fi!==0){ let img; try{ img=c.getImageData(0,0,S,S); }catch(e){ TC.set(key,cv); return cv; } const d=img.data;
     let th=0, ts=0, neutral=fi===NEUTRAL; if(!neutral){ [th,ts]=hexToHsl(FACTIONS[fi].color); }
     for(let i=0;i<d.length;i+=4){ if(d[i+3]<10) continue; const r=d[i]/255,g=d[i+1]/255,b=d[i+2]/255; const mx=Math.max(r,g,b), mn=Math.min(r,g,b); if(mx-mn<0.12) continue;
       let h; const dd=mx-mn; h= mx===r? (g-b)/dd+(g<b?6:0) : mx===g? (b-r)/dd+2 : (r-g)/dd+4; h/=6;
@@ -174,11 +177,11 @@ function recolorUnit(im, fi){
       const q=nl<0.5?nl*(1+ns):nl+ns-nl*ns, p=2*nl-q; const f=(t)=>{ t=(t%1+1)%1; return t<1/6?p+(q-p)*6*t: t<1/2?q: t<2/3?p+(q-p)*(2/3-t)*6 : p; };
       d[i]=f(nh+1/3)*255; d[i+1]=f(nh)*255; d[i+2]=f(nh-1/3)*255; }
     c.putImageData(img,0,0); }
-  TintCache.set(key,cv); return cv;
+  TC.set(key,cv); return cv;
 }
 function tintProp(im, color){
-  const key=(im.src||'')+'|'+color; if(TintCache.has(key)) return TintCache.get(key);
+  const slot=tintSlot(im), key='c|'+color, hit=slot.get(key); if(hit) return hit;
   const cv=document.createElement('canvas'); cv.width=im.width; cv.height=im.height; const c=cv.getContext('2d'); c.drawImage(im,0,0);
   c.globalCompositeOperation='multiply'; c.fillStyle=color; c.fillRect(0,0,cv.width,cv.height); c.globalCompositeOperation='destination-in'; c.drawImage(im,0,0);
-  TintCache.set(key,cv); return cv;
+  slot.set(key,cv); return cv;
 }

@@ -248,13 +248,14 @@ let menuAnim=null;
 function menuBg(){ const cv=$('menuBg'); const c=cv.getContext('2d'); const walkers=[]; const types=['general','scout','archer','spear','cavalry','shield','saber','swordsman','crossbow','medic','assassin'];
   for(let i=0;i<14;i++) walkers.push({x:Math.random(),row:i%3,t:types[i%types.length],f:i%4,sp:0.03+Math.random()*0.03,ph:Math.random()*6});
   const loop=(tm)=>{ if($('menu').classList.contains('hidden') && $('levels').classList.contains('hidden') && $('help').classList.contains('hidden')){ menuAnim=requestAnimationFrame(loop); return; }
-    const dpr=Math.min(G.dprCap||2.5,devicePixelRatio||1); const W=cv.clientWidth, H=cv.clientHeight; if(cv.width!==Math.round(W*dpr)){ cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); }
+    if(tm-(loop._t||0)<31.5){ menuAnim=requestAnimationFrame(loop); return; } const mdt=Math.min(0.1,(tm-(loop._t||tm))/1000); loop._t=tm;   /* màn menu chỉ cần 30 khung/giây */
+    const dpr=Math.min(G.dprCap||PACE.MAX,devicePixelRatio||1); const W=cv.clientWidth, H=cv.clientHeight; if(cv.width!==Math.round(W*dpr)){ cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr); }
     c.setTransform(dpr,0,0,dpr,0,0); const bgi=ArtImages['ui:menubg']; if(bgi){ const k=Math.max(W/bgi.width,H/bgi.height); c.drawImage(bgi,(W-bgi.width*k)/2,(H-bgi.height*k)/2,bgi.width*k,bgi.height*k); c.fillStyle='rgba(10,6,25,0.25)'; c.fillRect(0,0,W,H); menuAnim=requestAnimationFrame(loop); return; }
     const g=c.createLinearGradient(0,0,0,H); g.addColorStop(0,'#2b1b55'); g.addColorStop(0.55,'#6a3f8f'); g.addColorStop(0.56,'#5fb04c'); g.addColorStop(1,'#3f8a3a'); c.fillStyle=g; c.fillRect(0,0,W,H);
     // mặt trời & núi
     c.fillStyle='rgba(255,200,90,0.9)'; c.beginPath(); c.arc(W*0.78,H*0.32,Math.min(W,H)*0.09,0,7); c.fill();
     c.fillStyle='#4a2f6e'; c.beginPath(); c.moveTo(0,H*0.56); for(let k=0;k<=10;k++) c.lineTo(W*k/10,H*(0.42+((k*37)%7)/60)); c.lineTo(W,H*0.56); c.fill();
-    const s=tm/1000; for(const w of walkers){ w.x+=w.sp/60; if(w.x>1.1) w.x=-0.1; const y=H*(0.66+w.row*0.1); const sz=Math.min(W,H)*0.16*(0.8+w.row*0.15); const spr=makeUnitSprite(w.t,w.f); const b=-Math.abs(Math.sin(s*10+w.ph))*6;
+    const s=tm/1000; for(const w of walkers){ w.x+=w.sp*mdt; if(w.x>1.1) w.x=-0.1; const y=H*(0.66+w.row*0.1); const sz=Math.min(W,H)*0.16*(0.8+w.row*0.15); const spr=makeUnitSprite(w.t,w.f); const b=-Math.abs(Math.sin(s*10+w.ph))*6;
       c.fillStyle='rgba(0,0,0,0.25)'; c.beginPath(); c.ellipse(w.x*W,y+sz*0.42,sz*0.25,sz*0.07,0,0,7); c.fill(); c.drawImage(spr,w.x*W-sz/2,y-sz/2+b,sz,sz); }
     c.fillStyle='rgba(10,6,25,0.35)'; c.fillRect(0,0,W,H);
     menuAnim=requestAnimationFrame(loop); };
@@ -408,7 +409,9 @@ function royaleSave(){ try{ const bw=G.bw; if(!bw||!bw.royale||bw.cfg.p2p) retur
 function royaleLoadInfo(){ try{ const sv=JSON.parse(localStorage.getItem(RSAVE)||'null'); return sv&&sv.v===1? sv : null; }catch(e){ return null; } }
 function royaleResume(){ const sv=royaleLoadInfo(); if(!sv) return false;
   G.bwCfg=Object.assign({},sv.cfg); startBigWar(sv.lv); G.bw.loadState(sv); return true; }
-setInterval(()=>{ if(G.bw&&G.bw.royale&&!G.paused) royaleSave(); },15000);
+// (5.1) vẫn tự lưu 15 giây/lần, nhưng không chen vào lúc ngón tay đang thao tác: đợi lúc rảnh tay (chờ tối đa 20 giây) rồi mới ghi
+let saveDue=0; setInterval(()=>{ if(G.bw&&G.bw.royale&&!G.paused&&!saveDue) saveDue=performance.now(); },15000);
+setInterval(()=>{ if(!saveDue) return; if(!G.bw||!G.bw.royale){ saveDue=0; return; } const now=performance.now(); if((ptrs.size===0&&now-PACE.inT>900)||now-saveDue>20000){ saveDue=0; royaleSave(); } },500);
 document.addEventListener('visibilitychange',()=>{ if(document.hidden) royaleSave(); });
 window.addEventListener('pagehide',()=>royaleSave());
 function stopBigWar(toMenu){ royaleSave(); G.bw=null; $('bwbar').classList.add('hidden'); rotateHint(false); if(toMenu){ showScreen('menu'); setupMenus(); } }
@@ -434,19 +437,32 @@ function showBwResult(){
   if(win){ audio.win(); } $('result').classList.remove('hidden'); $('bwbar').classList.add('hidden');
 }
 // ---------- vòng lặp ----------
+// ===== ⏱️ NHỊP KHUNG HÌNH (5.1): mượt lúc thao tác, đỡ tốn pin lúc chỉ ngồi xem =====
+// • Đang chạm / kéo / thu phóng / máy quay đang lia: vẽ theo màn hình, tối đa ~90 khung/giây (màn 120 Hz → 60, không vẽ thừa).
+// • Không chạm quá 2 giây và máy quay đứng yên: 30 khung/giây (quân vẫn đi đều — mô phỏng tính theo thời gian thật). Đang tạm dừng: 10.
+// • Độ phân giải vẽ: tối đa 2.0× và ĐỨNG YÊN; chỉ hạ một nấc khi máy chậm kéo dài, không tự tăng lại giữa phiên chơi.
+//   (Bản 5.0 cứ 6 giây lại đổi độ phân giải → hình lúc mờ lúc nét và khựng mỗi lần đổi: đó là lỗi "giật nghiêm trọng".)
+const PACE={last:0,inT:0,slow:0,skip:0,drawn:0,drops:0,act:true,MAX:2};
+function paceInput(){ PACE.inT=performance.now(); }
+['pointerdown','pointermove','pointerup','touchstart','touchmove','wheel','keydown'].forEach(ev=>window.addEventListener(ev,paceInput,{passive:true,capture:true}));
+function paceActive(now){ if(now-PACE.inT<2000) return true; const bw=G.bw; if(!bw) return !!(G.world&&G.ren);
+  return !!(bw.camDrag!=null||bw.intro||bw.jumpT||bw.box||bw._btlSeen>0||bw.shake*(bw.scale||1)>0.5||Math.abs((bw.zoom||1)-(bw.zoomTgt||1))>0.004); }   /* có trận đang đánh trong khung nhìn thì vẫn vẽ đủ nhịp */
+function paceDpr(gap,act){ if(!G.dprCap) G.dprCap=PACE.MAX; const bw=G.bw;
+  if(!bw||G.paused||document.hidden||gap>400||bw.intro||(bw.time||0)<4){ PACE.slow=Math.max(0,PACE.slow-gap); return; }   /* mới vào trận còn dựng bản đồ: chưa đánh giá */
+  const late= gap>(act? 16.7 : 33.4)*1.75;                                   /* dưới ~34 khung/giây lúc thao tác, dưới ~17 lúc nghỉ */
+  PACE.slow= late? PACE.slow+gap : Math.max(0,PACE.slow-gap*1.5);
+  if(PACE.slow>5000){ PACE.slow=0; if(G.dprCap>1.25&&(devicePixelRatio||1)>1.25){ G.dprCap= G.dprCap>1.5? 1.5 : 1.25; PACE.drops++; } } }
 function frame(now){
+  { const act=paceActive(now), gap=now-PACE.last;
+    if(gap<(G.paused? 95 : act? 10.5 : 31.5)){ PACE.skip++; requestAnimationFrame(frame); return; }
+    PACE.last=now; PACE.act=act; PACE.drawn++; paceDpr(gap,act); }
   const dt=Math.min(0.1,(now-G.last)/1000); G.last=now;
-  G.dprCap=G.dprCap||2.5; G._fpsA=G._fpsA||60;
-  { const fps=1/Math.max(0.001,dt); G._fpsA+=(Math.min(90,fps)-G._fpsA)*0.05;
-    G._fpsT=(G._fpsT||0)+dt;
-    if(G._fpsT>6){ G._fpsT=0;
-      if(G._fpsA<45&&G.dprCap>1.25){ G.dprCap=Math.max(1.25,G.dprCap-0.25); }
-      else if(G._fpsA>58&&G.dprCap<2.5){ G.dprCap=Math.min(2.5,G.dprCap+0.25); } } }
   if(G.bw){
-    const bw=G.bw; const cv=$('game'); const rct=cv.getBoundingClientRect(); const dpr=Math.min(G.dprCap||2.5,devicePixelRatio||1);
+    const bw=G.bw; const cv=$('game'); const rct=cv.getBoundingClientRect(); const dpr=Math.min(G.dprCap||PACE.MAX,devicePixelRatio||1);
     if(typeof P2P!=='undefined') P2P.tick(dt);
     if(cv.width!==Math.round(rct.width*dpr)||cv.height!==Math.round(rct.height*dpr)){ cv.width=Math.round(rct.width*dpr); cv.height=Math.round(rct.height*dpr); }
     bw.scale=Math.min(rct.height/BW.H, rct.width/1700);
+    bw._idle=!PACE.act; bw._touch=ptrs.size;   /* cho bộ dựng bản đồ biết: đang rảnh (dựng sẵn vùng lân cận) hay ngón tay đang kéo (không dựng) */
     if(!G.paused) (bw.p2p==='guest'? bw.cosmetic(Math.min(0.05,dt)) : bw.update(Math.min(0.05,dt)));
     bw.draw(cv.getContext('2d'), rct.width, rct.height, dpr, now/1000, dt);
     if(bw.over && !G.resultShown){ G.bwTimer=(G.bwTimer||0)+dt; if(G.bwTimer>1.4){ G.bwTimer=0; showBwResult(); } }

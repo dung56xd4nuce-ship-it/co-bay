@@ -42,19 +42,24 @@ export async function open(browser,dev,opts={}){
     async drawn(re){ await p.evaluate(()=>{ window.__txt.length=0; }); await p.waitForTimeout(170);
       return p.evaluate((src)=>{ const re=new RegExp(src), seen=new Set(), out=[]; for(const e of window.__txt){ if(!re.test(e.t)||e.x<-2||e.y<-2||e.x>innerWidth+2||e.y>innerHeight+2) continue; const k=e.t+'|'+Math.round(e.x/3)+'|'+Math.round(e.y/3); if(seen.has(k)) continue; seen.add(k); out.push(e); } return out; },re.source); },
     // chờ máy quay đứng yên (2 lần đo liền nhau trùng nhau) rồi mới tính toạ độ chạm — máy thử đang bận thì khung hình chậm, máy quay dừng muộn hơn
-    async settle(ms=3000){ const t0=Date.now(); let last=''; for(;;){ const cur=await p.evaluate(()=>new Promise(res=>requestAnimationFrame(()=>requestAnimationFrame(()=>{ const bw=__ltm.bw; res(bw? [bw.camX.toFixed(1),(bw.camY||0).toFixed(1),bw.scale.toFixed(4)].join(',') : ''); })))); if(cur===last||Date.now()-t0>ms) return; last=cur; await p.waitForTimeout(60); } },
+    async settle(ms=3000){ const t0=Date.now(); let last=''; for(;;){ const cur=await p.evaluate(()=>new Promise(res=>{ const d0=(typeof PACE!=='undefined')? PACE.drawn : -1, s0=performance.now();
+          const read=()=>{ const bw=__ltm.bw; res(bw? [bw.camX.toFixed(1),(bw.camY||0).toFixed(1),bw.scale.toFixed(4)].join(',') : ''); };
+          // chờ GAME vẽ thêm 2 khung hình (game nghỉ 30 khung/giây, tạm dừng 10 khung/giây — không còn vẽ theo từng nhịp của trình duyệt), tối đa 450 ms
+          const tick=()=>{ if(d0<0){ requestAnimationFrame(()=>requestAnimationFrame(read)); return; } if(PACE.drawn>=d0+2||performance.now()-s0>450) read(); else requestAnimationFrame(tick); }; requestAnimationFrame(tick); }));
+        if(cur===last||Date.now()-t0>ms) return; last=cur; await p.waitForTimeout(40); } },
     // chờ tới khi điều kiện đúng (tối đa ms) — thay cho "ngủ cứng", để máy thử đang bận cũng không báo lỗi oan
     async until(fn,arg,ms=4000){ const t0=Date.now(); for(;;){ const v=await p.evaluate(fn,arg); if(v||Date.now()-t0>ms) return v; await p.waitForTimeout(100); } },
     // toạ độ màn hình của một điểm trên bản đồ
-    scr:(wx,wy)=>p.evaluate(([wx,wy])=>{ const bw=__ltm.bw, sc=bw.scale; return [(wx-bw.camX)*sc,(wy-(bw.camY||0))*sc]; },[wx,wy]),   // bw.scale đã gồm cả zoom
+    scr:(wx,wy)=>p.evaluate(([wx,wy])=>{ const bw=__ltm.bw, sc= bw.scale0? bw.scale0*bw.zoom : bw.scale; return [(wx-bw.camX)*sc,(wy-(bw.camY||0))*sc]; },[wx,wy]),   // scale0×zoom HIỆN TẠI: không phụ thuộc khung hình cuối vẽ lúc nào (game nghỉ 30 khung/giây, tạm dừng 10)   // bw.scale đã gồm cả zoom
     // đưa một điểm bản đồ vào giữa màn hình (để chạm vào không vướng HUD)
-    center:(wx,wy)=>p.evaluate(([wx,wy])=>{ const bw=__ltm.bw; bw.camX=wx-bw.lastVw/bw.scale/2; bw.camY=wy-bw.lastVh/bw.scale/2; },[wx,wy]),
+    center:(wx,wy)=>p.evaluate(([wx,wy])=>{ const bw=__ltm.bw, sc= bw.scale0? bw.scale0*bw.zoom : bw.scale; bw.camX=wx-bw.lastVw/sc/2; bw.camY=wy-bw.lastVh/sc/2; },[wx,wy]),
     // như người chơi kéo bản đồ cho mục tiêu ra chỗ trống (không nằm dưới thông báo/nút HUD) rồi mới chạm: trả toạ độ màn hình
     aim:(wx,wy)=>p.evaluate(([wx,wy])=>{ const bw=__ltm.bw, R=Object.values(bw.hudRects()), vw=bw.lastVw, vh=bw.lastVh;
       const free=(x,y)=>!R.some(r=>x>=r.x-26&&x<=r.x+r.w+26&&y>=r.y-26&&y<=r.y+r.h+26);
       const spots=[[0.5,0.5],[0.5,0.62],[0.6,0.6],[0.42,0.66],[0.62,0.45],[0.5,0.74],[0.7,0.7],[0.35,0.75],[0.55,0.82]];
-      for(const [fx,fy] of spots){ const x=vw*fx, y=vh*fy; if(free(x,y)){ bw.camX=wx-x/bw.scale; bw.camY=wy-y/bw.scale; return [x,y]; } }
-      bw.camX=wx-vw/bw.scale/2; bw.camY=wy-vh/bw.scale/2; return [vw/2,vh/2]; },[wx,wy]),
+      const sc= bw.scale0? bw.scale0*bw.zoom : bw.scale;
+      for(const [fx,fy] of spots){ const x=vw*fx, y=vh*fy; if(free(x,y)){ bw.camX=wx-x/sc; bw.camY=wy-y/sc; return [x,y]; } }
+      bw.camX=wx-vw/sc/2; bw.camY=wy-vh/sc/2; return [vw/2,vh/2]; },[wx,wy]),
     async startBattle(cfg,lv){ await p.evaluate(([cfg,lv])=>{ G.bwCfg=cfg; startBigWar(lv); __ltm.bw.intro=null; },[cfg||{},lv||1]); await p.waitForTimeout(350); },
   };
   return T; }

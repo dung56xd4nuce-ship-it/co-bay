@@ -22,18 +22,24 @@ BigWar.prototype.foodDrain=function(a){ if(a.prep>0) return 0; let d=100*BW.ecoE
 // số lương kho phải xuất để nạp pct% bao cho một đạo count quân (đạo càng đông càng tốn kho)
 BigWar.prototype.supplyCost=function(count,pct){ return BW.food.cvCostK*Math.sqrt(Math.max(0.2,(count||0)/1000))*(pct/100); };
 // thời gian CHUẨN BỊ LƯƠNG trước khi rời cứ điểm (giây): theo quân số, quãng đường (eta giây), và kho tại chỗ có sẵn lương hay không
+//  • tỉ lệ với quãng đường: đi ≥45 giây mới phải chuẩn bị đủ; đánh sang ngay bên cạnh (vài giây đường) thì gần như xuất phát ngay
+//  • dưới 0,8 giây coi như không chờ
 BigWar.prototype.prepTime=function(count,eta,stockOk){ const F=BW.food; if(count<F.prepMin) return 0;
-  const distF=0.5+0.5*Math.min(1,(eta==null?40:eta)/40); let t=Math.max(0,F.prepK*Math.pow(count/2000,F.prepPow)-F.prepSub)*distF; if(stockOk) t*=0.5; return Math.min(F.prepMax,t); };
+  const distF=Math.max(0,Math.min(1,((eta==null?45:eta)-4)/41)); let t=Math.max(0,F.prepK*Math.pow(count/2000,F.prepPow)-F.prepSub)*distF; if(stockOk) t*=0.5; t=Math.min(F.prepMax,t); return t<0.8? 0 : t; };
+// CHỈ quân rời TRẠI / THÀNH / KHO (nơi có kho lương) mới phải chuẩn bị. Quân đồn ngoài đồng (cứ điểm đất trống, không công trình) và mọi đạo quân
+// đang ở dã ngoại đã mang sẵn lương theo người: nhận lệnh là đi ngay.
+BigWar.prototype.hasDepot=function(n){ return !!(n&&(n.camp||n.struct||n.eco)); };
 // dự báo cho người chơi trước khi ra lệnh: {prep, eta, endure, pct}
-BigWar.prototype.supplyForecast=function(src,tx,ty,fromNode){ const eta=this.pathEta(src,tx,ty), cnt=src.count||0;
-  const stock= fromNode&&(src.food||0)>=this.supplyCost(cnt,50), prep= fromNode? this.prepTime(cnt,eta,stock) : 0;
+BigWar.prototype.supplyForecast=function(src,tx,ty,fromNode){ const eta=this.pathEta(src,tx,ty), cnt=src.count||0, depot=fromNode&&this.hasDepot(src);
+  const stock= depot&&(src.food||0)>=this.supplyCost(cnt,50), prep= depot? this.prepTime(cnt,eta,stock) : 0;
   const endure=(fromNode? 100 : (src.food??100))/100*this.packT(src); return {prep,eta,endure,pct:Math.max(0,Math.min(100,Math.round(endure/Math.max(1,eta)*100))),stock:!!stock}; };
 
 // gọi trong send(): gắn thời gian chuẩn bị cho đạo quân vừa rời cứ điểm
-BigWar.prototype.supplyPrep=function(a,from,tx,ty){ const F=BW.food; if(a.count<F.prepMin) return 0;
-  const sp=BW.speed*(BW.typeSpeed[a.type]||1)*BW.sizeSpd(a.count), eta=Math.hypot(tx-a.x,ty-a.y)*1.3/sp;
-  const cost=this.supplyCost(a.count,50), stock=(from.food||0)>=cost; if(stock) from.food-=cost;
-  const p=this.prepTime(a.count,eta,stock); if(p>0.05){ a.prep=a.prep0=p; a.y=from.y+F.prepOff;   // đứng trước cổng thành gom lương
+BigWar.prototype.supplyPrep=function(a,from,tx,ty){ const F=BW.food; if(a.count<F.prepMin||!this.hasDepot(from)) return 0;
+  // quãng đường: quân của người chơi tính theo lộ trình thật (khớp con số menu vừa báo); quân máy ước lượng nhanh theo đường chim bay
+  const sp=BW.speed*(BW.typeSpeed[a.type]||1)*BW.sizeSpd(a.count), eta= a.owner===this.localFid? this.pathEta(a,tx,ty) : hyp(tx-a.x,ty-a.y)*1.3/sp;
+  const cost=this.supplyCost(a.count,50), stock=(from.food||0)>=cost;
+  const p=this.prepTime(a.count,eta,stock); if(p>0&&stock) from.food-=cost; if(p>0.05){ a.prep=a.prep0=p; a.y=from.y+F.prepOff;   // đứng trước cổng thành gom lương
     if(a.owner===this.localFid&&p>=1) this.texts.push({x:from.x,y:from.y-132,s:`🌾 Preparing supplies · ${Math.ceil(p)}s${stock?' (depot stocked: ×2 faster)':''}`,col:'#ffe08a',t:0,max:Math.min(2.6,p)}); }
   return p; };
 
@@ -43,7 +49,7 @@ BigWar.prototype.supplyTick=function(){ const FD=BW.food, F=this.localFid, CV=th
     if(f>=FD.low){ a._lowN=0; continue; }
     if(a._cv||(a._cvT||0)>this.time) continue;
     const per=this.supplyCost(a.count,100)/100; let best=null, bd=FD.cvRange;
-    for(const n of this.nodes){ if(n.owner!==a.owner||n.sieged||n.btl||(n.food||0)<Math.max(FD.cvMinStock,per*25)) continue; const d=Math.hypot(n.x-a.x,n.y-a.y); if(d<bd){ bd=d; best=n; } }
+    for(const n of this.nodes){ if(n.owner!==a.owner||n.sieged||n.btl||(n.food||0)<Math.max(FD.cvMinStock,per*25)) continue; const d=hyp(n.x-a.x,n.y-a.y); if(d<bd){ bd=d; best=n; } }
     const can=best&&(cnt[a.owner]||0)<FD.cvPerNation;
     if(can){ const pct=Math.min(100-f, best.food/per); best.food-=pct*per; CV.push({owner:a.owner,x:best.x,y:best.y+30,from:best.id,to:a,pct,cost:pct*per}); a._cv=1; cnt[a.owner]=(cnt[a.owner]||0)+1;
       if(a.owner===F){ this.stats.cv=(this.stats.cv||0)+1; this.texts.push({x:best.x,y:best.y-70,s:'🐂 Supply convoy sent',col:'#ffe08a',t:0,max:1.4}); } }
@@ -60,13 +66,13 @@ BigWar.prototype.convoyStep=function(dt){ const CV=this.convoys; if(!CV||!CV.len
       if(c.owner===F) this.note('🐂 Supply convoy captured by '+this.natName(raider.owner)+' — guard your supply road!',c.x,c.y,'🐂');
       else if(raider.owner===F) this.texts.push({x:c.x,y:c.y-60,s:'🐂 Enemy convoy captured! +supply',col:'#d9f99d',t:0,max:1.6,big:1});
       if(this.addFx) this.addFx(c.x,c.y,'fx:clash1',90,0.5); continue; }
-    const d=Math.hypot(a.x-c.x,a.y-c.y);
+    const d=hyp(a.x-c.x,a.y-c.y);
     if(d<=70){ deliver(c,a); gone=true; continue; }
-    const pk=Math.round(a.x/120)+','+Math.round(a.y/120);
+    const pk=Math.round(a.x/120)*4096+Math.round(a.y/120);
     if(c._pk!==pk){ if(this._pfN>=8||this._pfMs>6) continue; this._pfN++; const tp0=performance.now(), P=this.findPath('F',c.x,c.y,a.x,a.y); this._pfMs+=performance.now()-tp0; c._pk=pk; c.path=P.pts; c.pi=0; c.pathOk=P.ok; }
     const last=!c.path||c.pi>=c.path.length-1; let mx=a.x, my=a.y;
     if(c.path&&c.path.length&&!(last&&c.pathOk)){ const wp=c.path[Math.min(c.pi,c.path.length-1)]; mx=wp[0]; my=wp[1]; }
-    const dx=mx-c.x, dy=my-c.y, dd=Math.hypot(dx,dy); if(dd>0.5){ c.hx=dx/dd; c.hy=dy/dd; }
+    const dx=mx-c.x, dy=my-c.y, dd=hyp(dx,dy); if(dd>0.5){ c.hx=dx/dd; c.hy=dy/dd; }
     const st=this.mvSpeed({x:c.x,y:c.y,type:'supply',count:1,owner:c.owner},'F')*dt;
     if(dd<=st){ c.x=mx; c.y=my; if(!last) c.pi++; else if(!c.pathOk&&d<300){ deliver(c,a); gone=true; } }   // đích kẹt trong vùng xe không vào được: dân phu gánh nốt quãng cuối
     else { c.x+=dx/dd*st; c.y+=dy/dd*st; } }

@@ -14,7 +14,7 @@ if(!(await up())){ spawn('python3',['-m','http.server','8766'],{cwd:'/tmp/solo',
 // 2) danh sách: [tên, file, kiểu, giới hạn giây, chạy-lâu?]
 const exists=(f)=>fs.existsSync(ROOT+'test/'+f);
 const LIST=[
-  ['luật chơi (197 tình huống)','rules.mjs','rules',420,0,1],        // nặng CPU: chạy riêng ở chặng 2
+  ['luật chơi (227 tình huống)','rules.mjs','rules',420,0,1],        // nặng CPU: chạy riêng ở chặng 2
   ['bố cục HUD mọi cỡ máy','audit_layout.mjs','exit',420],
   ['luồng người chơi','gate_flows.mjs','exit',240],
   ['điều khiển cảm ứng trong trận','gate_touch.mjs','exit',300],
@@ -25,6 +25,7 @@ const LIST=[
   ['lương thảo & đại quân','gate_supply.mjs','exit',300],
   ['nâng cấp từ v4.2 (ván lưu cũ)','gate_upgrade.mjs','exit',300],
   ['chạm ngẫu nhiên (khỉ)','gate_monkey.mjs','exit',600],
+  ['mượt & đỡ pin (nhịp khung hình, ô bản đồ)','gate_smooth.mjs','exit',420,0,1],   // đo nhịp vẽ → chạy riêng
   ['hiệu năng máy yếu','gate_perf.mjs','exit',400,0,1],            // phần tử thứ 6 = chạy RIÊNG một mình (đo thời gian, không để nhóm khác tranh CPU)
   ['bot đánh 10 ải','gate_bot.mjs','exit',900,1,1],
   ['ngâm Quần Hùng','gate_soak.mjs','exit',900,1,1],
