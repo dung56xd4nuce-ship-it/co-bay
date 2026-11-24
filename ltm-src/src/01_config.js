@@ -68,13 +68,13 @@ const WEAPONS = [
   { name:'Legendary Flip-Flops',emoji:'🩴', dmg:18, cdMul:0.85, reach:2, cleave:0.7, steal:0.3, stun:0.6, desc:'+18, cleave, lifesteal, 0.6s stun' },
 ];
 // Nâng cấp tướng giữa các trận (mục mở rộng theo yêu cầu chủ dự án)
-const UPGRADES = [
-  { key:'speed',   name:'Speed',        emoji:'👟', max:5, base:30, desc:(l)=>`Move speed +${l*6}%` },
-  { key:'power',   name:'Power',      emoji:'💪', max:5, base:40, desc:(l)=>`Damage +${l*12}%` },
-  { key:'armor',   name:'Armor',      emoji:'🛡️', max:5, base:40, desc:(l)=>`HP +${l*12}%, damage taken -${l*4}%` },
-  { key:'stamina', name:'Stamina',      emoji:'🔋', max:5, base:30, desc:(l)=>`Max stamina ${100+l*10}, recovers ${l*8}% faster` },
-  { key:'aura',    name:'Command Aura', emoji:'📯', max:5, base:50, desc:(l)=>`Soldiers within 3 tiles of the general +${l*5}% damage` },
-  { key:'weapon',  name:'Weapon',        emoji:'⚔️', max:5, base:60, desc:(l)=>WEAPONS[l].name+' — '+WEAPONS[l].desc },
+const UPGRADES = [   // (5.2) Lò rèn nay nâng cấp cho CẢ NƯỚC ở Đánh Boss / Quần Hùng — hệ số nằm ở BW.forge (src/09e_gear.js)
+  { key:'speed',   name:'Speed',      emoji:'👟', max:5, base:30, desc:(l)=>`Armies march ${l*2}% faster` },
+  { key:'power',   name:'Power',      emoji:'💪', max:5, base:40, desc:(l)=>`All troops deal +${(l*1.5).toFixed(1).replace('.0','')}% damage` },
+  { key:'armor',   name:'Fortify',    emoji:'🛡️', max:5, base:40, desc:(l)=>`Your strongholds defend ${l*3}% better` },
+  { key:'stamina', name:'Logistics',  emoji:'🔋', max:5, base:30, desc:(l)=>`Supply packs last ${l*5}% longer` },
+  { key:'aura',    name:'Recruiting', emoji:'📯', max:5, base:50, desc:(l)=>`Camps train troops ${l*3}% faster` },
+  { key:'weapon',  name:'Weapon',     emoji:'⚔️', max:5, base:60, desc:(l)=>WEAPONS[l].name+` — all troops +${(l*1.5).toFixed(1).replace('.0','')}% damage` },
 ];
 function upgradeCost(u,l){ return Math.round(u.base*Math.pow(l+1,1.7)); }
 const SOLDIER_TYPES = ['scout','assassin','archer','swordsman','saber','cavalry','spear','shield','crossbow','medic'];

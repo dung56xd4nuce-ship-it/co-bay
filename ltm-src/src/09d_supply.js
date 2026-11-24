@@ -15,7 +15,7 @@ BW.typeSpeed.supply=1.15;                         // xe lương nhanh hơn bộ 
 BW.sizeSpd=(count)=>1/(1+0.13*Math.log2(Math.max(1,(count||0)/1000)));
 
 // bao lương đầy nuôi đạo quân này được bao nhiêu giây hành quân (đóng trại thì gấp đôi)
-BigWar.prototype.packT=function(a){ return BW.food.packT/(1+BW.food.packBig*Math.log10(Math.max(1,(a.count||0)/1000))); };
+BigWar.prototype.packT=function(a){ return BW.food.packT/(1+BW.food.packBig*Math.log10(Math.max(1,(a.count||0)/1000)))*(this.up? this.upMul('stamina',a.owner) : 1); };   /* ×Lò rèn (Logistics) cho người chơi */
 // lương hao mỗi nhịp kinh tế (BW.ecoEvery giây)
 BigWar.prototype.foodDrain=function(a){ if(a.prep>0) return 0; let d=100*BW.ecoEvery/this.packT(a); if(a.camped) d*=0.5;
   const ci=this.capInfo&&this.capInfo[a.owner]; if(ci&&ci.tot>ci.cap) d*=2; const cv=this.civOf(a.owner); if(cv&&cv.sup) d*=cv.sup; return d; };

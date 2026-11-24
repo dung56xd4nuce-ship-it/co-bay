@@ -13,6 +13,7 @@ export async function launch(){ return chromium.launch(); }
 export async function open(browser,dev,opts={}){
   const ctx=await browser.newContext({...dev,...(opts.ctx||{})}); const p=await ctx.newPage(); const errs=[];
   p.on('pageerror',e=>errs.push(e.message)); p.on('console',m=>{ if(m.type()==='error'&&!/favicon|Failed to load resource/.test(m.text())) errs.push('console: '+m.text()); });
+  if(opts.init) await ctx.addInitScript(opts.init);   /* mã chạy TRƯỚC mã game (ví dụ gắn máy ghi vào canvas ngay từ đầu) */
   await p.goto(opts.url||URL); await p.waitForFunction(()=>window.__ltm&&document.getElementById('menu'),null,{timeout:15000}); await p.waitForTimeout(400);
   const cdp=await ctx.newCDPSession(p);
   const T={ctx,p,errs,cdp,

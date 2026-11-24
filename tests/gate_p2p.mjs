@@ -3,7 +3,7 @@
 import { launch, open, ok, finish, DEVICES } from './lib.mjs';
 const b=await launch();
 const H=await open(b,DEVICES[0][1]), G=await open(b,DEVICES[1][1]);
-await H.ev(()=>{ save.civ='rome'; Save.set(save); }); await G.ev(()=>{ save.civ='mongol'; Save.set(save); });
+await H.ev(()=>{ save.civ='rome'; save.up={speed:5,power:5,armor:5,stamina:5,aura:5,weapon:5}; save.inv={bun:9,tea:9,smoke:9}; save.pack=['bun','tea','smoke']; Save.set(save); }); await G.ev(()=>{ save.civ='mongol'; Save.set(save); });   /* chủ phòng đã rèn tối đa + có đủ quân nhu: vào P2P vẫn phải ngang bằng với khách */
 let r=await H.tapEl('#bP2P'); ok(r.ok,'chủ: mở màn P2P'); await H.p.waitForTimeout(250);
 ok(/Rome/.test(await H.ev(()=>document.getElementById('p2pCiv').textContent)),'chủ: màn P2P ghi nước đang chọn (Rome) và cho đổi');
 await H.tapEl('#p2pHost'); await H.p.waitForFunction(()=>document.getElementById('p2pOut').value.length>50,null,{timeout:20000});
@@ -24,6 +24,10 @@ ok(hs&&gs,'hai máy cùng vào trận');
 ok(hs&&hs.me==='rome'&&hs.op==='mongol','máy chủ: ta là La Mã, đối thủ là Mông Cổ (đúng nước khách đã chọn)');
 ok(gs&&gs.c0==='rome'&&gs.c1==='mongol'&&gs.fid===1,'máy khách: thấy đúng hai nước, mình cầm phe Mông Cổ');
 ok(hs&&hs.retry==='none','P2P: ẩn nút ↻ (không tự ý chơi lại khi đang đấu với người)');
+{ const fair=(T)=>T.ev(()=>{ const bw=__ltm.bw; return {up:bw.up,gear:(bw.gear||[]).length,mul:[bw.upMul('atk',0),bw.upMul('speed',0),bw.upMul('armor',0)].join(),btn:!!bw._gearBtn,hud:Object.keys(bw.hudRects()).some(k=>/quân nhu/.test(k))}; });
+  const fh=await fair(H), fg=await fair(G);
+  ok(fh.up===null&&fh.gear===0&&fh.mul==='1,1,1'&&!fh.btn&&!fh.hud,'P2P máy chủ (đã rèn tối đa, có quân nhu): vào trận KHÔNG có Lò rèn, KHÔNG có nút 🎒 — hai bên ngang nhau');
+  ok(fg.up===null&&fg.gear===0&&!fg.btn&&!fg.hud,'P2P máy khách: cũng không Lò rèn, không quân nhu'); }
 await H.ev(()=>{ __ltm.bw.skipIntro(); }); await G.ev(()=>{ __ltm.bw.skipIntro(); }); await G.p.waitForTimeout(500);
 // đồng hồ hai máy cùng chạy
 const t0=[await H.ev(()=>__ltm.bw.time),await G.ev(()=>__ltm.bw.time)]; await H.p.waitForTimeout(1500); const t1=[await H.ev(()=>__ltm.bw.time),await G.ev(()=>__ltm.bw.time)];
@@ -45,6 +49,12 @@ const rm=(await G.until(()=>{ const r=(__ltm.bw._rallyRects||[]).map(r=>[r.x+r.w
 const rOk=await H.until((n)=>__ltm.bw.armies.filter(a=>a.owner===1&&a.rally).length>n,n0,5000);
 if(!rOk) console.log('   [chẩn đoán] khách:',JSON.stringify(await G.ev(()=>{ const bw=__ltm.bw; return {rallyPick:bw.rallyPick,rallyOpen:bw.rallyOpen,menu:!!bw.menu,sel:!!bw.sel,selA:!!bw.selA,notes:bw.notes.map(n=>n.text).slice(-3),texts:bw.texts.map(t=>t.s).slice(-3),hud:Object.keys(bw.hudRects())}; })),'rm',JSON.stringify(rm),'| chủ:',JSON.stringify(await H.ev(()=>{ const bw=__ltm.bw; return {t:bw.time,g:bw.nodes.filter(n=>n.owner===1).map(n=>[n.id,Math.round(n.count),n.eco||'',!!n.btl,!!n.camp]),arm:bw.armies.filter(a=>a.owner===1).map(a=>[Math.round(a.count),a.rally||0,!!a.camped]),notes:bw.notes.map(n=>n.text).slice(-3)}; })));
 ok(rOk,'khách bấm 📣 Tổng động viên → máy CHỦ cho các trại của khách xuất quân');
+// (5.2) lệnh gọi quân của KHÁCH không được lộ ra máy CHỦ: tin báo + mốc tập kết chỉ hiện trên máy khách
+{ const hn=await H.ev(()=>({notes:__ltm.bw.notes.map(n=>n.text),mark:!!__ltm.bw.rallyMark}));
+  const gn2=await G.until(()=>{ const bw=__ltm.bw; return bw.notes.some(n=>/MOBILIZATION|Calling \d+ nearest/.test(n.text))? {notes:bw.notes.map(n=>n.text),mark:!!bw.rallyMark,big:!!(bw.rallyMark&&bw.rallyMark.big)} : null; },null,4000);
+  ok(!hn.notes.some(t=>/MOBILIZATION|Calling \d+ nearest/.test(t))&&!hn.mark,'máy CHỦ không thấy tin "khách gọi quân" và không thấy mốc tập kết của khách (trước 5.2 tin này hiện nhầm lên máy chủ)'+(hn.notes.length? ' — tin trên máy chủ: '+hn.notes.join(' | ') : ''));
+  ok(!!gn2,'máy KHÁCH nhận được tin xác nhận lệnh gọi quân của chính mình');
+  ok(await G.ev(()=>!!__ltm.bw.rallyMark&&__ltm.bw.rallyMark.big===true)||(gn2&&gn2.mark),'máy KHÁCH thấy trống trận dựng ở điểm tập kết vừa chọn'); }
 // KHÁCH quét chọn nhiều đạo rồi ra lệnh
 await H.ev(()=>{ const bw=__ltm.bw, c=bw.nodes.find(n=>n.camp&&n.owner===1); for(const a of bw.armies) if(a.owner===1){ a.done=true; } bw.armies=bw.armies.filter(a=>!a.done);
   const mk=(dx,dy,cnt)=>{ const a={owner:1,type:'cavalry',count:cnt,x:c.x-520+dx,y:c.y-240+dy,to:-1,trail:0,food:100,camped:true}; a.tx=a.x; a.ty=a.y; bw.armies.push(a); return a; }; window.__g=[mk(0,0,311),mk(150,30,312),mk(70,150,313)]; });

@@ -14,7 +14,8 @@ if(!(await up())){ spawn('python3',['-m','http.server','8766'],{cwd:'/tmp/solo',
 // 2) danh sách: [tên, file, kiểu, giới hạn giây, chạy-lâu?]
 const exists=(f)=>fs.existsSync(ROOT+'test/'+f);
 const LIST=[
-  ['luật chơi (227 tình huống)','rules.mjs','rules',420,0,1],        // nặng CPU: chạy riêng ở chặng 2
+  ['soát mã bị nuốt vào chú thích + cú pháp','lint_swallow.mjs','exit',60],
+  ['luật chơi (290 tình huống)','rules.mjs','rules',480,0,1],        // nặng CPU: chạy riêng ở chặng 2
   ['bố cục HUD mọi cỡ máy','audit_layout.mjs','exit',420],
   ['luồng người chơi','gate_flows.mjs','exit',240],
   ['điều khiển cảm ứng trong trận','gate_touch.mjs','exit',300],
@@ -23,6 +24,8 @@ const LIST=[
   ['P2P hai máy','gate_p2p.mjs','exit',240],
   ['màn hình menu mọi cỡ máy','audit_screens.mjs','exit',300],
   ['lương thảo & đại quân','gate_supply.mjs','exit',300],
+  ['quân nhu · lò rèn · xu (như người chơi)','gate_gear.mjs','exit',480],
+  ['bộ art được dùng hết','gate_art.mjs','exit',300],
   ['nâng cấp từ v4.2 (ván lưu cũ)','gate_upgrade.mjs','exit',300],
   ['chạm ngẫu nhiên (khỉ)','gate_monkey.mjs','exit',600],
   ['mượt & đỡ pin (nhịp khung hình, ô bản đồ)','gate_smooth.mjs','exit',420,0,1],   // đo nhịp vẽ → chạy riêng

@@ -2,7 +2,7 @@
 
 Game chiến thuật thời gian thực chibi: sương mù chiến tranh, do thám, mai phục x2–x10, lương thảo, công thành – vây thành, 40 bản đồ, Quần Hùng 36 nước và P2P 2 người qua WiFi. Chạy offline 100%.
 
-- 🤖 **Tải APK Android:** vào mục **Releases** → `LoanTheMeme-v5.1.apk` (hoặc tab **Actions** → run mới nhất → Artifacts)
+- 🤖 **Tải APK Android:** vào mục **Releases** → `LoanTheMeme-v5.2.apk` (hoặc tab **Actions** → run mới nhất → Artifacts)
 - 🎮 **Chơi ngay trên trình duyệt / cài PWA:** thư mục [`web/`](web/)
 - 🍎 **iOS:** mở `ios/` bằng Xcode (xem `docs/PUBLISHING_GUIDE.md`)
 - 📜 Hồ sơ phát hành tiếng Anh (Privacy, Terms, EULA, Store listing): [`docs/`](docs/)

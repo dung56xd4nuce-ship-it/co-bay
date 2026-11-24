@@ -114,6 +114,7 @@ class BigWar{
     this.hudSeen=performance.now(); this.hudA=1; // HUD phía trên: mờ khi rảnh, rõ khi chạm
     this.autoMenu= this.cfg.autoMenu===false? false : true; // headless mặc định tự chọn hành động; UI thật tắt để hiện menu
     this.fed={}; this.aiScouts=[]; this.nextAiScout=20; this.allies=new Set(); this.convoys=[];
+    this.gear=[]; this.tempVis=[]; this.lossLog=[]; this.up=(this.cfg&&!this.cfg.p2p&&this.cfg.up)||null; this.coinT=BW.coinsFor? BW.coinsFor.every : 600;   // 🎒 quân nhu · ⚒️ lò rèn · 🪙 mốc thưởng xu (src/09e_gear.js)
     const R=this.rnd, W=BW.W, H=BW.H;
     const node=(x,y,owner,type,count,camp)=>{ const n={id:this.nodes.length,x,y,owner,type,count:Math.round(count),camp:!!camp,wob:R()*7,food:0}; this.nodes.push(n); return n; };
     this.mkNode=node;
@@ -268,6 +269,7 @@ class BigWar{
       const k=Math.ceil(r.len/300); for(let i=1;i<k;i++){ const q=this.roadAt(r,i/k); vw.push({x:q[0],y:q[1],r:330}); } }   /* sáng dọc theo đường cong */
     for(let i=0,AR=this.armies;i<AR.length;i++){ const a=AR[i]; if(a.owner===F) vw.push({x:a.x,y:a.y,r:this.visR*0.8}); }
     for(const s2 of this.scouts) if((s2.fid??0)===F) vw.push({x:s2.x,y:s2.y,r:300});
+    if(this.tempVis) for(const v of this.tempVis) if(v.t>0) vw.push({x:v.x,y:v.y,r:v.r});   /* 🧭 la bàn */
     this._viewers=vw;
     // lưới tầm nhìn 100px: tra cứu O(1) cho mọi đối tượng thay vì quét hàng trăm điểm sáng
     const G2=100, gw=Math.ceil(BW.W/G2), gh=Math.ceil(BW.H/G2);
@@ -307,6 +309,7 @@ class BigWar{
     let d=BW.defBonus*(BW.terDef[n.ter]||1);
     if(n.struct){ d*=BW.structDef[n.struct]||1; const c2=BW.cls(n.type); if(!n.camp&&n.type!=='general'&&(c2==='inf'||c2==='rng')) d*=1.2; } // (đại bản doanh không hưởng thêm — đã là thành trì)
     const cv=this.civOf(n.owner); if(cv&&cv.def) d*=cv.def;
+    if(this.up) d*=this.upMul('armor',n.owner);   /* ⚒️ Lò rèn: Fortify */
     return d; }
   ambushMult(n){ // phục kích: x2 đến x10 tùy địa hình + binh chủng (nhân thêm khắc chế khi vào trận)
     const f=BW.ambushFit[n.ter]; if(!f) return 1;
@@ -321,8 +324,9 @@ class BigWar{
   aiSee(m,fid){ fid=fid??1; // AI nhìn mục tiêu: NGƯỜI CHƠI thì chịu sương mù; phe AI khác thì thấy thật
     if(m.owner!==this.localFid) return {type:m.type,count:m.count,blind:false};
     if(m.ambush) return {type:'spear',count:0,blind:true};
-    if(this.aiVis(m.x,m.y,fid)) return {type:m.type,count:m.count,blind:false};
-    return {type:'spear',count:220+(typeof this.lv==='number'?this.lv:1)*120,blind:true}; }
+    const sk= m.scareT>0? BW.gear.scareMul : 1;   /* 👒 bù nhìn: máy tưởng cứ điểm này đông gấp 3 */
+    if(this.aiVis(m.x,m.y,fid)) return {type:m.type,count:m.count*sk,blind:false};
+    return {type:'spear',count:(220+(typeof this.lv==='number'?this.lv:1)*120)*sk,blind:true}; }
   _dblChk(bA,wx,wy){ // kích đúp 1 đạo -> chọn tất cả đạo đóng quân/mai phục gần đó
     const now=this.time, lt=this._lastTap;
     this._lastTap={t:now,x:wx,y:wy,a:bA};
@@ -369,7 +373,8 @@ class BigWar{
     if(this.rallyOpen&&this._rallyRects){ for(const r of this._rallyRects){ if(hit(r)){ this.rallyOpen=false;
         if(r.n){ this.rallyPick=r.n; this.menu=null; this.sel=null; this.selA=null; this.selG=null; } audio.click(); return true; } }
       this.rallyOpen=false; return true; }
-    if(hit(this._rallyBtn)){ if(this.rallyPick){ this.rallyPick=0; } else { this.rallyOpen=true; this.menu=null; } audio.click(); return true; }
+    if(this.gearTap&&this.gearTap(sx,sy)) return true;   /* 🎒 quân nhu */
+    if(hit(this._rallyBtn)){ if(this.rallyPick){ this.rallyPick=0; } else { this.rallyOpen=true; this.menu=null; this.gearOpen=false; } audio.click(); return true; }
     if(this.menu&&this._menuRects){ for(const r of this._menuRects){ if(sx>=r.x&&sx<=r.x+r.w&&sy>=r.y&&sy<=r.y+r.h){ this.menuPick(r.id); return true; } }
       this.menu=null; this.sel=null; this.selA=null; this.selG=null; return true; } // chạm ngoài menu: đóng menu + bỏ chọn
     const rb=this._retreatBtn;
@@ -402,8 +407,8 @@ class BigWar{
   }
   tap(wx,wy){
     if(this.over) return;
-    if(this.rallyPick){ const N=this.rallyPick; this.rallyPick=0; // đang chờ chọn điểm tập kết
-      if(this.p2p==='guest'&&typeof P2P!=='undefined'){ P2P.sendOp({op:'rally',n:N===Infinity?0:N,wx,wy}); this.texts.push({x:wx,y:wy-40,s:'📣 Rally order sent',col:'#7dffcf',t:0,max:1.4}); return; }
+    if(this.rallyPick&&this._asRemote==null){ const N=this.rallyPick; this.rallyPick=0; // đang chờ chọn điểm tập kết (thao tác của chính người cầm máy này)
+      if(this.p2p==='guest'&&typeof P2P!=='undefined'){ P2P.sendOp({op:'rally',n:N===Infinity?0:N,wx,wy}); this.texts.push({x:wx,y:wy-40,s:'📣 Rally order sent',col:'#7dffcf',t:0,max:1.4}); this.rallyMark={x:wx,y:wy,t:0,big:N===Infinity}; return; }
       this.rallyCall(N,wx,wy); return; }
     if(this.p2p==='guest'&&typeof P2P!=='undefined') P2P.guestTap(wx,wy);
     const F=this.localFid;
@@ -493,6 +498,7 @@ class BigWar{
     const src=this.nodes.filter(n=>n.owner===F&&n.count>=100&&!n.eco&&!n.btl)
       .sort((a,b)=>hyp(a.x-x,a.y-y)-hyp(b.x-x,b.y-y)).slice(0,N);
     if(!src.length){ this.note('No camp has enough troops to call',x,y,'📣'); return; }
+    if(this._asRemote==null) this.rallyMark={x,y,t:0,big:N===Infinity};   /* cờ hiệu / trống trận tại điểm tập kết (lệnh của người chơi bên kia thì không hiện trên máy này) */
     const rid=(this._rid=(this._rid||0)+1); let i=0, sent=0;
     for(const n of src){ const ox=((i%4)-1.5)*70, oy=((i/4|0)-1)*70; i++;
       const a=this.send(n,{x:x+ox,y:y+oy,id:-1}); if(a){ a.rally=rid; sent++; } }
@@ -513,7 +519,7 @@ class BigWar{
     const aIdx=new Map(this.armies.map((a,i)=>[a,i]));
     const ref=(o)=> o==null? null : aIdx.has(o)? {a:aIdx.get(o)} : (o.id!=null&&this.nodes[o.id]===o)? {n:o.id} : null;
     const side=(S)=>({fid:S.fid,mul:S.mul,es:S.es.map(e=>({kind:e.kind,c0:e.c0,r:ref(e.ref)})).filter(e=>e.r)});
-    const K=['time','nextAI','aiWave','nextAiScout','regenT','reinT','enFed','_bid','_rid','_rr','stormRush','camX','camY','zoom','visR'];
+    const K=['time','nextAI','aiWave','nextAiScout','regenT','reinT','enFed','_bid','_rid','_rr','stormRush','camX','camY','zoom','visR','coinT'];
     const sc={}; for(const k of K) if(this[k]!==undefined) sc[k]=this[k];
     return { v:1, savedAt:Date.now(), lv:this.lv, cfg:{royale:this.cfg.royale,seed:this.cfg.seed,map:this.cfg.map,L:this.cfg.L,civ:this.cfg.civ,civ2:this.cfg.civ2},
       sc, stats:this.stats, fed:this.fed, nextWaveF:this.nextWaveF||{}, cap0:this.cap0||{}, n0:this.n0||{}, allies:[...this.allies],
@@ -521,7 +527,7 @@ class BigWar{
       armies:this.armies.map(a=>Object.assign({},a,{hunt:ref(a.hunt),mergeInto:ref(a.mergeInto),path:undefined,_pk:undefined,pi:undefined,pvT:undefined})),
       convoys:(this.convoys||[]).filter(c=>!c.done).map(c=>Object.assign({},c,{to:ref(c.to),path:undefined,_pk:undefined,pi:undefined})).filter(c=>c.to),
       battles:this.battles.filter(b=>!b.done).map(b=>Object.assign({},b,{A:side(b.A),B:side(b.B)})),
-      scouts:this.scouts, aiScouts:this.aiScouts };
+      scouts:this.scouts, aiScouts:this.aiScouts, gear:(this.gear||[]).map(g=>({id:g.id,cd:g.cd})), tempVis:this.tempVis||[] };
   }
   loadState(sv){
     this.nodes=sv.nodes.map(n=>Object.assign({},n));
@@ -538,6 +544,7 @@ class BigWar{
     Object.assign(this,sv.sc); this.zoomTgt=this.zoom||1;
     this.stats=sv.stats||this.stats; this.fed=sv.fed||{}; this.nextWaveF=sv.nextWaveF||{}; this.cap0=sv.cap0||{}; this.n0=sv.n0||{};
     this.allies=new Set(sv.allies||[]); this.scouts=sv.scouts||[]; this.aiScouts=sv.aiScouts||[];
+    this.tempVis=sv.tempVis||[]; this._gearLive=true; this.lossLog=[]; for(const g of this.gear||[]){ const o=(sv.gear||[]).find(q=>q.id===g.id); if(o) g.cd=o.cd||0; } if(!(sv.sc&&sv.sc.coinT>0)) this.coinT=(Math.floor(this.time/BW.coinsFor.every)+1)*BW.coinsFor.every;   /* ván lưu từ bản cũ (chưa có mốc thưởng): tính từ mốc 10 phút kế tiếp, không trả bù cho thời gian đã chơi */
     this.notes=[]; this.texts=[]; this.fx=[]; this.rings=[]; this.fxs=[]; this.menu=null; this.sel=null; this.selA=null; this.selG=null;
     if(!this.nodes.some(n=>n.capOf!=null)){ const seen=new Set(); for(const n of this.nodes){ if(n.camp&&n.owner!==2&&(n.home??n.owner)===n.owner&&!seen.has(n.owner)){ n.capOf=n.owner; seen.add(n.owner); } } }
     this.intro=null; this.over=false; this.result=null; this._updateVision&&this._updateVision();
@@ -597,8 +604,8 @@ class BigWar{
   }
   asFid(fid,fn){ const S=this._fidCtx=this._fidCtx||{}; const cur={sel:this.sel,selA:this.selA,selG:this.selG,menu:this.menu,localFid:this.localFid};
     const st=S[fid]||{sel:null,selA:null,selG:null,menu:null};
-    this.sel=st.sel; this.selA=st.selA; this.selG=st.selG; this.menu=st.menu; this.localFid=fid;
-    try{ fn(); } finally { S[fid]={sel:this.sel,selA:this.selA,selG:this.selG,menu:this.menu};
+    this.sel=st.sel; this.selA=st.selA; this.selG=st.selG; this.menu=st.menu; this.localFid=fid; const rem0=this._asRemote; this._asRemote=fid; this._meFid=cur.localFid;
+    try{ fn(); } finally { S[fid]={sel:this.sel,selA:this.selA,selG:this.selG,menu:this.menu}; this._asRemote=rem0;
       this.sel=cur.sel; this.selA=cur.selA; this.selG=cur.selG; this.menu=cur.menu; this.localFid=cur.localFid; } }
   cosmetic(dt){ // khách P2P: chỉ chạy hiệu ứng, trạng thái do chủ phòng gửi về
     this.time+=dt;
@@ -608,8 +615,12 @@ class BigWar{
     { let dead=false; for(const nt of this.notes){ nt.t+=dt; if(!(nt.t<7)) dead=true; } if(dead) this.notes=this.notes.filter(nt=>nt.t<7); }
     if(this.shake>0) this.shake=Math.max(0,this.shake-dt*26);
   }
-  note(text,x,y,icon){ this.notes.push({text,x,y,icon:icon||'⚔️',t:0}); if(this.notes.length>4) this.notes.shift(); audio.flag&&audio.flag(); }
-  noteFor(fid,text,x,y,icon){ if(fid===this.localFid) this.note(text,x,y,icon); else if(this.p2p==='host'&&fid===1&&typeof P2P!=='undefined') P2P.sendOp({op:'note',text,x:Math.round(x),y:Math.round(y),icon}); }
+  note(text,x,y,icon){
+    if(this._asRemote!=null){ if(this.p2p==='host'&&typeof P2P!=='undefined') P2P.sendOp({op:'note',text,x:Math.round(x),y:Math.round(y),icon}); return; }   /* đang chạy lệnh của người chơi bên kia: tin báo gửi về máy họ, không lộ ra máy này */
+    this.notes.push({text,x,y,icon:icon||'⚔️',t:0}); if(this.notes.length>4) this.notes.shift(); audio.flag&&audio.flag(); }
+  noteFor(fid,text,x,y,icon){ const rem=this._asRemote, me= rem!=null? this._meFid : this.localFid;   /* "người cầm máy này" — kể cả lúc đang chạy hộ lệnh của bên kia */
+    if(fid===me){ this._asRemote=null; try{ this.note(text,x,y,icon); } finally { this._asRemote=rem; } }
+    else if(this.p2p==='host'&&fid===1&&typeof P2P!=='undefined') P2P.sendOp({op:'note',text,x:Math.round(x),y:Math.round(y),icon}); }
   camClamp(viewW,viewH){ const ox=viewW*0.5, oy=viewH*0.5;
     this.camX=Math.max(-ox,Math.min(BW.W-viewW+ox,this.camX));
     this.camY=Math.max(-oy,Math.min(Math.max(0,BW.H-viewH)+oy,this.camY||0)); }
@@ -630,6 +641,7 @@ class BigWar{
       A:{fid:atkE.fid,mul:1,es:[atkE.e]}, B:{fid:defE.fid,mul:defMulV||1,es:[defE.e]}};
     const tot=this.bSideSum(b.A)+this.bSideSum(b.B);
     b.K=1/(3.5+Math.sqrt(Math.max(1,tot))/14);     // trận càng đông càng lâu, tối thiểu ~5 giây
+    for(const S of [b.A,b.B]) for(const e of S.es){ if(e.kind==='army'&&e.ref.smokeT>0){ S.mul*=BW.gear.smokeMul; e.ref.smokeT=0; this.texts.push({x,y:y-110,s:'💨 Strike from the smoke ×'+BW.gear.smokeMul,col:'#ffe08a',t:0,max:2,big:1}); } }
     for(const e of b.A.es) this.bLock(e,b); for(const e of b.B.es) this.bLock(e,b);
     this.battles.push(b);
     this.battleFx(x,y,ter,tot>1500);
@@ -640,7 +652,10 @@ class BigWar{
   bLock(e,b){ if(e.kind==='army'){ e.ref.btl=b.id; } else { e.ref.btl=b.id; } }
   bSideSum(S){ let t=0; for(const e of S.es) t+=Math.max(0,e.ref.count); return t; }
   bJoin(b,fid,e){ const S= fid===b.A.fid? b.A : fid===b.B.fid? b.B : null;
-    if(!S){ return false; } S.es.push(e); this.bLock(e,b); return true; }
+    if(!S){ return false; } S.es.push(e); this.bLock(e,b);
+    if(e.kind==='army'&&e.ref.smokeT>0){ const tot=this.bSideSum(S), sh= tot>0? Math.max(0,e.ref.count)/tot : 1; S.mul*=1+(BW.gear.smokeMul-1)*sh; e.ref.smokeT=0;   /* 💨 đạo quân trong khói nhập trận: cú đánh bất ngờ tính theo phần quân của nó trong phe */
+      this.texts.push({x:b.x,y:b.y-110,s:'💨 Strike from the smoke!',col:'#ffe08a',t:0,max:2,big:1}); }
+    return true; }
   bDom(S){ let best=null,bc=-1; for(const e of S.es){ if(e.ref.count>bc){ bc=e.ref.count; best=e.ref.type; } } return best||'spear'; }
   battleOf(id){ return this.battles.find(b=>b.id===id&&!b.done); }
   retreatFromBattle(a){ // rút lui: chịu 12% tổn thất, MIỄN CHIẾN 3s và chạy THẲNG VỀ TRẠI
@@ -659,6 +674,7 @@ class BigWar{
     if(a.owner===this.localFid) this.texts.push({x:a.x,y:a.y-90,s:'⛺ Returning to '+(n.camp?'camp':'outpost'),col:'#7dffcf',t:0,max:1.4}); }
   bEnd(b,winS,loseS){
     b.done=true;
+    if(b.lostP>0){ (this.lossLog=this.lossLog||[]).push({x:b.x,y:b.y,t:this.time,n:b.lostP}); if(this.lossLog.length>16) this.lossLog.shift(); }
     // cướp lương của bên thua
     let loot=0; for(const e of loseS.es){ loot+= (e.kind==='army'? (e.ref.food||0) : (e.ref.food||0)); }
     loot*=BW.food.lootKeep;
@@ -701,6 +717,9 @@ class BigWar{
     this.time+=dt;
     if(this.fxArrow){ this.fxArrow.t+=dt; if(this.fxArrow.t>0.6) this.fxArrow=null; }
     if(this._navWarm&&this._navWarm.length){ const k=this._navWarm.pop(); this.navCost(k); this.navComp(k); }
+    if(this.gearTick) this.gearTick(dt);
+    if(this.royale&&this.time>=this.coinT&&this.coin){ const E=BW.coinsFor.every, late=this.time-this.coinT; this.coinT=(Math.floor(this.time/E)+1)*E;   /* mỗi mốc 10 phút trả đúng một lần; đồng hồ đã chạy quá mốc cả một chu kỳ (ván lưu lạ) thì chỉ đặt lại mốc, không trả bù */
+      const c0=this.nodes.find(n=>n.camp&&n.owner===this.localFid); if(c0&&late<E) this.coin(BW.coinsFor.survive,'your realm stands another 10 minutes',c0.x,c0.y); }
     // đạo quân di chuyển (tới node, tới điểm bất kỳ, hoặc truy kích đạo quân địch)
     this._pfN=0; this._pfMs=0;
     for(const a of this.armies){ if(a.retreatT>0) a.retreatT-=dt; if(a.done||a.camped||a.btl) continue;
@@ -825,6 +844,7 @@ class BigWar{
       for(const e of b.A.es){ const q=e.ref.count/sa; e.ref.count=Math.max(0,e.ref.count-dA*q); }
       for(const e of b.B.es){ const q=e.ref.count/sb; e.ref.count=Math.max(0,e.ref.count-dB*q); }
       b.accA=(b.accA||0)+dA; b.accB=(b.accB||0)+dB;
+      if(b.A.fid===this.localFid) b.lostP=(b.lostP||0)+dA; else if(b.B.fid===this.localFid) b.lostP=(b.lostP||0)+dB;   /* tổn thất của ta trong trận này (🩹 Patch Kit cứu lại 30%) */
       // hiệu ứng theo binh chủng mỗi 0.55s
       if(b.fxT<=0){ b.fxT=0.55;
         if(b.accA>1) this.texts.push({x:b.x-62+Math.random()*30,y:b.y-40,s:'-'+Math.round(b.accA),col: b.A.fid===this.localFid?'#93c5fd':'#fca5a5',t:0,max:0.9,big:(b.accA>200)?1:0});
@@ -937,7 +957,7 @@ class BigWar{
       for(const n of this.nodes){ if(!n.camp||n.sieged||n.btl) continue;
         const ci2=this.capInfo[n.owner]; if(ci2&&ci2.full){ n.food=Math.min(600,(n.food||0)+(n.owner===F?20:12)); continue; }
         const campCap=Math.round(this.L.camp*(this.royale?0.7:1.6)), slow2=Math.max(0.15,1-n.count/campCap);
-        const gm=(this.civOf(n.owner)||{}).grow||1;
+        const gm=((this.civOf(n.owner)||{}).grow||1)*(this.up? this.upMul('aura',n.owner) : 1);   /* ⚒️ Lò rèn: Recruiting */
         if(n.owner===F){ n.count+=Math.round((24+6*(typeof this.lv==='number'?this.lv:1))*slow2*gm); if(n.type==='general') n.type=this.civType(n.owner); n.food=Math.min(600,(n.food||0)+20); }
         else if(n.owner!==2){ n.count=Math.min(campCap, n.count+Math.round((this.royale?7:14)*this.L.aiPow*slow2*gm)); n.food=Math.min(400,(n.food||0)+12); } }
     }
@@ -1020,12 +1040,13 @@ class BigWar{
     if(!n.camp||this.over) return;
     const F=this.localFid;
     n.home=captor;
-    const lost=n.capOf;
-    if(lost==null||lost!==prevOwner){ this.checkVictory(); return; } // trại thường (hoặc trại đã chiếm): chỉ là mất một điểm
+    const lost=n.capOf, CF=BW.coinsFor;
+    if(lost==null||lost!==prevOwner){ if(captor===F&&prevOwner!==F&&prevOwner!==2&&!n._coin&&this.coin){ n._coin=1; this.coin(CF.camp,'enemy camp taken',n.x,n.y); } this.checkVictory(); return; } // trại thường (hoặc trại đã chiếm): chỉ là mất một điểm
     n.capOf=null;
     const other=this.nodes.filter(m=>m.camp&&m.owner===lost&&m!==n).sort((a,b)=>b.count-a.count)[0];
     if(other){ other.capOf=lost; other.home=lost;
       if(lost===F||captor===F||this.royale) this.note(lost===F? '🏯 Capital lost — MOVING THE CAPITAL to another camp, the fight goes on!' : '🏯 '+this.natName(lost)+' lost its capital and moved it', other.x,other.y,'🏯');
+      if(captor===F&&this.coin){ n._coin=1; this.coin(CF.capital,'enemy capital taken',n.x,n.y); }
       this.checkVictory(); return; }
     // không còn trại nào: mất nước, toàn bộ lãnh thổ + quân đội QUY HÀNG phe chiếm
     let moved=0;
@@ -1038,6 +1059,7 @@ class BigWar{
       if(sO.fid===captor||!this.isFoe(captor,sO.fid)){ b.done=true; for(const S of [b.A,b.B]) for(const e of S.es){ if(e.ref.btl===b.id) e.ref.btl=null; if(e.kind==='army'&&!e.ref.done&&e.ref.count>0){ e.ref.camped=true; e.ref.tx=e.ref.x; e.ref.ty=e.ref.y; e.ref.to=-1; e.ref.hunt=null; } } }
       else sL.fid=captor; }
     if(this.royale&&(captor===F||lost===F||moved>0)) this.note(('👑 A nation has fallen — '+(captor===F?'taken by US!':'changed hands!')),n.x,n.y,'👑');
+    if(captor===F&&lost!==F&&this.coin){ n._coin=1; this.coin(CF.nation,'a whole nation conquered',n.x,n.y); }
     this.checkVictory();
   }
   ring(n,col){ this.rings.push({x:n.x,y:n.y,col,t:0,max:0.6}); }
@@ -1095,7 +1117,7 @@ class BigWar{
     let budget= this.royale? 1 : (this.aiWave%3===0? 2:1);
     const tier=BW_AI_TIER(this.lv,this.royale);
     // 0) phòng thủ
-    for(const atk of this.armies){ if(budget<=0) break; if(!this.isFoe(atk.owner,fid)) continue; if(atk.owner===F&&!this.aiVis(atk.x,atk.y,fid)) continue;
+    for(const atk of this.armies){ if(budget<=0) break; if(!this.isFoe(atk.owner,fid)) continue; if(atk.owner===F&&(atk.smokeT>0||!this.aiVis(atk.x,atk.y,fid))) continue;   /* 💨 đạo quân trong khói: máy không thấy */
       const tgt=atk.to>=0?this.nodes[atk.to]:null; if(!tgt||tgt.owner!==fid) continue;
       const [ra]=bwResolve(atk.type,atk.count,tgt.type,tgt.count,this.defMul(tgt),tgt.ter); if(ra<=0) continue;
       let hp=null,hd=1e9; for(const e of en){ if(e===tgt) continue; const d=dist(e,tgt); if(d<=BW.range&&d<hd&&e.count>200){ hd=d; hp=e; } }
@@ -1158,7 +1180,7 @@ class BigWar{
       if(best&&bs>-200){ const [e,m]=best; this.send(e,m); announce(e,'⚔️ Enemy on the march!'); audio.flag&&audio.flag(); budget--; } }
     // 6) PHỤC KÍCH (từ màn 2): chọn địa hình rừng/thung lũng/sông nằm trên đường quân ta để chờ
     if(tier>=1){ let abud= tier>=2? 2:1;
-      const pas=this.armies.filter(a=>(this.royale? this.isFoe(a.owner,fid) : a.owner===F)&&!a.done&&a.count>0&&!a.btl&&(a.to>=0||a.tx!=null||a.hunt)&&(a.owner!==F||!this.royale||this.aiVis(a.x,a.y,fid)));
+      const pas=this.armies.filter(a=>(this.royale? this.isFoe(a.owner,fid) : a.owner===F)&&!a.done&&a.count>0&&!a.btl&&(a.to>=0||a.tx!=null||a.hunt)&&!(a.owner===F&&a.smokeT>0)&&(a.owner!==F||!this.royale||this.aiVis(a.x,a.y,fid)));
       for(const s2 of this.armies){ if(abud<=0) break;
         if(s2.owner!==fid||s2.done||s2.btl||!s2.camped||s2.ambush||s2.aiAmbush||s2.sieging||s2.count<(tier>=2?400:200)) continue;
         let pa=null,pd=1e9; for(const q of pas){ const d=dist(s2,q); if(d<pd&&d<(tier>=2?1500:1000)){pd=d;pa=q;} }
@@ -1249,10 +1271,14 @@ class BigWar{
     // node
     // (5.1) cứ điểm đứng yên: sắp thứ tự trên-dưới MỘT lần, và chỉ vẽ những cứ điểm nằm trong khung nhìn (trước đây vẽ cả 387 cứ điểm mỗi khung hình)
     let ns=this._nsY; if(!ns||this._nsSrc!==this.nodes||ns.length!==this.nodes.length){ ns=this._nsY=[...this.nodes].sort((a,b)=>a.y-b.y); this._nsSrc=this.nodes; }
-    let nDrawn=0; for(let i=0;i<ns.length;i++){ const n=ns[i]; if(n.x<cull.x0||n.x>cull.x1||n.y<cull.y0-40||n.y>cull.y1) continue; this.drawNode(c,n,tm); nDrawn++; } this._nDrawn=nDrawn;   /* vòng lặp đánh số: không sinh rác bộ nhớ như for…of */
+    let nDrawn=0; for(let i=0;i<ns.length;i++){ const n=ns[i]; if(n.x<cull.x0||n.x>cull.x1||n.y<cull.y0-40||n.y>cull.y1) continue; this.drawNode(c,n,tm); if(n.scareT>0) this.drawGearMarks(c,n,tm,true); nDrawn++; } this._nDrawn=nDrawn;   /* vòng lặp đánh số: không sinh rác bộ nhớ như for…of */
     // đạo quân đang đi (quân địch trong sương thì không thấy)
     for(const cv of this.convoys){ if(!inView(cv.x,cv.y)) continue; if(cv.owner!==this.localFid&&!this.visAt(cv.x,cv.y)) continue; this.drawConvoy(c,cv,tm); }   // 🐂 đội vận lương
-    for(const a of this.armies){ if(!inView(a.x,a.y)) continue; if(a.owner!==this.localFid&&!this.visAt(a.x,a.y)) continue; this.drawArmy(c,a,tm); }
+    for(const a of this.armies){ if(!inView(a.x,a.y)) continue; if(a.owner!==this.localFid&&!this.visAt(a.x,a.y)) continue;
+      const gearOn=a.teaT>0||a.plankT>0||a.smokeT>0;   /* 🎒 quân nhu đang có hiệu lực: bè gỗ khi lội sông, màn khói, huy hiệu đếm giây */
+      if(gearOn){ if(a.plankT>0&&this.terAt(a.x,a.y)==='river'&&!this.nearBridge(a.x,a.y)){ const dk=ArtImages['tile:bridge']; if(dk) c.drawImage(dk,a.x-46,a.y-8,92,44); else { c.fillStyle='#a8763c'; c.fillRect(a.x-44,a.y-6,88,38); } }
+        if(a.smokeT>0){ const sm=ArtImages['fx:smokebig']; if(sm){ c.globalAlpha=0.6; c.drawImage(sm,a.x-84,a.y-86,168,140); c.globalAlpha=1; } } }
+      this.drawArmy(c,a,tm); if(gearOn) this.drawGearMarks(c,a,tm,false); }
     // ===== TRẬN ĐANG DIỄN RA: vòng khói + 2 bảng quân số + tên lửa cung =====
     this._btlSeen=0;
     for(const b of this.battles){ if(b.done) continue; if(!inView(b.x,b.y)) continue; if(!this.visAt(b.x,b.y)&&b.A.fid!==this.localFid&&b.B.fid!==this.localFid) continue; this._btlSeen++;
@@ -1278,11 +1304,13 @@ class BigWar{
       this.plate(c,b.x-70,b.y+86,Math.round(sa),BW.facPal(b.A.fid),this.bDom(b.A),0.85);
       this.plate(c,b.x+70,b.y+86,Math.round(sb),BW.facPal(b.B.fid),this.bDom(b.B),0.85);
       c.font='900 22px "Baloo 2",system-ui'; c.textAlign='center'; c.lineWidth=5; c.strokeStyle='#2a1a12'; c.fillStyle='#ffe9c9';
-      c.strokeText('⚔️',b.x,b.y+92); c.fillText('⚔️',b.x,b.y+92);
+      { const xs=ArtImages['ui:army']; if(xs) c.drawImage(xs,b.x-18,b.y+68,36,36); else { c.strokeText('⚔️',b.x,b.y+92); c.fillText('⚔️',b.x,b.y+92); } }
     }
     // trinh sát của địch lảng vảng (chỉ thấy khi trong tầm nhìn)
     for(const s3 of this.aiScouts){ if(!inView(s3.x,s3.y)||!this.visAt(s3.x,s3.y)) continue;
-      const bob=Math.sin(tm*8)*4; c.font='30px system-ui'; c.textAlign='center'; c.globalAlpha=0.9; c.fillText('🐎',s3.x,s3.y+bob); c.globalAlpha=1; }
+      const bob=Math.sin(tm*8)*4, sp=makeUnitSprite('scout',1); c.globalAlpha=0.92;
+      if(sp){ const fl=s3.tx<s3.x; c.save(); if(fl){ c.translate(s3.x,0); c.scale(-1,1); c.translate(-s3.x,0); } c.drawImage(sp,s3.x-28,s3.y-48+bob,56,56); c.restore(); }
+      else { c.font='30px system-ui'; c.textAlign='center'; c.fillText('🐎',s3.x,s3.y+bob); } c.globalAlpha=1; }
     // hiệu ứng trận đánh (art ChatGPT)
     for(const f of this.fxs){ const im=ArtImages[f.key]; if(!im) continue;
       const k=f.t/f.life, sc2=0.65+k*0.5, al=k<0.25? k/0.25 : 1-(k-0.25)/0.75;
@@ -1291,7 +1319,13 @@ class BigWar{
     // toán do thám
     for(const s2 of this.scouts){ const to=this.nodes[s2.to];
       c.setLineDash([6,10]); c.strokeStyle='rgba(255,224,138,0.6)'; c.lineWidth=3; c.beginPath(); c.moveTo(s2.x,s2.y); c.lineTo(to.x,to.y); c.stroke(); c.setLineDash([]);
-      const bob=Math.sin(tm*9)*4; c.font='34px system-ui'; c.textAlign='center'; c.fillText('🕵️',s2.x,s2.y+bob); }
+      const bob=Math.sin(tm*9)*4, sp=makeUnitSprite('scout',0);
+      if(sp){ const fl=to.x<s2.x; c.fillStyle='rgba(0,0,0,0.2)'; c.beginPath(); c.ellipse(s2.x,s2.y+8,20,7,0,0,7); c.fill(); c.save(); if(fl){ c.translate(s2.x,0); c.scale(-1,1); c.translate(-s2.x,0); } c.drawImage(sp,s2.x-31,s2.y-52+bob,62,62); c.restore(); }
+      else { c.font='34px system-ui'; c.textAlign='center'; c.fillText('🕵️',s2.x,s2.y+bob); } }
+    // 📣 điểm tập kết vừa gọi: cờ hiệu (gọi vài trại) hoặc trống trận (tổng động viên) đứng tại chỗ ~10 giây
+    if(this.rallyMark){ const R=this.rallyMark; R.t+=(this._fdt||0.016); if(R.t>10) this.rallyMark=null;
+      else if(inView(R.x,R.y)){ const im=ArtImages[R.big? 'drum' : 'ui:follow']; if(im){ const k=Math.max(1,0.7/(this.scale||1)), sz=(R.big? 104 : 66)*k, bob=Math.abs(Math.sin(tm*(R.big? 7 : 5)))*7*k;
+          c.globalAlpha= R.t>8? (10-R.t)/2 : Math.min(1,R.t*4); c.fillStyle='rgba(0,0,0,0.22)'; c.beginPath(); c.ellipse(R.x,R.y+5*k,sz*0.36,sz*0.12,0,0,7); c.fill(); c.drawImage(im,R.x-sz/2,R.y-sz*0.9-bob,sz,sz); c.globalAlpha=1; } } }
     // hiệu ứng
     for(const r of this.rings){ const k=r.t/r.max; c.strokeStyle=r.col; c.globalAlpha=1-k; c.lineWidth=8*(1-k)+2; c.beginPath(); c.arc(r.x,r.y,20+k*120,0,7); c.stroke(); c.globalAlpha=1; }
     for(const t of this.texts){ if(!t.part) continue; t.vy+=320*0.016; t.x+=t.vx*0.016; t.y+=t.vy*0.016; const k=t.t/t.max; c.fillStyle=t.col; c.globalAlpha=1-k; c.beginPath(); c.arc(t.x,t.y,7*(1-k*0.5),0,7); c.fill(); c.globalAlpha=1; }
@@ -1382,9 +1416,12 @@ class BigWar{
       if(im){ const cv2=recolorUnit(im, n.owner===this.localFid?0:1); c.drawImage(cv2,n.x-95,n.y-110,190,190); }
       else { c.fillStyle=col.color; c.strokeStyle='#2a1a12'; c.lineWidth=5; c.beginPath(); c.moveTo(n.x-85,n.y+45); c.lineTo(n.x,n.y-75); c.lineTo(n.x+85,n.y+45); c.closePath(); c.fill(); c.stroke(); }
       c.font='900 30px "Baloo 2",system-ui'; c.textAlign='center'; c.lineWidth=7; c.strokeStyle='#2a1a12'; c.fillStyle='#fff';
-      const nm= n.owner===this.localFid? (n.capOf===this.localFid?'👑 OUR CAPITAL':'OUR CAMP'): this.natTag(n.owner)+(this.allied(this.localFid,n.owner)?' 🤝':''); c.strokeText(nm,n.x,n.y-96); c.fillText(nm,n.x,n.y-96);
+      const mine=n.owner===this.localFid, cap=mine&&n.capOf===this.localFid, crown= cap? ArtImages['ui:general'] : null;
+      const nm= mine? (cap? (crown? 'OUR CAPITAL' : '👑 OUR CAPITAL') : 'OUR CAMP'): this.natTag(n.owner)+(this.allied(this.localFid,n.owner)?' 🤝':'');
+      if(crown){ const tw=c.measureText(nm).width; c.strokeText(nm,n.x+21,n.y-96); c.fillText(nm,n.x+21,n.y-96); c.drawImage(crown,n.x+21-tw/2-44,n.y-127,40,40); }   /* 👑 ảnh vương miện thay cho emoji */
+      else { c.strokeText(nm,n.x,n.y-96); c.fillText(nm,n.x,n.y-96); }
       if(n.count>0){ const vz=n.owner===this.localFid||this.visNow(n);
-        this.plate(c,n.x,n.y+66, vz? n.count : (n.known? '~'+n.known.count+'?' : '???'), vz? col:{color:'#8b85a8',light:'#cbc6e2'}, n.type, 1.15); }
+        this.plate(c,n.x,n.y+66, vz? n.count : (n.known? '~'+n.known.count+'?' : '???'), vz? col:{color:'#8b85a8',light:'#cbc6e2'}, n.type, 1.15); if(vz&&!mine) this.scoutMark(c,n,n.x+80,n.y+44); }
       return;
     }
     // công sự: vẽ dưới chân node (cả phe ta lẫn nơi đã thấy)
@@ -1439,9 +1476,13 @@ class BigWar{
       const bob=Math.sin(tm*2.2+n.wob+q*1.7+r)*2.5;
       c.drawImage(spr,px-S2/2,py-S2*0.95+bob,S2,S2); } }
     this.plate(c,n.x,n.y-62-(rows-2)*9,n.count,col,n.type,1);
+    if(n.owner!==this.localFid) this.scoutMark(c,n,n.x+64,n.y-84-(rows-2)*9);
     if(n.owner===this.localFid&&(n.food||0)>1&&n.eco){ c.font='800 15px "Baloo 2",system-ui'; c.textAlign='center'; c.lineWidth=4; c.strokeStyle='rgba(42,26,18,0.8)';
       const ft='🌾'+Math.round(n.food); c.strokeText(ft,n.x+70,n.y-40); c.fillStyle='#d9f99d'; c.fillText(ft,n.x+70,n.y-40); }
   }
+  // 🔭 cứ điểm địch ĐANG LỘ QUÂN SỐ nhờ do thám / la bàn: ống nhòm + số giây còn thấy (hết giờ là lại ẩn)
+  scoutMark(c,n,px,py){ if(n.scoutT==null) return; const left=30-(this.time-n.scoutT); if(!(left>0)) return; const im=ArtImages['ui:center']; if(!im) return;
+    c.drawImage(im,px,py,34,34); c.font='900 15px "Baloo 2",system-ui'; c.textAlign='center'; c.lineWidth=4; c.strokeStyle='rgba(42,26,18,0.9)'; const t=Math.ceil(left)+'s'; c.strokeText(t,px+17,py+47); c.fillStyle='#bfe9ff'; c.fillText(t,px+17,py+47); }
   plate(c,x,y,count,col,type,k){ // bảng số kiểu gỗ
     const txt= typeof count==='string'? count : String(Math.round(count)); c.font=`900 ${30*k}px "Baloo 2",system-ui`;
     const w2=Math.max(84,c.measureText(txt).width+54)*k, h2=40*k;
@@ -1488,6 +1529,7 @@ class BigWar{
       c.strokeStyle='#6b4a2f'; c.lineWidth=4; c.beginPath(); c.moveTo(fx2,fy2-8); c.lineTo(fx2,fy2-70); c.stroke();
       c.fillStyle=pal.color; c.beginPath(); c.moveTo(fx2,fy2-70); c.lineTo(fx2+30+Math.sin(tm*7)*4,fy2-60); c.lineTo(fx2,fy2-48); c.closePath(); c.fill(); }
     this.plate(c,a.x,a.y-56, a.owner===this.localFid? Math.round(a.count) : '❓', BW.facPal(a.owner), a.type, 0.85);
+    if(a.retreatT>0){ const sh=ArtImages['ui:hold']; if(sh) c.drawImage(sh,a.x-21,a.y-124,42,42); }   /* 🛡️ vừa rút lui: 3 giây không ai đánh được */
     if(a.owner===this.localFid){ // 🌾 LƯƠNG THẢO của đạo quân — vạch + con số
       const fv=Math.round(a.food??100), fr=Math.max(0,Math.min(1,fv/100)); const bw2=84;
       c.fillStyle='rgba(42,26,18,0.88)'; rr(c,a.x-bw2/2,a.y-37,bw2,14,6); c.fill();
@@ -1501,7 +1543,8 @@ class BigWar{
       const k=Math.max(0,Math.min(1,1-a.prep/(a.prep0||a.prep))), fz=Math.max(27,11/(this.scale||1)), w=fz*4.6, bh=fz*0.72, y0=a.y+20;   // chữ luôn ≥11px trên màn hình dù zoom xa
       c.fillStyle='rgba(42,26,18,0.9)'; rr(c,a.x-w/2,y0,w,bh,bh*0.45); c.fill(); c.fillStyle='#facc15'; rr(c,a.x-w/2+fz*0.1,y0+fz*0.1,Math.max(fz*0.2,(w-fz*0.2)*k),bh-fz*0.2,bh*0.3); c.fill();
       c.font=`900 ${fz}px "Baloo 2",system-ui`; c.textAlign='center'; c.lineWidth=fz*0.22; c.strokeStyle='rgba(42,26,18,0.92)'; const ps='🌾 '+Math.ceil(a.prep)+'s';
-      c.strokeText(ps,a.x,y0+bh+fz*1.05); c.fillStyle='#ffe9a8'; c.fillText(ps,a.x,y0+bh+fz*1.05); }
+      c.strokeText(ps,a.x,y0+bh+fz*1.05); c.fillStyle='#ffe9a8'; c.fillText(ps,a.x,y0+bh+fz*1.05);
+      { const hg=ArtImages['ui:speed']; if(hg) c.drawImage(hg,a.x-w/2-fz*1.4,y0-fz*0.3,fz*1.3,fz*1.3); } }   /* ⏳ đồng hồ cát: đang chờ chuẩn bị lương */
     if(a.sieging!=null&&a.camped){ const n=this.nodes[a.sieging];
       if(n){ // các toán quân rải vòng vây quanh thành
         const base=Math.atan2(a.y-n.y,a.x-n.x);
@@ -1571,6 +1614,7 @@ class BigWar{
     if(this._retreatBtn) R['nút RÚT LUI']={x:this._retreatBtn.x,y:this._retreatBtn.y,w:this._retreatBtn.w,h:this._retreatBtn.h};
     (this._noteRects||[]).forEach((n,i)=>R['thông báo '+(i+1)]={x:n.x,y:n.y,w:n.w,h:n.h});
     if(this._rallyMenu) R['menu gọi quân']=this._rallyMenu; if(this._orderMenu) R['menu lệnh']=this._orderMenu; if(this._hintBox) R['dòng hướng dẫn']=this._hintBox; if(this._unitChip) R['thẻ binh chủng']=this._unitChip;
+    if(this._gearBtn) R['nút quân nhu']=this._gearBtn; if(this._gearMenu) R['menu quân nhu']=this._gearMenu;
     if(L.rot) R['băng "xoay ngang"']=L.rot; return R; }
   drawHud(c,vw,vh,tm){
     const ha=this.hudAlpha(); const bbar=document.getElementById('bwbar'); if(bbar) bbar.style.opacity=ha.toFixed(3);
@@ -1715,6 +1759,7 @@ class BigWar{
           c.fillStyle='rgba(25,15,45,0.86)'; rr(c,x0,by3,bw3,bh3,10); c.fill(); c.strokeStyle='rgba(125,255,207,0.55)'; c.lineWidth=1.5; rr(c,x0,by3,bw3,bh3,10); c.stroke();
           c.textAlign='left'; c.font=`800 ${f1}px ${FONT}`; c.fillStyle='#ffe9c9'; c.fillText(l1,x0+10,by3+20);
           c.font=`700 12px ${FONT}`; c.fillStyle='#bfe9d8'; ls.forEach((q,i)=>c.fillText(q,x0+10,by3+36+i*15)); c.textAlign='center'; } } }
+    if(this.drawGearHud) this.drawGearHud(c,L,tm);   // 🎒 nút + bảng quân nhu (src/09e_gear.js) — vẽ sau thẻ binh chủng để bảng nằm trên
     // 📋 MENU LỆNH ngữ cảnh: bề rộng theo chữ, luôn nằm trọn trong vùng an toàn và né cột nút phải
     this._menuRects=[]; this._orderMenu=null;
     if(this.menu&&!this.autoMenu){ const m=this.menu;

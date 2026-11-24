@@ -1,4 +1,4 @@
-// AUDIT CÁC MÀN HÌNH MENU (HTML): menu chính, chọn chế độ, chọn nước, hướng dẫn, P2P, tạm dừng, hộp hỏi lại, kết quả —
+// AUDIT CÁC MÀN HÌNH MENU (HTML): menu chính, chọn chế độ, chọn nước, hướng dẫn, kho quân nhu, lò rèn, P2P, tạm dừng, hộp hỏi lại, kết quả —
 // trên nhiều cỡ máy ngang/dọc + tai thỏ. Báo: nút nằm ngoài màn hình (mà không cuộn tới được), nút đè nhau, nút quá nhỏ, chữ trong nút bị cắt.
 import { launch, ok, finish, URL } from './lib.mjs';
 const VP=[[568,320],[640,360],[780,360],[915,412],[320,568],[360,640],[412,915],[1024,768]];
@@ -9,6 +9,8 @@ const SCREENS=[
   ['chọn chế độ (có ván lưu)', ()=>{ G.bwCfg={royale:36,seed:5,civ:'rome'}; startBigWar(5); __ltm.bw.time=900; stopBigWar(true); document.getElementById('bBW').click(); }, '#bossPick'],
   ['chọn nước', ()=>{ document.getElementById('bossPick').classList.add('hidden'); CivPick.open({stageMax:7,stage:7,onPick(){},onBack(){}}); }, '#civPick'],
   ['hướng dẫn', ()=>{ CivPick.close(); showScreen('help'); }, '#help'],
+  ['kho quân nhu (đủ món, đã xếp 3)', ()=>{ save.xu=12345; save.inv={bun:99,tea:7,plank:1,smoke:0,scarecrow:12,compass:3,bandage:99}; save.pack=['bun','scarecrow','bandage']; openGear(); }, '#gear'],
+  ['lò rèn (đang rèn dở)', ()=>{ save.up={speed:5,power:2,armor:0,stamina:3,aura:1,weapon:4}; openForge(); }, '#forge'],
   ['P2P bước 1', ()=>{ P2P.open(); }, '#p2p'],
   ['P2P bước 2', ()=>{ document.getElementById('p2pStep1').classList.add('hidden'); document.getElementById('p2pStep2').classList.remove('hidden'); document.getElementById('p2pMsg').textContent='Step 1: copy the INVITE CODE and send it to your friend → Step 2: paste their REPLY CODE below and tap Connect.'; }, '#p2p'],
   ['tạm dừng', ()=>{ showScreen(null); G.bwCfg={map:2,civ:'rome'}; startBigWar(2); __ltm.bw.intro=null; pause(true); }, '#pause'],
@@ -35,6 +37,10 @@ const run=async([w,h,[inn,it,il,ir,ib]])=>{ const ctx=await b.newContext({viewpo
       for(const [e,r] of fixed){ if(r.left<-1||r.top<-1||r.right>vw+1||r.bottom>vh+1) continue; for(const [fx,fy] of [[0.5,0.5],[0.25,0.5],[0.75,0.5],[0.5,0.8]]){ const top=document.elementFromPoint(r.left+r.width*fx,r.top+r.height*fy);
           if(top&&top!==e&&!e.contains(top)&&!top.contains(e)){ out.push(lab(e)+' bị '+lab(top)+' che'); break; } } }
       for(let i=0;i<fixed.length;i++) for(let j=i+1;j<fixed.length;j++){ const a=fixed[i][1], c=fixed[j][1]; if(fixed[i][0].contains(fixed[j][0])||fixed[j][0].contains(fixed[i][0])) continue; if(a.left<c.right-2&&c.left<a.right-2&&a.top<c.bottom-2&&c.top<a.bottom-2) out.push(lab(fixed[i][0])+' ĐÈ '+lab(fixed[j][0])); }
+      // (5.2) phần KHÔNG phải nút cũng phải thấy được: logo, tiêu đề, dòng mô tả, thanh xu — không tràn màn hình, không bị băng "xoay ngang" hay thứ khác che
+      for(const e of [...R.querySelectorAll('.logo,h1,h2,.sub,.coinbar,#rStats,#forgeStats,.note')].filter(vis)){ if(scroller(e)) continue; const r=e.getBoundingClientRect();
+        if(r.left<-1||r.top<-1||r.right>vw+1||r.bottom>vh+1) out.push(lab(e)+' (chữ/hình, không phải nút) tràn khỏi màn hình '+Math.round(Math.max(-r.top,r.bottom-vh,-r.left,r.right-vw))+'px');
+        else { const top=document.elementFromPoint(r.left+r.width/2,r.top+r.height*0.5); if(top&&top!==e&&!e.contains(top)&&!top.contains(e)&&top.id==='rotate') out.push(lab(e)+' bị băng "xoay ngang" che'); } }
       const card=R.querySelector('.card'); if(card){ const r=card.getBoundingClientRect(); if(r.left<-1||r.top<-1||r.right>vw+1||r.bottom>vh+1) out.push('khung nội dung tràn màn hình ('+Math.round(r.width)+'×'+Math.round(r.height)+')'); }
       return [...new Set(out)]; },[root,it,il,ir,ib]);
     combos++; for(const pr of probs){ const k=name+': '+pr; (agg[k]=agg[k]||[]).push(`${w}×${h}${inn==='không viền'?'':' '+inn}`); } }

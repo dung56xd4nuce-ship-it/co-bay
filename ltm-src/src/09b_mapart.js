@@ -96,12 +96,16 @@ BigWar.prototype.mapTileGen=function*(lod,tx,ty){
             else { c.strokeStyle= h<0.5? '#4f9a2e' : '#67b53a'; c.lineWidth=2.2; c.beginPath(); for(let g=-1;g<=1;g++){ c.moveTo(ox+g*2.4,oy+3); c.lineTo(ox+g*4.6,oy-5-((g+2)*h*9%4)); } c.stroke(); } } } } } }
   yield 'road';
   // 5) BẾN SÔNG: cầu gỗ bắc ngang
-  { const deck=ArtImages['tile:bridge']||ArtImages['ter:bridge'];
+  { const deck=ArtImages['tile:bridge']||ArtImages['ter:bridge'], mudT=mapTexAt('mud',px), sign=ArtImages['ter:bridge'];
     for(const b of this.bridges){ if(b.x<x0-160||b.x>x1+160||b.y<y0-160||b.y>y1+160) continue;
+      if(mudT){ for(const sd of [-1,1]){ const mx=b.x+sd*112, my=b.y+6;   /* bùn lầy bị giẫm nát ở hai đầu bến */
+          c.save(); c.beginPath(); c.ellipse(mx,my,54,34,0,0,7); c.fillStyle='rgba(58,40,20,0.30)'; c.fill(); c.beginPath(); c.ellipse(mx,my,48,29,0,0,7); c.clip(); c.setTransform(1,0,0,1,0,0); c.globalAlpha=0.92; c.fillStyle=c.createPattern(mudT,'repeat'); c.fillRect(0,0,MAP_TPX,MAP_TPX); c.restore(); } }
       c.fillStyle='rgba(40,26,10,0.35)'; c.fillRect(b.x-88,b.y-30,176,70);
       if(ArtImages['tile:bridge']){ c.save(); c.translate(b.x,b.y); c.rotate(Math.PI/2); c.drawImage(deck,-42,-92,84,184); c.restore(); }
       else { c.fillStyle='#a8763c'; c.fillRect(b.x-86,b.y-30,172,60); c.strokeStyle='#5e3d18'; c.lineWidth=6; c.strokeRect(b.x-86,b.y-30,172,60); }
-      if(!far){ c.font='900 14px "Baloo 2",system-ui'; c.textAlign='center'; c.lineWidth=4; c.strokeStyle='rgba(42,26,18,0.85)'; c.strokeText('⛩️ FORD',b.x,b.y+62); c.fillStyle='#ffe9c9'; c.fillText('⛩️ FORD',b.x,b.y+62); } } }
+      if(!far){ c.font='900 14px "Baloo 2",system-ui'; c.textAlign='center'; c.lineWidth=4; c.strokeStyle='rgba(42,26,18,0.85)';
+        if(sign){ c.drawImage(sign,b.x-45,b.y+38,36,36); c.strokeText('FORD',b.x+14,b.y+62); c.fillStyle='#ffe9c9'; c.fillText('FORD',b.x+14,b.y+62); }   /* biển bến sông: hình bến gỗ thay cho emoji */
+        else { c.strokeText('⛩️ FORD',b.x,b.y+62); c.fillStyle='#ffe9c9'; c.fillText('⛩️ FORD',b.x,b.y+62); } } } }
   // 6) quanh cứ điểm: sân đá dưới trại/thành, ruộng quanh trại chăn nuôi, bãi tập quanh điểm luyện binh
   for(const n of this.nodes){ if(n.x<x0-170||n.x>x1+170||n.y<y0-170||n.y>y1+170) continue;
     if(n.camp||n.struct==='citadel'||n.struct==='fort'){ const r=n.camp?104:86; c.save(); c.beginPath(); c.ellipse(n.x,n.y+8,r,r*0.62,0,0,7); c.fillStyle='rgba(60,40,20,0.45)'; c.fill(); c.beginPath(); c.ellipse(n.x,n.y+4,r-6,(r-6)*0.62,0,0,7); c.clip();
@@ -110,10 +114,12 @@ BigWar.prototype.mapTileGen=function*(lod,tx,ty){
         c.save(); c.translate(fx,fy); c.rotate((mapHash(n.id,q,S+7)-0.5)*0.5); c.fillStyle='rgba(74,48,22,0.55)'; c.fillRect(-40,-25,80,50); c.fillStyle= q%2? '#d9b84a':'#9fbf45'; c.fillRect(-36,-21,72,42);
         c.strokeStyle='rgba(90,60,20,0.45)'; c.lineWidth=2; for(let l=-14;l<=14;l+=7){ c.beginPath(); c.moveTo(-34,l); c.lineTo(34,l); c.stroke(); } c.restore(); } }
     else if(n.eco==='train'){ c.beginPath(); c.ellipse(n.x,n.y+6,78,48,0,0,7); c.fillStyle='rgba(196,160,104,0.85)'; c.fill(); c.strokeStyle='rgba(90,60,26,0.6)'; c.lineWidth=4; c.stroke(); }
-    else if(n.eco==='granary'&&!far){ const im=ArtImages['prop:station']; if(im) c.drawImage(im,n.x+52,n.y-34,62,62); } }
+    else if(n.eco==='granary'){ const t=mapTexAt('hay',px);   /* kho lương: sân rơm lót ván */
+      if(t){ c.save(); c.beginPath(); c.ellipse(n.x,n.y+8,86,54,0,0,7); c.fillStyle='rgba(60,40,20,0.42)'; c.fill(); c.beginPath(); c.ellipse(n.x,n.y+5,80,49,0,0,7); c.clip(); c.setTransform(1,0,0,1,0,0); c.fillStyle=c.createPattern(t,'repeat'); c.fillRect(0,0,MAP_TPX,MAP_TPX); c.restore(); }
+      if(!far){ const im=ArtImages['prop:station']; if(im) c.drawImage(im,n.x+52,n.y-34,62,62); } } }
   yield 'node';
   // 7) CÂY CỐI · NÚI NON · CỒN CÁT (vị trí cố định theo toạ độ nên liền mạch giữa các ô và các mức zoom)
-  const tree=ArtImages['prop:tree'], pine=ArtImages['prop:tree2'], rock=ArtImages['prop:rock'], reeds=ArtImages['prop:reeds'], clump=ArtImages['ter:forest'], mtn=ArtImages['ter:mountain'], dune=ArtImages['ter:desert'], vgrass=ArtImages['ter:valley'];
+  const tree=ArtImages['prop:tree'], pine=ArtImages['prop:tree2'], rock=ArtImages['prop:rock'], reeds=ArtImages['prop:reeds'], ruin=ArtImages['prop:ruin'], clump=ArtImages['ter:forest'], mtn=ArtImages['ter:mountain'], dune=ArtImages['ter:desert'], vgrass=ArtImages['ter:valley'];
   const mX= lod===0? 340 : lod===1? 200 : 130, mB= lod===0? 580 : lod===1? 330 : 210;   // biên lấy dư: hình cao nên cây ngoài ô vẫn ló vào ô
   const items=[]; const scatter=function*(g,salt,fn){ const i0=Math.floor((x0-mX)/g), i1=Math.floor((x1+mX)/g), j0=Math.floor((y0-90)/g), j1=Math.floor((y1+mB)/g);
     for(let j=j0;j<=j1;j++){ for(let i=i0;i<=i1;i++){ const h=mapHash(i,j,S+salt), wx=(i+0.5+(mapHash(i,j,S+salt+1)-0.5)*0.76)*g, wy=(j+0.5+(mapHash(i,j,S+salt+2)-0.5)*0.76)*g; if(wx<30||wy<150||wx>BW.W-30||wy>BW.H-20) continue; fn(wx,wy,h,i,j); }
@@ -127,6 +133,7 @@ BigWar.prototype.mapTileGen=function*(lod,tx,ty){
     yield* scatter(78,51,(x,y,h)=>{ if(h>0.55||this.terAt(x,y)!=='valley') return; const w=46+h*40; put(reeds,x,y,w,w); }); yield 'scatter';
     yield* scatter(190,61,(x,y,h)=>{ if(h>0.5||this.terAt(x,y)!=='valley') return; put(vgrass,x,y,112,112); }); yield 'scatter';
     yield* scatter(250,71,(x,y,h)=>{ if(h>0.2||this.terAt(x,y)!=='plain'||this.distRoad(x,y)<BW.roadHalf+24||Math.abs(x-this.riverX(y))<120) return; const w=70+h*90; put(h<0.13? tree : (h<0.17? pine : rock), x,y,h<0.17?w:w*0.6); }); yield 'scatter';
+    yield* scatter(620,91,(x,y,h)=>{ if(h>0.36||this.terAt(x,y)!=='plain'||this.distRoad(x,y)<BW.roadHalf+44||Math.abs(x-this.riverX(y))<150) return; put(ruin,x,y,104+h*70,0,h*7%1<0.5); }); yield 'scatter';   /* phế tích thành cũ rải rác trên đồng (chỉ để ngắm) */
     for(let y=Math.floor((y0-100)/64)*64;y<=y1+100;y+=64) for(const sgn of [-1,1]){ const h=mapHash(y,sgn,S+81); if(h>0.6) continue; const x=this.riverX(y)+sgn*(74+h*20); if(x<x0-60||x>x1+60||this.nearBridge(x,y,150)) continue; put(reeds,x,y+10,40+h*26); }
   } else {
     const g1=lod===0? 210 : 112, w1=lod===0? 330 : 178;

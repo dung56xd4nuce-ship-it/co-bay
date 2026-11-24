@@ -1,11 +1,11 @@
 // Ảnh có chữ tiếng Việt (logo, băng rôn thắng/thua) tạm ẩn ở bản quốc tế — dùng chữ tiếng Anh cho đến khi có art tiếng Anh
 const VN_TEXT_ART={'ui:logo':1,'ui:win':1,'ui:lose':1};
-function artOK(k){ return !!ArtUrls[k] && !VN_TEXT_ART[k]; }
+function artOK(k){ return !!ArtUrls[k] && (!VN_TEXT_ART[k] || !!(ArtImages[k]&&ArtImages[k]._user)); }   /* ảnh chữ Việt có sẵn thì ẩn; người chơi tự nạp bản tiếng Anh (G01E/G19E/G20E) qua "Art pack" thì dùng ngay */
 // ============ Giao diện, điều khiển, vòng lặp ============
 const $=(id)=>document.getElementById(id);
 const audio=new SoundFX();
 const Save={ get(){ try{ return JSON.parse(localStorage.getItem('ltm_save')||'{}'); }catch(e){ return {}; } }, set(v){ try{ localStorage.setItem('ltm_save',JSON.stringify(v)); }catch(e){} } };
-let save=Save.get(); if(!save.done) save.done=[]; if(save.xu==null) save.xu=0; if(!save.up) save.up={speed:0,power:0,armor:0,stamina:0,aura:0,weapon:0};
+let save=Save.get(); if(!save.done) save.done=[]; if(save.xu==null) save.xu=0; if(!save.up) save.up={speed:0,power:0,armor:0,stamina:0,aura:0,weapon:0}; if(!save.inv||typeof save.inv!=='object') save.inv={}; if(!Array.isArray(save.pack)) save.pack=[];   // 🎒 kho quân nhu + 3 món mang vào trận
 const G={ world:null, bw:null, ren:null, level:1, speed:1, paused:true, acc:0, last:performance.now(), sel:new Set(), lastTap:null, hints:{}, hintQ:[], resultShown:false, mmT:0, hudT:0 };
 
 function startLevel(L,opts){
@@ -15,7 +15,7 @@ function startLevel(L,opts){
   if(!G.ren) G.ren=new Renderer($('game'),w); else { const r=new Renderer($('game'),w); G.ren=r; }
   const g=w.factions[0].general; G.ren.centerOn(g.x,g.y,true); G.ren.cam.z=Math.max(0.8,Math.min(1.6,G.ren.vw/(24*TS)));
   G.sel=new Set([g.id]); G.ren.selected=G.sel; G.paused=false; G.resultShown=false; G.acc=0; G.hints={}; G.hintQ=[];
-  ['menu','levels','help','pause','result','forge','artscr','p2p'].forEach(id=>$(id).classList.add('hidden')); $('hud').classList.remove('hidden');
+  ['menu','levels','help','pause','result','forge','gear','artscr','p2p'].forEach(id=>$(id).classList.add('hidden')); $('hud').classList.remove('hidden');
   document.body.classList.toggle('mini', !!cfg.mini);
   drawBadge(); setupMinimap(); updateSel();
   $('toasts').innerHTML='';
@@ -240,7 +240,7 @@ function pause(on){ if(!G.world&&!G.bw) return; G.paused=on; $('pause').classLis
 function bwSetPause(on){ // P2P: dừng là dừng CẢ HAI MÁY
   if(G.bw&&G.bw.cfg&&G.bw.cfg.p2p&&typeof P2P!=='undefined'&&P2P.connected){ P2P.setPause(on); pause(on); }
   else pause(on); }
-function showScreen(id){ ['menu','levels','help','pause','result','forge','artscr','p2p'].forEach(s=>$(s).classList.toggle('hidden',s!==id)); if(id==='menu'||id==='levels'||id==='forge'||id==='artscr') $('hud').classList.add('hidden'); }
+function showScreen(id){ ['menu','levels','help','pause','result','forge','gear','artscr','p2p'].forEach(s=>$(s).classList.toggle('hidden',s!==id)); if(id==='menu'||id==='levels'||id==='forge'||id==='gear'||id==='artscr') $('hud').classList.add('hidden'); }
 function buildLevels(){ const grid=$('lvgrid'); grid.innerHTML=''; const max=Math.max(1,save.max||1);
   for(let L=1;L<=100;L++){ const b=document.createElement('button'); b.className='btn lv'; b.textContent=L; const avail=L<=40 && L<=max; if(save.done.includes(L)) b.classList.add('done'); if(!avail){ b.classList.add('lock'); b.textContent= L>40? '🔒' : '🔒'+L; b.title= L>40?'12-faction mode in development':'Win the previous stage to unlock'; }
     b.onclick=()=>{ audio.init(); if(avail) startLevel(L); }; grid.appendChild(b); } }
@@ -292,7 +292,7 @@ function setupMenus(){
     ask(bw.royale? 'Restart Warlords from the beginning?' : 'Restart this battle?', bw.royale? 'Your current conquest will be lost.' : 'Progress in this battle will be lost.', '↻ Restart', bwRestart); };
   $('bLevels').onclick=()=>{ audio.init(); buildLevels(); showScreen('levels'); };
   $('bHelp').onclick=()=>{ audio.init(); G.helpFrom='menu'; showScreen('help'); };
-  document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{ if(!$('forge').classList.contains('hidden') && G.forgeFrom==='result'){ $('forge').classList.add('hidden'); $('result').classList.remove('hidden'); return; } if(G.helpFrom==='pause'){ G.helpFrom=null; $('help').classList.add('hidden'); $('pause').classList.remove('hidden'); } else showScreen('menu'); });
+  document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{ if((!$('forge').classList.contains('hidden')||!$('gear').classList.contains('hidden')) && G.forgeFrom==='result'){ $('forge').classList.add('hidden'); $('gear').classList.add('hidden'); $('result').classList.remove('hidden'); return; } if(G.helpFrom==='pause'){ G.helpFrom=null; $('help').classList.add('hidden'); $('pause').classList.remove('hidden'); } else showScreen('menu'); });
   $('tc').onclick=()=>{ if(G.world&&G.ren){ const d=G.world.drum; G.ren.centerOn(d.x,d.y); } };
   $('bPause').onclick=()=>{ audio.init(); pause(true); };
   $('bResume').onclick=()=>bwSetPause(false);
@@ -304,16 +304,23 @@ function setupMenus(){
   $('bAgain').onclick=()=>startLevel(G.level);
   $('bNext').onclick=()=>startLevel(Math.min(40,(typeof G.level==='number'?G.level:0)+1));
   $('bForge').onclick=()=>{ audio.init(); G.forgeFrom='menu'; openForge(); };
-  $('bRForge').onclick=()=>{ G.forgeFrom='result'; openForge(); };
+  $('bRForge').onclick=()=>{ audio.init(); audio.click(); G.forgeFrom='result'; $('result').classList.add('hidden'); renderGear(); $('gear').classList.remove('hidden'); };   // 🪙 Armory từ màn kết quả
+  $('bGear').onclick=()=>{ audio.init(); audio.click(); G.forgeFrom='menu'; openGear(); };
+  $('bToForge').onclick=()=>{ audio.click(); $('gear').classList.add('hidden'); renderForge(); $('forge').classList.remove('hidden'); };
+  $('bToGear').onclick=()=>{ audio.click(); $('forge').classList.add('hidden'); renderGear(); $('gear').classList.remove('hidden'); };
   $('bArt').onclick=()=>{ audio.init(); renderArtGrid(); showScreen('artscr'); };
   $('artInput').onchange=async(e)=>{ const files=[...e.target.files]; if(!files.length) return; $('artMsg').textContent=`Processing ${files.length} images...`; const r=await importArtFiles(files); $('artMsg').innerHTML=`✅ Loaded ${r.done.length} images: ${r.done.map(a=>a.code).join(', ')}${r.skip.length?`<br>⚠️ Unrecognized names: ${r.skip.join(', ')} — name files by code, e.g. U04.png`:''}`; e.target.value=''; renderArtGrid(); };
   $('bArtClear').onclick=async()=>{ await ArtDB.clear(); for(const k in ArtImages){ if(ArtImages[k]._user) delete ArtImages[k]; } await loadArt(); renderArtGrid(); $('artMsg').textContent='Loaded art cleared — the game is back to code-drawn graphics.'; };
   $('bRMenu').onclick=()=>{ G.world=null; showScreen('menu'); setupMenus(); };
   $('bSound').onclick=()=>{ audio.init(); audio.on=!audio.on; $('bSound').textContent=audio.on?'🔊':'🔇'; };
+  /* 🔊 bật/tắt tiếng (menu chính + màn tạm dừng), nhớ lựa chọn cho lần mở game sau */
+  audio.on=!save.mute; sndSync();
+  document.querySelectorAll('.sndBtn').forEach(b=>b.onclick=()=>{ audio.init(); audio.on=!audio.on; save.mute=!audio.on; Save.set(save); sndSync(); if(audio.on) audio.click(); });
   $('bSpeed').onclick=()=>{ G.speed= G.speed===1?2: G.speed===2?3:1; $('bSpeed').textContent='x'+G.speed; };
 }
 
 // ---------- Lò rèn tướng ----------
+function sndSync(){ document.querySelectorAll('.sndLbl').forEach(e=>e.textContent='Sound: '+(audio.on?'On':'Off')); document.querySelectorAll('.sndBtn').forEach(b=>b.classList.toggle('off',!audio.on)); }
 function refreshXu(){ document.querySelectorAll('.xu').forEach(e=>e.textContent=save.xu||0); }
 function artIcon(key,fallback,cls){ const u=ArtUrls[key]; return u? `<img class="${cls||"aic"}" src="${u}" alt="">` : fallback; }
 function openForge(){ renderForge(); showScreen('forge'); }
@@ -326,10 +333,26 @@ function renderForge(){
     const b=document.createElement('button'); b.className='btn'; b.innerHTML= maxed? 'Max' : `${artIcon('ui:coin','🪙')} ${cost}`; b.disabled= maxed || (save.xu||0)<cost;
     b.onclick=()=>{ if((save.xu||0)<cost||maxed) return; save.xu-=cost; up[U.key]=l+1; Save.set(save); audio.init(); audio.fanfare(); SpriteCache.clear(); renderForge(); };
     d.appendChild(b); list.appendChild(d); }
-  const W=WEAPONS[up.weapon||0]; const hp=Math.round(UNIT.general.hp*(1+0.12*up.armor));
-  $('forgeStats').innerHTML=`<b>${FACTIONS[0].general}</b><br>⚔️ ${W.name}<br>❤️ HP <b>${hp}</b> · 💥 Damage <b>${Math.round((UNIT.general.dmg+W.dmg)*(1+0.12*up.power))}</b><br>👟 Speed <b>${(UNIT.general.speed*(1+0.06*up.speed)).toFixed(2)}</b> tiles/s · 🔋 Stamina <b>${100+10*up.stamina}</b>${W.reach>1?'<br>🎯 2-tile reach':''}${W.cleave?` · 🌀 Cleave ${Math.round(W.cleave*100)}%`:''}${W.steal?` · 🩸 Lifesteal ${Math.round(W.steal*100)}%`:''}${W.stun?' · 💫 Stun':''}`;
+  { const W=WEAPONS[up.weapon||0], F=BW.forge, pc=(x)=>'+'+(Math.round(x*1000)/10)+'%';
+    const cur=up.weapon||0, lad=WEAPONS.map((w,i)=>`<span class="wl ${i<cur?'on':i===cur?'cur':'lock'}" title="${w.name}">${artIcon('weapon:'+i,w.emoji)}</span>`).join('<i>›</i>');   /* thang 6 vũ khí: đã rèn sáng, chưa rèn mờ */
+    $('forgeStats').innerHTML=`<b>Your nation's bonuses</b> · ⚔️ ${W.name}<div class="wladder">${lad}</div>💥 Damage <b>${pc((1+F.power*(up.power||0))*(1+F.weapon*(up.weapon||0))-1)}</b> · 👟 March <b>${pc(F.speed*(up.speed||0))}</b><br>🛡️ Strongholds <b>${pc(F.armor*(up.armor||0))}</b> · 🌾 Supply <b>${pc(F.stamina*(up.stamina||0))}</b> · 📯 Recruiting <b>${pc(F.aura*(up.aura||0))}</b>`; }
   const hc=$('forgeHero').getContext('2d'); hc.clearRect(0,0,220,220); hc.drawImage(makeUnitSprite('general',0,up.weapon||0),0,0,220,220);
 }
+
+// ---------- 🎒 Quân nhu: mua bằng xu, chọn tối đa 3 món mang vào trận ----------
+function openGear(){ renderGear(); showScreen('gear'); }
+function renderGear(){ refreshXu(); const inv=save.inv, pack=save.pack, list=$('gearList'), MAX=BW.gear.slots; list.innerHTML='';
+  for(let i=pack.length-1;i>=0;i--){ if(!BW_GEAR_BY[pack[i]]) pack.splice(i,1); }
+  $('gearPack').textContent=`Packed: ${pack.length}/${MAX}.`;
+  for(const D of BW_GEAR){ const have=inv[D.id]||0, on=pack.includes(D.id);
+    const d=document.createElement('div'); d.className='fcard'+(on?' on':''); d.dataset.gear=D.id;
+    d.innerHTML=`<div class="fi">${artIcon('item:'+D.id,D.emoji)}</div><div class="fb"><div class="fn">${D.name}<span class="own">×${have}</span></div><div class="fd">${D.desc}</div></div>`;
+    const col=document.createElement('div'); col.className='gbtns';
+    const bBuy=document.createElement('button'); bBuy.className='btn'; bBuy.dataset.buy=D.id; bBuy.innerHTML=`${artIcon('ui:coin','🪙')} ${D.cost}`; bBuy.disabled=(save.xu||0)<D.cost||have>=99;
+    bBuy.onclick=()=>{ if((save.xu||0)<D.cost||(inv[D.id]||0)>=99) return; save.xu-=D.cost; inv[D.id]=(inv[D.id]||0)+1; if(!pack.includes(D.id)&&pack.length<MAX) pack.push(D.id); Save.set(save); audio.init(); audio.pickup(); renderGear(); };
+    const bPack=document.createElement('button'); bPack.className='btn'+(on?' on':''); bPack.dataset.pack=D.id; bPack.textContent= on? '✔ Packed' : 'Pack'; bPack.disabled= !on&&(have<=0||pack.length>=MAX);
+    bPack.onclick=()=>{ const i=pack.indexOf(D.id); if(i>=0) pack.splice(i,1); else if((inv[D.id]||0)>0&&pack.length<MAX) pack.push(D.id); Save.set(save); audio.init(); audio.click(); renderGear(); };
+    col.appendChild(bBuy); col.appendChild(bPack); d.appendChild(col); list.appendChild(d); } }
 
 // ---------- Bộ art ----------
 function renderArtGrid(){
@@ -395,9 +418,13 @@ function rotSync(){ const r=$('rotate'); if(!r) return; const h=(getComputedStyl
 function rotateHint(show){ const r=$('rotate'); clearTimeout(G._rotT); r.classList.remove('off'); if(show) G._rotT=setTimeout(()=>{ r.classList.add('off'); rotSync(); },6000); rotSync(); }
 function startBigWar(lv){
   lv=Math.max(1,Math.min(BW_LEVELS.length,lv||1));
-  G.lastBwCfg=Object.assign({},G.bwCfg||{}); G.bw=new BigWar(lv, G.bwCfg||{}); G.bw.autoMenu=false; G.bw.lv=lv; G.world=null; G.paused=false; G.resultShown=false; G.sel.clear(); G.bwCfg=null;
+  { const cf=G.bwCfg||(G.bwCfg={}); if(cf.p2p) delete cf.up; else cf.up=Object.assign({},save.up); }   // ⚒️ Lò rèn: chỉ trận một người chơi (P2P hai bên phải ngang nhau)
+  G.lastBwCfg=Object.assign({},G.bwCfg||{}); G.bw=new BigWar(lv, G.bwCfg||{}); G.bw.autoMenu=false;
+  G.bw.gearSetup(save.pack.filter(id=>(save.inv[id]||0)>0), {stock:(id)=>save.inv[id]||0, spend:(id)=>{ save.inv[id]=Math.max(0,(save.inv[id]||0)-1); Save.set(save); }});   // 🎒 quân nhu mang theo (P2P: gearSetup tự bỏ qua)
+  G.bw.onCoin=(n)=>{ save.xu=(save.xu||0)+n; Save.set(save); refreshXu(); if(!saveDue) saveDue=performance.now(); };   /* 🪙 xu theo mốc ở Quần Hùng: xu vào túi ngay, và ván được lưu ngay sau đó (không thể thoát game để "hạ lại" cùng một nước lấy xu lần nữa) */
+  G.bw.lv=lv; G.world=null; G.paused=false; G.resultShown=false; G.sel.clear(); G.bwCfg=null;
   document.body.classList.remove('mini');
-  ['menu','levels','help','pause','result'].forEach(id=>$(id).classList.add('hidden'));
+  ['menu','levels','help','pause','result','forge','gear','artscr'].forEach(id=>$(id).classList.add('hidden'));
   $('hud').classList.add('hidden'); $('bwbar').classList.remove('hidden'); $('ask').classList.add('hidden'); $('civPick').classList.add('hidden'); $('bossPick').classList.add('hidden');
   $('bwRetry').style.display= G.bw.cfg&&G.bw.cfg.p2p? 'none':''; rotateHint(true); // băng "xoay ngang" chỉ hiện 6 giây đầu trận rồi nhường chỗ cho bản đồ
 }
@@ -424,7 +451,7 @@ function showBwResult(){
   $('rSub').textContent= bw.royale? (win? `The whole realm belongs to ${meC.icon} ${meC.name} — every nation has fallen!` : 'Your last camp has fallen — the realm belongs to others...') : (win? `${meC.icon} ${meC.name} has defeated ${enC.icon} ${enC.name}!` : `${enC.icon} ${enC.name} has taken our last camp...`);
   const xu=Math.round(bw.stats.eat/40 + bw.stats.win*4 + (win? 30+18*lv : 8));
   save.xu=(save.xu||0)+xu; if(win){ save.bwMax=Math.max(save.bwMax||1,lv+1); } Save.set(save); refreshXu();
-  $('rStats').innerHTML=`<div>⏱️ Time: <b>${fmt(bw.time)}</b></div><div>🤝 Defected to you: <b>${bw.stats.eat}</b> troops</div><div>⚔️ Battles won: <b>${bw.stats.win}</b></div><div>💥 Armies routed: <b>${bw.stats.lose}</b></div><div>👥 Peak strength: <b>${bw.stats.peak}</b></div><div>🪙 Coins earned: <b>+${xu}</b></div>`;
+  $('rStats').innerHTML=`<div>⏱️ Time: <b>${fmt(bw.time)}</b></div><div>🤝 Defected to you: <b>${bw.stats.eat}</b> troops</div><div>⚔️ Battles won: <b>${bw.stats.win}</b></div><div>💥 Armies routed: <b>${bw.stats.lose}</b></div><div>👥 Peak strength: <b>${bw.stats.peak}</b></div><div>🪙 Coins earned: <b>+${xu}</b>${bw.stats.coins? ` <span style="opacity:.8">(+${bw.stats.coins} paid during play)</span>` : ''}</div>`;
   $('rXu').innerHTML='';
   const solo1v1=!bw.royale&&!(bw.cfg&&bw.cfg.p2p);
   const next= solo1v1 && win && lv<BW_LEVELS.length;

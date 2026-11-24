@@ -137,9 +137,9 @@ BigWar.prototype.navBuild=function(){
 };
 // bảng "thời gian đi qua 1 ô" cho một hồ sơ di chuyển: chữ đầu F/H/R, thêm 'f' = đi rừng thạo, 'm' = leo núi thạo (thế mạnh của một số nền văn minh)
 BigWar.prototype.navCost=function(key){ const N=this.nav||this.navBuild(); if(N.cost[key]) return N.cost[key];
-  const base=BW.mv[key[0]]||BW.mv.F, fOK=key.indexOf('f')>0, mOK=key.indexOf('m')>0, c=new Float32Array(N.n);
+  const base=BW.mv[key[0]]||BW.mv.F, fOK=key.indexOf('f')>0, mOK=key.indexOf('m')>0, wOK=key.indexOf('w')>0, c=new Float32Array(N.n);
   for(let i=0;i<N.n;i++){ const t=BW.TER[N.ter[i]]; let m=base[t]; if(t==='forest'&&fOK) m=Math.max(m,0.9); if(t==='mountain'&&mOK) m=Math.max(m,0.8);
-    if(N.flag[i]===1) m=0; else if(N.flag[i]===4) m=Math.max(m,1)*BW.roadBoost;
+    if(N.flag[i]===1) m= wOK? (base.river||0.7)*0.8 : 0; else if(N.flag[i]===4) m=Math.max(m,1)*BW.roadBoost;   /* nước sâu: cấm, trừ khi có ván cầu (đi chậm hơn bến sông một chút) */
     c[i]= m>0? 1/m : Infinity; }
   return N.cost[key]=c; };
 // (5.1) VÙNG LIÊN THÔNG cho từng hồ sơ di chuyển (tính một lần): hỏi "có tới được không" chỉ còn là so hai con số,
@@ -159,11 +159,13 @@ BigWar.prototype.navNearest=function(C,x,y,maxRing){ const N=this.nav, cx=Math.m
   return best; };
 // hồ sơ di chuyển của một đạo quân / đội quân trong cứ điểm
 const MV_PROF={F:['F','Ff','Fm','Ffm'],H:['H','Hf','Hm','Hfm'],R:['R','Rf','Rm','Rfm']};   // tên hồ sơ lấy từ bảng có sẵn (không ghép chuỗi mỗi lần hỏi)
-BigWar.prototype.mvProfile=function(a){ const cav=a.type==='cavalry', k=(cav||a.count>=BW.bigArmy)? 'H' : a.type==='assassin'? 'R' : 'F';
-  const cv=this.civOf? this.civOf(a.owner) : null; if(cv&&cv.pass&&!cav) return MV_PROF[k][(cv.pass.indexOf('f')>=0? 1:0)+(cv.pass.indexOf('m')>=0? 2:0)];
-  return k; };
+const MV_PROF_W={}; for(const b in MV_PROF) MV_PROF_W[b]=MV_PROF[b].map(k=>k+'w');           // (5.2) 🪵 ván cầu: thêm 'w' = lội sông ở đâu cũng được
+BigWar.prototype.mvProfile=function(a){ const cav=a.type==='cavalry', k=(cav||a.count>=BW.bigArmy)? 'H' : a.type==='assassin'? 'R' : 'F', T= a.plankT>0? MV_PROF_W : MV_PROF;
+  const cv=this.civOf? this.civOf(a.owner) : null; if(cv&&cv.pass&&!cav) return T[k][(cv.pass.indexOf('f')>=0? 1:0)+(cv.pass.indexOf('m')>=0? 2:0)];
+  return T[k][0]; };
 BigWar.prototype.mvSpeed=function(a,key){ const C=this.navCost(key), c=C[this.navCell(a.x,a.y)]; const m= c<1e9? 1/c : 0.4; // lỡ đứng trong vùng cấm: lết ra với 40% tốc độ
   const cv=this.civOf? this.civOf(a.owner) : null; let k=1; if(cv){ if(cv.spd&&!(cv.spdType&&cv.spdType!==a.type)) k*=cv.spd; if(cv.road&&this.nav.flag[this.navCell(a.x,a.y)]===4) k*=cv.road; }
+  if(a.teaT>0) k*=BW.gear.teaMul; if(this.up) k*=this.upMul('speed',a.owner);   /* 🍵 trà gừng · ⚒️ lò rèn (Speed) */
   return BW.speed*m*(BW.typeSpeed[a.type]||1)*k*BW.sizeSpd(a.count); };   // đại quân đi chậm hơn (src/09d_supply.js)
 
 // ---- A*: trả {pts:[[x,y]...] (không gồm điểm xuất phát), ok (tới đúng đích?), cost (quãng đường quy đổi theo thời gian)} ----
@@ -210,7 +212,7 @@ BigWar.prototype.findPath=function(key,x0,y0,x1,y1){
 };
 // thời gian hành quân ước tính (giây) theo đường đi thật — AI dùng để hợp đồng tác chiến
 BigWar.prototype.pathEta=function(src,tx,ty){ const key=this.mvProfile(src), P=this.findPath(key,src.x,src.y,tx,ty); const c=P.cost<1e9? P.cost : hyp(tx-src.x,ty-src.y)*1.6;
-  return c/(BW.speed*(BW.typeSpeed[src.type]||1)*BW.sizeSpd(src.count)); };
+  return c/(BW.speed*(BW.typeSpeed[src.type]||1)*BW.sizeSpd(src.count)*(this.up? this.upMul('speed',src.owner) : 1)); };   /* ⚒️ Lò rèn (Speed): dự báo thời gian đi cũng nhanh lên theo */
 // đích có vào được không? (để báo cho người chơi ngay khi ra lệnh)
 BigWar.prototype.canReach=function(src,tx,ty){ const key=this.mvProfile(src), C=this.navCost(key), CP=this.navComp(key), g=this.navCell(tx,ty); let s0=this.navCell(src.x,src.y), ok= C[g]<1e9;
   if(ok){ if(!(C[s0]<1e9)) s0=this.navNearest(C,src.x,src.y,16); ok= s0>=0&&CP[s0]===CP[g]; }                 /* cùng vùng liên thông = có lối (không cần dò đường) */

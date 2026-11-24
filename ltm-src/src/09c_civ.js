@@ -96,7 +96,7 @@ BigWar.prototype.civOf=function(fid){ return (this.civs&&this.civs[fid])||null; 
 BigWar.prototype.natName=function(fid){ const cv=this.civOf(fid); return cv? cv.name : (fid===2? 'Neutral' : 'Nation '+fid); };
 BigWar.prototype.natTag=function(fid){ const cv=this.civOf(fid); return cv? cv.icon+' '+cv.name.toUpperCase() : 'NATION '+fid; };
 // hệ số sát thương theo văn minh: binh chủng sở trường + địa hình sở trường
-BigWar.prototype.civAtk=function(owner,type,ter){ const cv=this.civOf(owner); if(!cv) return 1; return (type===cv.sig? cv.atk : 1)*(cv.ter&&cv.ter===ter? 1.15 : 1); };
+BigWar.prototype.civAtk=function(owner,type,ter){ const cv=this.civOf(owner), up= this.up? this.upMul('atk',owner) : 1; if(!cv) return up; return (type===cv.sig? cv.atk : 1)*(cv.ter&&cv.ter===ter? 1.15 : 1)*up; };   /* ×Lò rèn (Power + Weapon) cho người chơi */
 // loại quân một phe sinh ra ở trại / đội quân thứ i lúc khai trận
 BigWar.prototype.civType=function(fid,i){ const cv=this.civOf(fid); if(!cv) return BW_TYPES[(i||0)%BW_TYPES.length]; if(i==null) return cv.sig; return cv.roster[[0,1,0,2][i%4]]; };
 // dự báo tương quan khi đạo quân kiểu `ta` của ta đánh kiểu `tb` tại địa hình ter: >1 có lợi
