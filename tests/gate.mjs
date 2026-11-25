@@ -18,7 +18,7 @@ if(!(await up())){ spawn('python3',['-m','http.server','8766'],{cwd:'/tmp/solo',
 const exists=(f)=>fs.existsSync(ROOT+'test/'+f);
 const LIST=[
   ['soát mã bị nuốt vào chú thích + cú pháp','lint_swallow.mjs','exit',60],
-  ['luật chơi (345 tình huống)','rules.mjs','rules',480,0,1],        // nặng CPU: chạy riêng ở chặng 2
+  ['luật chơi (350 tình huống)','rules.mjs','rules',480,0,1],        // nặng CPU: chạy riêng ở chặng 2
   ['bố cục HUD mọi cỡ máy','audit_layout.mjs','exit',420],
   ['luồng người chơi','gate_flows.mjs','exit',240],
   ['điều khiển cảm ứng trong trận','gate_touch.mjs','exit',300],

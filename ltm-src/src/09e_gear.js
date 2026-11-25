@@ -91,7 +91,7 @@ BigWar.prototype.drawGearHud=function(c,L,tm){ this._gearBtn=null; this._gearMen
   const FONT='"Baloo 2",system-ui', R=L.rally, bx=R.x+R.w+8, by=R.y, bs=R.w; this._gearBtn={x:bx,y:by,w:bs,h:bs};
   const GR=this.gear, ready=GR.some(g=>g.cd<=0&&this.gearStock(g.id)>0);
   c.globalAlpha=this.gearOpen?1:0.85; c.fillStyle=this.gearOpen?'rgba(255,213,74,0.95)':'rgba(30,24,54,0.85)'; c.strokeStyle= ready? 'rgba(125,255,207,0.9)' : 'rgba(255,255,255,0.3)'; c.lineWidth=2; rr(c,bx,by,bs,bs,24); c.fill(); c.stroke();
-  c.textAlign='center'; c.font='24px system-ui'; c.fillStyle='#fff'; c.fillText('🎒',bx+bs/2,by+33); c.globalAlpha=1;
+  { const bim=ArtImages['ui:bag']; if(bim) c.drawImage(bim,bx+bs*0.12,by+bs*0.1,bs*0.76,bs*0.76); else { c.textAlign='center'; c.font='24px system-ui'; c.fillStyle='#fff'; c.fillText('🎒',bx+bs/2,by+33); } } c.globalAlpha=1;   /* 🎒 (5.6) ảnh ba lô do ChatGPT vẽ */
   if(!this.gearOpen) return;
   // các dòng của bảng: [chỉ số món | -1 = đóng | -2 = dòng nhắc, tên, dòng phụ, chữ bên phải, dùng được?]
   const rows=[]; for(let i=0;i<GR.length;i++){ const g=GR[i], D=BW_GEAR_BY[g.id], st=this.gearStock(g.id); rows.push([i,D.name,BW_GEAR_SHORT[g.id]||'', g.cd>0? '⏳ '+Math.ceil(g.cd)+'s' : '×'+st, g.cd<=0&&st>0, g.id]); }

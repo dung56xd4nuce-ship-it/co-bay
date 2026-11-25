@@ -48,6 +48,28 @@ const ART_LIST = [
   ['P06','prop:tent','props/tent.png','prop','Tent (white canvas)'],
   ['P07','prop:station','props/station.png','prop','Supply depot rice sacks & pots'],
   ['P08','drum','props/drum.png','prop','War Drum of Chaos'],
+  ['P09','prop:cart','props/cart.png','prop','Supply ox-cart'],
+  ['P10','prop:granary','props/granary.png','prop','Granary'],
+  ['P11','prop:ranch','props/ranch.png','prop','Ranch'],
+  ['P12','prop:trainyard','props/trainyard.png','prop','Training ground'],
+  // (5.6) đồ trang trí trại — mua bằng xu ở Armory → Camp decor
+  ['DBONSAI','decor:bonsai','decor/bonsai.png','decor','Bonsai pot'],
+  ['DLIONS','decor:lions','decor/lion.png','decor','Stone guardian lion'],
+  ['DKOI','decor:koipond','decor/koipond.png','decor','Koi pond'],
+  ['DCAT','decor:luckycat','decor/luckycat.png','decor','Lucky cat'],
+  ['DDRUM','decor:drumtower','decor/drumtower.png','decor','War drum tower'],
+  ['DCOIN','decor:coinstatue','decor/coinstatue.png','decor','Meme Coin statue'],
+  ['DELEPH','decor:elephant','decor/elephant.png','decor','War elephant statue'],
+  ['DDRAGON','decor:dragonstatue','decor/dragonstatue.png','decor','Jade dragon statue'],
+  ['DGATE','decor:gate','decor/gate.png','decor','Festival gate'],
+  ['DLAMP','decor:stonelamp','decor/stonelamp.png','decor','Stone lantern'],
+  ['DSHRINE','decor:shrine','decor/shrine.png','decor','Little shrine'],
+  ['DCHEST','decor:treasure','decor/treasure.png','decor','Treasure hoard'],
+  ['DPAGODA','decor:pagoda','decor/pagoda.png','decor','Grand pagoda'],
+  ['DPHOENIX','decor:phoenix','decor/phoenix.png','decor','Golden phoenix'],
+  ['DTOWER','decor:watchtower','decor/watchtower.png','decor','Watch tower'],
+  ['DBARREL','decor:barrels','decor/barrels.png','decor','Rice wine barrels'],
+  ['DWARRIOR','decor:warrior','decor/warrior.png','decor','Stone warrior statue'],
   // Giao diện
   ['S01','struct:village','struct/village.png','prop','Village'],
   ['S02','struct:fort','struct/fort.png','prop','Small fort'],
@@ -66,7 +88,7 @@ const ART_LIST = [
   ['F06','fx:leaves','fx/leaves.png','prop','Ambush leaves'],
   ['F07','fx:splash','fx/splash.png','prop','River splash'],
   ['F09','fx:swords','fx/swords.png','prop','Crossed swords'],
-  ['G01','ui:logo','ui/logo.png','logo','LOAN THE MEME logo'],
+  ['G01E','ui:logo','ui/logo_en.png','logo','LOAN THE MEME logo'],
   ['G02','ui:menubg','ui/menu_bg.png','bg','Main menu background'],
   ['G03','ui:general','ui/icon_general.png','icon','General button'],
   ['G04','ui:army','ui/icon_army.png','icon','All troops button'],
@@ -79,13 +101,14 @@ const ART_LIST = [
   ['G11','ui:forge','ui/icon_forge.png','icon','Forge (anvil & hammer)'],
   ['G12','ui:coin','ui/coin.png','icon','Meme Coin'],
   ['G13','ui:flag','ui/white_flag.png','icon','White flag of surrender'],
+  ['G23','ui:bag','ui/icon_bag.png','icon','Supplies backpack'],
   ['G14','up:speed','ui/up_speed.png','icon','Speed upgrade'],
   ['G15','up:power','ui/up_power.png','icon','Power upgrade'],
   ['G16','up:armor','ui/up_armor.png','icon','Armor upgrade'],
   ['G17','up:stamina','ui/up_stamina.png','icon','Stamina upgrade'],
   ['G18','up:aura','ui/up_aura.png','icon','Aura upgrade'],
-  ['G19','ui:win','ui/banner_win.png','logo','VICTORY banner'],
-  ['G20','ui:lose','ui/banner_lose.png','logo','DEFEAT banner'],
+  ['G19E','ui:win','ui/banner_win_en.png','logo','VICTORY banner'],
+  ['G20E','ui:lose','ui/banner_lose_en.png','logo','DEFEAT banner'],
 ].map(([code,key,file,kind,name])=>({code,key,file,kind,name}));
 const ART_BY_KEY = Object.fromEntries(ART_LIST.map(a=>[a.key,a]));
 const ArtUrls = {};
@@ -145,8 +168,8 @@ async function processArtFile(file, a){
     const bw=x1-x0+1, bh=y1-y0+1;
     if(a.kind==='logo'){ out=document.createElement('canvas'); out.width=bw; out.height=bh; out.getContext('2d').drawImage(tmp,x0,y0,bw,bh,0,0,bw,bh); }
     else { out=document.createElement('canvas'); out.width=out.height=S; const c=out.getContext('2d');
-      const fill = a.kind==='unit'? 0.9 : a.kind==='prop'? 0.94 : 0.86; const sc=Math.min(S*fill/bw, S*fill/bh); const dw=bw*sc, dh=bh*sc;
-      const dx=(S-dw)/2, dy= (a.kind==='unit'||a.kind==='prop')? S*0.97-dh : (S-dh)/2; c.drawImage(tmp,x0,y0,bw,bh,dx,dy,dw,dh); }
+      const fill = a.kind==='unit'? 0.9 : (a.kind==='prop'||a.kind==='decor')? 0.94 : 0.86; const sc=Math.min(S*fill/bw, S*fill/bh); const dw=bw*sc, dh=bh*sc;
+      const dx=(S-dw)/2, dy= (a.kind==='unit'||a.kind==='prop'||a.kind==='decor')? S*0.97-dh : (S-dh)/2; c.drawImage(tmp,x0,y0,bw,bh,dx,dy,dw,dh); }
   }
   URL.revokeObjectURL(url);
   return await new Promise(res=>out.toBlob(b=>res(b),'image/png'));

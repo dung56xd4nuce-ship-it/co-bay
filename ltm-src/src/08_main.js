@@ -1,5 +1,5 @@
 // Ảnh có chữ tiếng Việt (logo, băng rôn thắng/thua) tạm ẩn ở bản quốc tế — dùng chữ tiếng Anh cho đến khi có art tiếng Anh
-const VN_TEXT_ART={'ui:logo':1,'ui:win':1,'ui:lose':1};
+const VN_TEXT_ART={};   /* (5.6) logo và băng VICTORY/DEFEAT tiếng Anh do ChatGPT vẽ đã có trong game */
 function artOK(k){ return !!ArtUrls[k] && (!VN_TEXT_ART[k] || !!(ArtImages[k]&&ArtImages[k]._user)); }   /* ảnh chữ Việt có sẵn thì ẩn; người chơi tự nạp bản tiếng Anh (G01E/G19E/G20E) qua "Art pack" thì dùng ngay */
 // ============ Giao diện, điều khiển, vòng lặp ============
 const $=(id)=>document.getElementById(id);
@@ -222,7 +222,7 @@ function showResult(){
   const w=G.world, r=w.result, me=w.factions[w.player]; G.resultShown=true;
   const win=r.winner===w.player, draw=r.winner<0; const lvl= typeof G.level==='number'? G.level : 0;
   $('rTitle').textContent= win? '🎉 VICTORY!' : draw? '🤝 DRAW' : '💀 DEFEAT';
-  const bk= win? 'ui:win' : (!draw? 'ui:lose':null); if(bk && artOK(bk)) $('rTitle').innerHTML=`<img src="${ArtUrls[bk]}" style="max-width:min(70vw,460px);max-height:17vh">`;
+  const bk= win? 'ui:win' : (!draw? 'ui:lose':null); if(bk && artOK(bk)) $('rTitle').innerHTML=`<img src="${ArtUrls[bk]}" style="max-width:min(70vw,460px);max-height:max(17vh,96px)">`;
   $('rTitle').style.color= win? '#ffd54a' : draw? '#e5e7eb':'#f87171';
   $('rSub').textContent= r.how==='last'? (win?'Every other faction has been eliminated!':'You have been eliminated') : r.how==='surrender'? (win?'The enemy has surrendered to you!':'Your faction has surrendered') : win? (r.how==='drum'? 'The War Drum of Chaos sounds for your faction!' : 'Time\'s up — you held the Drum the longest!') : draw? 'Factions held the Drum equally' : `${FACTIONS[r.winner].name} claimed the War Drum of Chaos`;
   $('rStats').innerHTML=`<div>⏱️ Time: <b>${fmt(r.time)}</b></div><div>🥁 Drum held: <b>${Math.floor(me.holdTotal)}s</b></div><div>➕ Recruited: <b>${me.stats.recruited}</b></div><div>🏳️ Converted: <b>${me.stats.converted}</b></div><div>⚔️ Kills: <b>${me.stats.kills}</b></div><div>🌫️ Tiles revealed: <b>${me.stats.opened}</b></div>`;
@@ -346,10 +346,10 @@ function renderForge(){
 // ---------- 🎒 Quân nhu: mua bằng xu, chọn tối đa 3 món mang vào trận ----------
 function openGear(){ renderGear(); showScreen('gear'); }
 // 🏮 (5.5) TRANG TRÍ TRẠI: mua một lần bằng xu, bật/tắt tuỳ thích; bản xem trước vẽ đúng như trong trận
-function decorState(){ const d=save.decor||(save.decor={own:{},on:[]}); if(!d.own) d.own={}; if(!Array.isArray(d.on)) d.on=[]; d.on=d.on.filter(id=>d.own[id]&&BW_DECOR_BY[id]); return d; }
-function renderDecor(){ refreshXu(); const D=decorState(), list=$('decList'); list.innerHTML=''; $('decOn').textContent=`On: ${D.on.length}/${BW_DECOR.length}.`;
-  for(const it of BW_DECOR){ const own=!!D.own[it.id], on=D.on.includes(it.id), d=document.createElement('div'); d.className='fcard'+(on?' on':''); d.dataset.decor=it.id;
-    d.innerHTML=`<div class="fi">${it.emoji}</div><div class="fb"><div class="fn">${it.name}${own? '<span class="own">owned</span>' : ''}</div><div class="fd">${it.desc}</div></div>`;
+function decorState(){ const d=save.decor||(save.decor={own:{},on:[]}); if(!d.own) d.own={}; if(!Array.isArray(d.on)) d.on=[]; d.on=d.on.filter(id=>d.own[id]&&BW_DECOR_BY[id]&&BW.decorAvail(BW_DECOR_BY[id])); return d; }
+function renderDecor(){ refreshXu(); const D=decorState(), list=$('decList'); list.innerHTML=''; $('decOn').textContent=`On: ${D.on.length}/${BW_DECOR.filter(BW.decorAvail).length}.`;
+  for(const it of BW_DECOR.filter(BW.decorAvail).slice().sort((a,b)=>a.cost-b.cost)){ const own=!!D.own[it.id], on=D.on.includes(it.id), d=document.createElement('div'); d.className='fcard'+(on?' on':''); d.dataset.decor=it.id;
+    d.innerHTML=`<div class="fi">${it.img&&ArtUrls[it.img]? `<img src="${ArtUrls[it.img]}" alt="" style="width:100%;height:100%;object-fit:contain">` : it.emoji}</div><div class="fb"><div class="fn">${it.name}${own? '<span class="own">owned</span>' : ''}</div><div class="fd">${it.desc}</div></div>`;
     const b=document.createElement('button'); b.className='btn'; b.dataset.dec=it.id;
     if(!own){ b.innerHTML=`${artIcon('ui:coin','🪙')} ${it.cost}`; b.disabled=(save.xu||0)<it.cost; b.onclick=()=>{ if((save.xu||0)<it.cost) return; save.xu-=it.cost; D.own[it.id]=1; D.on.push(it.id); Save.set(save); audio.coin&&audio.coin(); renderDecor(); }; }
     else { b.textContent= on? '✔ On' : 'Off'; if(on) b.style.background='linear-gradient(#c8f7c5,#4ade80)'; b.onclick=()=>{ audio.click(); const i=D.on.indexOf(it.id); if(i>=0) D.on.splice(i,1); else D.on.push(it.id); Save.set(save); renderDecor(); }; }
@@ -509,7 +509,7 @@ function showBwResult(){
   const bw=G.bw, r=bw.result; G.resultShown=true; if(bw.royale){ try{ localStorage.removeItem(RSAVE); }catch(e){} } else if(!(bw.cfg&&bw.cfg.p2p)) soloClear(); const win=r.win; const lv=bw.lv; $('stageIntro').classList.add('hidden');
   $('rTitle').textContent= win? '🎉 VICTORY!' : '💀 DEFEAT';
   $('rTitle').style.color= win? '#ffd54a' : '#f87171';
-  const bk= win? 'ui:win':'ui:lose'; if(artOK(bk)) $('rTitle').innerHTML=`<img src="${ArtUrls[bk]}" style="max-width:min(70vw,460px);max-height:17vh">`;
+  const bk= win? 'ui:win':'ui:lose'; if(artOK(bk)) $('rTitle').innerHTML=`<img src="${ArtUrls[bk]}" style="max-width:min(70vw,460px);max-height:max(17vh,96px)">`;
   const meC=bw.civOf(bw.localFid), enC=bw.civOf(bw.localFid===0?1:0);
   $('rSub').textContent= bw.royale? (win? `The whole realm belongs to ${meC.icon} ${meC.name} — every nation has fallen!` : 'Your last camp has fallen — the realm belongs to others...') : (win? `${meC.icon} ${meC.name} has defeated ${enC.icon} ${enC.name}!` : `${enC.icon} ${enC.name} has taken our last camp...`);
   const xu=Math.round(bw.stats.eat/40 + bw.stats.win*4 + (win? 30+18*lv : 8));

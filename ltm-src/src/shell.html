@@ -127,6 +127,7 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
 .acell b{color:var(--gold)}
 .agroup{grid-column:1/-1;font-weight:800;font-size:14px;margin-top:6px;color:#ffe6a0}
 .logo img{max-width:min(80vw,640px);max-height:38vh;-webkit-text-stroke:0}
+@media (orientation:portrait) and (max-height:640px){ .logo img{max-height:27vh} }   /* (5.6) logo ảnh cao hơn logo chữ cũ: máy dọc thấp (320×568) không cho đẩy dòng xu xuống dưới băng "xoay ngang" */
 /* screens */
 .screen{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;background:radial-gradient(ellipse at 50% 30%,rgba(70,40,120,.55),rgba(10,6,25,.92));z-index:10;box-sizing:border-box;padding:calc(10px + var(--safe-t)) calc(12px + var(--safe-r)) calc(10px + max(var(--safe-b), var(--rot-h, 0px))) calc(12px + var(--safe-l))}
 #menuBg{position:absolute;inset:0;width:100%;height:100%}

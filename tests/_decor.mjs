@@ -1,7 +1,7 @@
 import { chromium } from 'playwright';
 const b=await chromium.launch(); const p=await (await b.newContext({viewport:{width:900,height:420},deviceScaleFactor:2,isMobile:true,hasTouch:true})).newPage(); await p.addInitScript(()=>{ try{ localStorage.setItem('ltm_tut','1'); }catch(e){} });
 await p.goto('http://localhost:8766/index.html'); await p.waitForFunction(()=>window.__ltm); await p.waitForTimeout(600);
-for(const [tag,on] of [['all',['banners','lanterns','blossom','gold','fireworks','dragon']],['a',['banners','gold']],['b',['lanterns','blossom']],['c',['dragon','fireworks']]]){
-  await p.evaluate((on)=>{ save.decor={own:{banners:1,lanterns:1,blossom:1,gold:1,fireworks:1,dragon:1},on}; Save.set(save); openGear(); document.getElementById('bToDecor').click(); const cv=document.getElementById('decPrev'); cv.style.width='460px'; cv.style.height='400px'; },on);
-  await p.waitForTimeout(1300); await (await p.$('#decPrev')).screenshot({path:`/tmp/shots/d-${tag}.png`}); }
-await b.close();
+for(const [tag,on,map] of [['a',['pagoda','phoenix','watchtower','shrine','stonelamp','treasure','barrels','warrior','koipond','luckycat','lions'],4],['b',['elephant','dragonstatue','drumtower','coinstatue','bonsai','gate','torches','bunting','garden','lanterns'],4]]){
+  await p.evaluate(([on,map])=>{ save.decor={own:{},on}; for(const d of BW_DECOR) save.decor.own[d.id]=1; Save.set(save); if(G.bw) stopBigWar(true); G.bwCfg={civ:'rome',map}; startBigWar(2); const bw=__ltm.bw; bw.intro=null; document.getElementById('stageIntro').classList.add('hidden'); const c0=bw.nodes.find(n=>n.camp&&n.owner===0); bw.zoom=bw.zoomTgt=1.7; const sc=bw.scale0*1.7; bw.camX=c0.x-bw.lastVw/sc/2; bw.camY=c0.y-40-bw.lastVh/sc/2; bw.time=20; window.__c0=[c0.x,c0.y]; },[on,map]);
+  await p.waitForTimeout(900); await p.evaluate(()=>{ const bw=__ltm.bw, [x,y]=window.__c0; bw.jumpT=null; bw.camDrag=null; bw.zoom=bw.zoomTgt=1.7; const sc=bw.scale0*1.7; bw.camX=Math.max(0,x-bw.lastVw/sc/2); bw.camY=y-30-bw.lastVh/sc/2; }); await p.waitForTimeout(1300); await p.screenshot({path:`/tmp/shots/d-${tag}.png`}); }
+console.log(await p.evaluate(()=>window.__c0)); await b.close();

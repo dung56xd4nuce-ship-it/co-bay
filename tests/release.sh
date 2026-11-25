@@ -17,7 +17,7 @@ sed -i "s/versionCode [0-9]*/versionCode $CODE/; s/versionName \"[^\"]*\"/versio
 git add -A
 git commit -q -m "$MSG
 
-Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_011dXpbbj7myjXTyBRigucVQ"
 git -c push.negotiate=true push -q origin loan-the-meme
 git log --oneline | head -1

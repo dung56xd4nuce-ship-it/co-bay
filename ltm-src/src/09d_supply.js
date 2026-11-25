@@ -80,6 +80,9 @@ BigWar.prototype.convoyStep=function(dt){ const CV=this.convoys; if(!CV||!CV.len
 
 // hình xe lương: xe gỗ chở bao gạo, bò kéo, cờ màu của nước mình
 BigWar.prototype.drawConvoy=function(c,cv,tm){ const pal=BW.facPal(cv.owner), flip=(cv.hx||1)<0, bob=Math.sin(tm*10+cv.x*0.013)*1.6;
+  const cim=ArtImages['prop:cart'];
+  if(cim){ c.save(); c.translate(cv.x,cv.y+bob); if(!flip) c.scale(-1,1); c.fillStyle='rgba(0,0,0,0.25)'; c.beginPath(); c.ellipse(0,20,44,11,0,0,7); c.fill(); c.drawImage(cim,-60,-92,120,120); c.restore(); }   /* 🐂 (5.6) xe bò lương do ChatGPT vẽ (ảnh gốc: bò kéo sang TRÁI) */
+  else {
   const Z=1.6; c.save(); c.translate(cv.x,cv.y+bob); c.scale(flip? -Z : Z, Z);
   c.fillStyle='rgba(0,0,0,0.25)'; c.beginPath(); c.ellipse(2,13,34,9,0,0,7); c.fill();
   c.fillStyle='#8a5a34'; rr(c,12,-12,26,17,7); c.fill(); c.beginPath(); c.arc(41,-8,7.5,0,7); c.fill();                                  // bò kéo
@@ -88,7 +91,7 @@ BigWar.prototype.drawConvoy=function(c,cv,tm){ const pal=BW.facPal(cv.owner), fl
   c.fillStyle='#b07a3f'; rr(c,-32,-10,38,15,3); c.fill(); c.strokeStyle='#5b3a1e'; c.lineWidth=2; rr(c,-32,-10,38,15,3); c.stroke();      // thùng xe
   const sack=ArtImages['prop:station']; if(sack) c.drawImage(sack,-35,-40,44,34); else { c.fillStyle='#e8d8a8'; c.beginPath(); c.ellipse(-22,-15,9,7,0,0,7); c.ellipse(-7,-15,9,7,0,0,7); c.fill(); }
   c.fillStyle='#3d2a17'; c.beginPath(); c.arc(-23,8,7.5,0,7); c.arc(-3,8,7.5,0,7); c.fill(); c.fillStyle='#caa46a'; c.beginPath(); c.arc(-23,8,2.6,0,7); c.arc(-3,8,2.6,0,7); c.fill();
-  c.restore();
+  c.restore(); }
   const fx=cv.x+(flip? 46 : -46);
   c.strokeStyle='#6b4a2f'; c.lineWidth=4; c.beginPath(); c.moveTo(fx,cv.y-10+bob); c.lineTo(fx,cv.y-78+bob); c.stroke();
   c.fillStyle=pal.color; c.beginPath(); c.moveTo(fx,cv.y-78+bob); c.lineTo(fx+28+Math.sin(tm*7)*3,cv.y-68+bob); c.lineTo(fx,cv.y-56+bob); c.closePath(); c.fill();

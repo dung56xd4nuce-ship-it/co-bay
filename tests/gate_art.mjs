@@ -35,11 +35,20 @@ for(const [lv,map,civ] of [[3,3,'rome'],[7,11,'mongol'],[10,16,'daiviet']]){
   for(const fx of [0.2,0.5,0.8]){ await p.evaluate((fx)=>{ const bw=__ltm.bw, sc=bw.scale0*bw.zoom; bw.camX=BW.W*fx-bw.lastVw/sc/2; bw.camY=BW.H*0.5-bw.lastVh/sc/2; },fx); await wait(1500); }
   const btn=await p.evaluate(()=>__ltm.bw._gearBtn); if(btn){ await T.tap(btn.x+btn.w/2,btn.y+btn.h/2); await wait(400); }
 }
+// (5.6) đội vận lương (xe bò) + đủ đồ trang trí trại: mua hết, bật hết, xem trại của ta trong trận
+await p.evaluate(()=>{ save.decor={own:{},on:[]}; for(const d of BW_DECOR){ save.decor.own[d.id]=1; save.decor.on.push(d.id); } Save.set(save); });
+await T.startBattle({map:6,civ:'rome'},2); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.lastVw>0); await wait(600);
+await p.evaluate(()=>{ const bw=__ltm.bw, c=bw.nodes.find(n=>n.camp&&n.owner===0); const a={owner:0,type:'spear',count:300,x:c.x+400,y:c.y,food:5,from:0,trail:0,camped:true,to:-1,tx:c.x+400,ty:c.y}; bw.armies.push(a); bw.convoys.push({owner:0,x:c.x+220,y:c.y+60,to:a,pct:40,hx:1,spd:1});
+  bw.zoom=bw.zoomTgt=1.2; const sc=bw.scale0*1.2; bw.jumpT=null; bw.camX=Math.max(0,c.x+60-bw.lastVw/sc/2); bw.camY=c.y-bw.lastVh/sc/2; }); await wait(2000);
+await p.evaluate(()=>{ stopBigWar(true); openGear(); document.getElementById('bToDecor').click(); }); await wait(600); await scan(); await p.evaluate(()=>showScreen('menu')); await wait(200);
 // Quần Hùng
 await T.startBattle({royale:36,seed:61,map:1,civ:'rome'},5); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.lastVw>0); await wait(800);
 for(const z of [1,2,0.5]){ await p.evaluate((z)=>{ const bw=__ltm.bw; bw.zoom=bw.zoomTgt=z; },z); await wait(2500); }
 for(const fx of [0.15,0.5,0.85]){ await p.evaluate((fx)=>{ const bw=__ltm.bw, sc=bw.scale0*bw.zoom; bw.camX=BW.W*fx-bw.lastVw/sc/2; },fx); await wait(2000); }
 await T.tapEl('#bwPause'); await wait(500); await scan(); await T.tapEl('#bResume'); await wait(300);
+// (5.6) thua một trận 1v1 → băng DEFEAT
+await p.evaluate(()=>{ const bw=__ltm.bw; bw.over=true; bw.result={win:false}; }); await wait(400); await p.evaluate(()=>{ stopBigWar(true); G.resultShown=false; G.bwCfg={map:0,civ:'rome'}; startBigWar(1); const bw=__ltm.bw; bw.over=true; bw.result={win:false}; }); await wait(2200); await scan(); await p.evaluate(()=>{ document.getElementById('result').classList.add('hidden'); stopBigWar(true); }); await wait(200);
+await T.startBattle({royale:36,seed:61,map:1,civ:'rome'},5); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.lastVw>0); await wait(800);
 // thắng trận → màn kết quả
 await p.evaluate(()=>{ const bw=__ltm.bw; for(const n of bw.nodes) n.owner=bw.localFid; bw.armies.length=0; bw.checkVictory(); }); await wait(2500); await scan();
 const out=await p.evaluate(()=>{ const res=[], L=(typeof ART_LIST!=='undefined'? ART_LIST : []).map(a=>Array.isArray(a)? {code:a[0],key:a[1],name:a[4]} : a); for(const a of L){ const im=ArtImages[a.key]; res.push({code:a.code,key:a.key,name:a.name,have:!!im,canvas:!!(im&&window.__used.has(im)),dom:window.__dom.has(a.key)}); }

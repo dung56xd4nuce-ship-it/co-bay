@@ -1502,6 +1502,7 @@ class BigWar{
       if(n.eco){ const ecol= n.eco==='farm'? '#eab308' : '#60a5fa';
         c.globalAlpha=0.1; c.fillStyle=ecol; c.beginPath(); c.ellipse(n.x,n.y+14,118,54,0,0,7); c.fill(); c.globalAlpha=0.4;
         const tag= n.eco==='farm'? '🐂 Ranch' : n.eco==='granary'? '🌾 Granary' : '⚒️ Training Ground';
+        { const bim=ArtImages[n.eco==='farm'? 'prop:ranch' : n.eco==='granary'? 'prop:granary' : 'prop:trainyard']; if(bim){ c.globalAlpha=0.45; c.drawImage(bim,n.x-96,n.y-118,192,192); c.globalAlpha=0.4; } }
         c.font='800 20px "Baloo 2",system-ui'; c.textAlign='center'; c.lineWidth=5; c.strokeStyle='#2a1a12'; c.strokeText(tag,n.x,n.y+58); c.fillStyle='#d8d2c0'; c.fillText(tag,n.x,n.y+58); c.globalAlpha=1; }
       if(n.count>0){
         const pres=this.visAt(n.x,n.y); c.globalAlpha=pres?0.8:0.55; c.fillStyle=pres?'#3a2f55':'#2e2748'; c.beginPath(); c.ellipse(n.x,n.y,52,32,0,0,7); c.fill();
@@ -1509,10 +1510,12 @@ class BigWar{
         this.plate(c,n.x,n.y-58, n.known? '~'+n.known.count+'?' : '❓', {color:'#8b85a8',light:'#cbc6e2'}, n.known?n.known.type:'scout', 0.95); }
       return;
     }
+    if(n.owner===2&&!n.camp&&!n.eco&&n.count>0){ const wf=ArtImages['ui:flag']; if(wf){ const sw=Math.sin(tm*2+n.id)*0.05; c.save(); c.translate(n.x+52,n.y+8); c.rotate(sw); c.drawImage(wf,-24,-64,48,64); c.restore(); } }   /* 🏳️ (5.6) đồn trung lập cắm cờ trắng: quân đông hơn hẳn tới là quy thuận */
     if(n.eco){ // nền vùng kinh tế
       const ecol= n.eco==='farm'? '#eab308' : n.eco==='granary'? '#8bc34a' : '#60a5fa';
       c.globalAlpha=0.16; c.fillStyle=ecol; c.beginPath(); c.ellipse(n.x,n.y+14,118,54,0,0,7); c.fill(); c.globalAlpha=0.65;
       c.strokeStyle=ecol; c.lineWidth=3; c.setLineDash([10,7]); c.lineDashOffset=-tm*10; c.beginPath(); c.ellipse(n.x,n.y+14,118,54,0,0,7); c.stroke(); c.setLineDash([]); c.globalAlpha=1;
+      { const bim=ArtImages[n.eco==='farm'? 'prop:ranch' : n.eco==='granary'? 'prop:granary' : 'prop:trainyard']; if(bim) c.drawImage(bim,n.x-96,n.y-118,192,192); }   /* 🏡 (5.6) công trình do ChatGPT vẽ: trại nuôi · kho lương · sân tập */
       const tag= n.eco==='farm'? '🐂 Ranch' : n.eco==='granary'? ('🌾 Granary '+Math.round(n.food||0)) : '⚒️ Train '+(UNIT[n.trainType]?UNIT[n.trainType].name:'');
       c.font='800 20px "Baloo 2",system-ui'; c.textAlign='center'; c.lineWidth=5; c.strokeStyle='#2a1a12'; c.strokeText(tag,n.x,n.y+58); c.fillStyle= n.eco==='farm'? '#ffe08a':'#bfdbfe'; c.fillText(tag,n.x,n.y+58);
     }

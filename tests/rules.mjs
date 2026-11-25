@@ -1,7 +1,7 @@
 // Kiểm chứng các tình huống mục 11 ở mức luật
 import fs from 'fs';
 // lõi Đại Chiến = 09_bigwar + các phần nối dài (địa hình/đường đi, văn minh)
-const BWSRC=['09_bigwar.js','09a_terrain.js','09c_civ.js','09d_supply.js','09e_gear.js','09f_brain.js','09g_mix.js'].filter(f=>fs.existsSync('src/'+f)).map(f=>fs.readFileSync('src/'+f,'utf8')).join('\n');
+const BWSRC=['09_bigwar.js','09a_terrain.js','09c_civ.js','09d_supply.js','09e_gear.js','09f_brain.js','09g_mix.js','09h_decor.js'].filter(f=>fs.existsSync('src/'+f)).map(f=>fs.readFileSync('src/'+f,'utf8')).join('\n');
 const src = ['01_config.js','02_map.js','03_sim.js','04_ai.js'].map(f=>fs.readFileSync('src/'+f,'utf8')).join('\n');
 const M = new Function(src+'\nreturn {World, levelConfig, miniConfig, T, RULES, UNIT, NEUTRAL, PASSABLE};')();
 const {World, levelConfig, miniConfig, T, RULES, NEUTRAL, PASSABLE, UNIT}=M;
@@ -947,8 +947,8 @@ console.log(`\n${pass} đạt, ${fail} chưa đạt`);
 {
   const M52 = new Function("const audio=new Proxy({},{get:()=>()=>{}});const ArtImages={};const makeUnitSprite=()=>null;const recolorUnit=()=>null;const rr=()=>{};\n"
     + fs.readFileSync('src/01_config.js','utf8') + fs.readFileSync('src/02_map.js','utf8') + BWSRC
-    + '\nreturn {BigWar, BW, BW_GEAR, BW_GEAR_BY, UPGRADES, BW_MAPS};')();
-  const {BigWar, BW, BW_GEAR, BW_GEAR_BY, UPGRADES, BW_MAPS}=M52, G=BW.gear, hy=Math.hypot;
+    + '\nreturn {BigWar, BW, BW_GEAR, BW_GEAR_BY, UPGRADES, BW_MAPS, BW_DECOR, BW_DECOR_BY};')();
+  const {BigWar, BW, BW_GEAR, BW_GEAR_BY, UPGRADES, BW_MAPS, BW_DECOR, BW_DECOR_BY}=M52, G=BW.gear, hy=Math.hypot;
   const quiet=(bw)=>{ bw.nextAI=1e9; bw.nextAiScout=1e9; bw.nextWaveF={1:1e9}; bw._updateVision(); bw.armies.length=0; return bw; };
   const mk=(cfg,lv)=>quiet(new BigWar(lv||2,Object.assign({autoMenu:false,map:3},cfg||{})));
   // kho giả: đếm số món còn lại như phần lưu của người chơi
@@ -1264,4 +1264,15 @@ console.log(`\n${pass} đạt, ${fail} chưa đạt`);
     const A={owner:0,type:'spear',count:2000,x:n.x,y:n.y,food:100,from:0,trail:0,camped:true,to:-1,tx:n.x,ty:n.y}; bw.armies.push(A); bw.startBattle(n.x,n.y,n.ter,n.id,{fid:0,e:{kind:'army',ref:A,c0:2000}},{fid:1,e:{kind:'node',ref:n,c0:1000}},1);
     for(let i=0;i<400;i++) bw.update(0.05); ok(n.owner===1&&n.count>150, `🏰 Sau 20 giây công trại, trại vẫn còn ${Math.round(n.count)} quân — đủ thời gian cho viện binh kéo về`); }
 }
+
+// ===== (5.6) ĐỒ TRANG TRÍ TRẠI MỞ RỘNG =====
+{ const ids=BW_DECOR.map(d=>d.id), img=BW_DECOR.filter(d=>d.img), code=BW_DECOR.filter(d=>!d.img);
+  ok(BW_DECOR.length===29&&new Set(ids).size===29&&code.length===12&&img.length===17, `🏮 29 món trang trí (12 vẽ bằng mã + 17 ảnh do ChatGPT vẽ), không trùng mã`);
+  ok(img.every(d=>BW.DECOR_SLOT[d.id]&&BW.DECOR_SLOT[d.id].length>=1), '🏮 mọi món ảnh đều có chỗ đặt quanh lều');
+  ok(BW_DECOR.every(d=>d.cost>=50&&d.cost<=360)&&BW_DECOR.reduce((s,d)=>s+d.cost,0)>=4500, `🏮 giá 50–360 xu, cả bộ ${BW_DECOR.reduce((s,d)=>s+d.cost,0)} xu — đủ chỗ tiêu xu lâu dài`);
+  ok(BW.decorAvail(BW_DECOR_BY.bunting)&&!BW.decorAvail(BW_DECOR_BY.pagoda), '🏮 món ảnh chỉ bán khi ảnh đã nạp (máy thử không có ảnh: chùa chưa bán, cờ dây vẫn bán)');
+  // vẽ đủ mọi món không lỗi, cả khi trại sát mép bản đồ
+  const calls={n:0}; const fake=new Proxy({},{get:(t,k)=> k==='measureText'? ()=>({width:10}) : ()=>{ calls.n++; }, set:()=>true});
+  let err=null; try{ for(const x of [10,3000,BW.W-10]) for(const L of [0,1]) BW.drawDecor(fake,x,700,ids,12.3,L); }catch(e){ err=e; }
+  ok(!err&&calls.n>500, '🏮 vẽ cùng lúc cả 29 món (giữa bản đồ và sát hai mép) không lỗi'+(err?': '+err.message:'')); }
 }
