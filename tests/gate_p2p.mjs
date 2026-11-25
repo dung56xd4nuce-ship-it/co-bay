@@ -41,12 +41,12 @@ ok(!!mr,'khách: chọn quân → chạm đất trống → hiện menu lệnh')
 ok(await H.until(([id,tgt])=>__ltm.bw.armies.some(a=>a.owner===1&&!a.camped&&Math.hypot((a.tx??0)-tgt[0],(a.ty??0)-tgt[1])<20),[gn.id,gn.tgt],5000),'máy CHỦ: đội quân của khách đã lên đường tới điểm khách chạm');
 ok(await G.until(()=>__ltm.bw.armies.some(a=>a.owner===1),null,5000),'máy khách: thấy đội quân của mình đang đi (ảnh trạng thái từ chủ phòng)');
 // KHÁCH 📣 gọi quân (trước v5.0 lệnh này chỉ chạy trên máy khách nên vô tác dụng)
-const n0=await H.ev(()=>__ltm.bw.armies.filter(a=>a.owner===1&&a.rally).length);
+const n0=await H.ev(()=>__ltm.bw.armies.filter(a=>a.owner===1&&!a.done).length);   /* (5.4) điểm chạm có thể bắt dính vào một đồn của khách: quân kéo VÀO đồn (không mang cờ rally) — vẫn là xuất quân */
 await G.ev(()=>{ const bw=__ltm.bw, c=bw.nodes.find(n=>n.camp&&n.owner===1); bw.sel=null; bw.selA=null; bw.menu=null; const hc=bw.homeCam(c.x,c.y,bw.lastVw/bw.scale0,bw.lastVh/bw.scale0); bw.camX=hc[0]; bw.camY=hc[1]; }); await G.settle();
 const R=await G.ev(()=>__ltm.bw.hudRects()); await G.tap(R['nút 📣'].x+24,R['nút 📣'].y+24); await G.p.waitForTimeout(150);
 const rm=(await G.until(()=>{ const r=(__ltm.bw._rallyRects||[]).map(r=>[r.x+r.w/2,r.y+r.h/2]); return r.length>=4? r : null; }))||[]; if(rm.length){ await G.p.waitForTimeout(250); await G.tap(rm[3][0],rm[3][1]); await G.until(()=>!!__ltm.bw.rallyPick,null,2500);   /* (5.4) dòng thứ 3 nay là 🚑 Cứu trại; Tổng động viên là dòng thứ 4 */ await G.settle();
   const c=await G.ev(()=>{ const bw=__ltm.bw, c=bw.nodes.find(n=>n.camp&&n.owner===1); return [c.x-330,c.y+40]; }); s=await G.scr(c[0],c[1]); await G.tap(s[0],s[1]); }
-const rOk=await H.until((n)=>__ltm.bw.armies.filter(a=>a.owner===1&&a.rally).length>n,n0,5000);
+const rOk=await H.until((n)=>__ltm.bw.armies.filter(a=>a.owner===1&&!a.done).length>n,n0,5000);
 if(!rOk) console.log('   [chẩn đoán] khách:',JSON.stringify(await G.ev(()=>{ const bw=__ltm.bw; return {rallyPick:bw.rallyPick,rallyOpen:bw.rallyOpen,menu:!!bw.menu,sel:!!bw.sel,selA:!!bw.selA,notes:bw.notes.map(n=>n.text).slice(-3),texts:bw.texts.map(t=>t.s).slice(-3),hud:Object.keys(bw.hudRects())}; })),'rm',JSON.stringify(rm),'| chủ:',JSON.stringify(await H.ev(()=>{ const bw=__ltm.bw; return {t:bw.time,g:bw.nodes.filter(n=>n.owner===1).map(n=>[n.id,Math.round(n.count),n.eco||'',!!n.btl,!!n.camp]),arm:bw.armies.filter(a=>a.owner===1).map(a=>[Math.round(a.count),a.rally||0,!!a.camped]),notes:bw.notes.map(n=>n.text).slice(-3)}; })));
 ok(rOk,'khách bấm 📣 Tổng động viên → máy CHỦ cho các trại của khách xuất quân');
 // (5.2) lệnh gọi quân của KHÁCH không được lộ ra máy CHỦ: tin báo + mốc tập kết chỉ hiện trên máy khách

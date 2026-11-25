@@ -13,6 +13,7 @@ export async function launch(){ return chromium.launch(); }
 export async function open(browser,dev,opts={}){
   const ctx=await browser.newContext({...dev,...(opts.ctx||{})}); const p=await ctx.newPage(); const errs=[];
   p.on('pageerror',e=>errs.push(e.message)); p.on('console',m=>{ if(m.type()==='error'&&!/favicon|Failed to load resource/.test(m.text())) errs.push('console: '+m.text()); });
+  if(!opts.tut) await ctx.addInitScript(()=>{ try{ localStorage.setItem('ltm_tut','1'); }catch(e){} });   /* (5.5) mặc định coi như đã học xong hướng dẫn lần đầu; bài thử hướng dẫn truyền {tut:true} */
   if(opts.init) await ctx.addInitScript(opts.init);   /* mã chạy TRƯỚC mã game (ví dụ gắn máy ghi vào canvas ngay từ đầu) */
   await p.goto(opts.url||URL); await p.waitForFunction(()=>window.__ltm&&document.getElementById('menu'),null,{timeout:15000}); await p.waitForTimeout(400);
   const cdp=await ctx.newCDPSession(p);

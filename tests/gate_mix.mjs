@@ -68,6 +68,18 @@ for(const [dn,dev] of [...DEVICES, PORTRAIT[1], ['Android nhỏ ngang 640×360',
   { const vw=await T.ev(()=>[__ltm.bw.lastVw,__ltm.bw.lastVh]); await T.tap(vw[0]*0.55,vw[1]*0.5); await p.waitForTimeout(350); }   /* chạm bừa giữa màn hình, không cần trúng trại */
   st=await T.ev(()=>{ const bw=__ltm.bw, h=window.__h, as=bw.armies.filter(a=>a.owner===0&&!a.done); return {n:as.length,into:as.filter(a=>a.to===h.id).length,note:bw.notes.map(q=>q.s||q.text||'').join(' | '),pick:bw.rallyPick}; });
   ok(st.n>=1&&st.into===st.n&&/RESCUE/.test(st.note)&&!st.pick,`cứu trại: ${st.into} đạo gần nhất chạy thẳng về đồn đang bị địch kéo tới (dù chạm không trúng đồn)`);
+  // ---------- 5b) ⏱️ nhịp giao tranh nhìn từ màn hình: chênh lệch lớn → "quick rout" tan nhanh; công trại → "Siege — a long battle"
+  await fresh(); P=await pos(); await T.ev(()=>{ const t=window.__t; t.owner=1; t.type='spear'; t.count=500; t.struct=null; t.ambush=false; t.mix=null; window.__n.count=2400; window.__n.mix=null; window.__n.type='spear'; }); await look(P.mid[0],P.mid[1]);
+  await tapW(P.n[0],P.n[1]); await tapW(P.t[0],P.t[1]); R=await rects()||[]; { const g=R.find(r=>r.id==='attack'||r.id==='move'); await T.tap(g.x,g.y); } await p.waitForTimeout(250);
+  await T.ev(()=>{ const bw=__ltm.bw; let t=0; while(!bw.battles.length&&t<120){ bw.update(0.05); t+=0.05; } }); await T.hookDraw(); await p.waitForTimeout(500);
+  ok((await T.drawn(/quick rout/)).length>=1,'trên màn hình hiện dòng "⚡ ×… outnumbered — quick rout"');
+  const bt=await T.ev(()=>{ const bw=__ltm.bw, b=bw.battles[0]; if(!b) return null; const k=b.kind, t0=b.t; let d=0; while(!b.done&&d<60){ bw.update(0.05); d+=0.05; } return {k,d:d+t0,own:window.__t.owner}; });
+  ok(bt&&bt.k==='field'&&bt.d<=3.2&&bt.own===0,`2400 quân đánh đồn địch 500 quân: trận chóng vánh (${bt&&bt.d.toFixed(1)} giây), chiếm được đồn`);
+  await fresh(); const ec=await T.ev(()=>{ const c=__ltm.bw.nodes.find(n=>n.camp&&n.owner===1); return [c.x,c.y]; }); await look(ec[0],ec[1]);
+  await T.ev(()=>{ const bw=__ltm.bw, c=bw.nodes.find(n=>n.camp&&n.owner===1); c.count=1000; c.mix=null; const a={owner:0,type:'spear',count:2000,x:c.x,y:c.y+70,food:100,from:0,trail:0,camped:false,to:c.id}; bw.armies.push(a); bw.arrive(a,c); }); await T.hookDraw(); await p.waitForTimeout(500);
+  ok((await T.drawn(/Siege — a long battle/)).length>=1,'trên màn hình hiện dòng "🏰 Siege — a long battle"');
+  const sg=await T.ev(()=>{ const bw=__ltm.bw, b=bw.battles[0]; if(!b) return null; const t0=b.t; let d=0; while(!b.done&&d<120){ bw.update(0.05); d+=0.05; } return {k:b.kind,d:d+t0}; });
+  ok(sg&&sg.k==='siege'&&sg.d>=35,`2000 quân công đại bản doanh 1000 quân: trận kéo dài (${sg&&sg.d.toFixed(0)} giây)`);
   // ---------- 6) kỵ binh vào rừng được
   ok(await T.ev(()=>{ const bw=__ltm.bw; let deep=null; o: for(let x=400;x<BW.W;x+=20) for(let y=240;y<BW.H-80;y+=20){ if([[0,0],[70,0],[-70,0],[0,70],[0,-70]].every(([dx,dy])=>bw.terAt(x+dx,y+dy)==='forest')){ deep=[x,y]; break o; } } if(!deep) return true; const c0=bw.nodes.find(n=>n.camp&&n.owner===0); return bw.canReach({x:c0.x+40,y:c0.y,type:'cavalry',count:3000,owner:0},deep[0],deep[1]).ok; }),'kỵ binh 3000 quân: tới được giữa rừng (không còn chỗ cấm)');
   ok(T.errs.length===0,'không lỗi JS'+(T.errs.length?': '+T.errs[0]:'')); await T.ctx.close();

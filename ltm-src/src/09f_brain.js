@@ -81,3 +81,7 @@ BigWar.prototype.aiSnipe=function(fid,en){ const D=this.D, F=this.localFid; if(t
   if(this.armies.some(a=>a.owner===fid&&!a.done&&a.to===m.id)) return false;
   let best=null, bs=0; for(const e of en){ if(e.btl||e.eco||e.count<200) continue; const d=hyp(e.x-m.x,e.y-m.y); if(d>BW.range*1.6) continue; const est=this.aiSee(m,fid); const ra=bwResolve(e.type,Math.round(e.count*(1-D.keep)*this.aiOver()),est.type,est.count,this.defMul({...m,type:est.type}))[0]; if(ra>e.count*0.25&&ra-d*0.2>bs){ bs=ra-d*0.2; best=e; } }
   if(!best) return false; if(!this.aiSend(best,m)) return false; this._snipeT=this.time+30; this.note('🗡️ The enemy strikes at your undefended camp!',m.x,m.y,'🗡️'); audio.drum&&audio.drum(true); return true; };
+// ⏱️ (5.5) NHỊP GIAO TRANH theo yêu cầu người chơi
+BW.btl={camp:2.5, citadel:2.2, fort:1.9, village:1.6, ratioK:0.12, ratioMax:1.6, siegeT:20, siegeSz:1.2, fieldMin:2.5, fieldEven:14, fieldPow:1.3};
+BW.btlSiegeT=function(L,r,small){ const ra=Math.min(BW.btl.ratioMax,1+BW.btl.ratioK*(Math.max(1,r)-1)); return Math.max(3,Math.min(BW.btl.siegeT*L/ra, 3+Math.sqrt(Math.max(0,small))*BW.btl.siegeSz)); };   /* trại 1000 quân bị 2000 đánh ≈ 39 s · trại 50 quân ≈ 11 s */
+BW.btlFieldT=function(r){ return Math.max(BW.btl.fieldMin, Math.min(BW.btl.fieldEven, BW.btl.fieldEven/Math.pow(Math.max(1,r),BW.btl.fieldPow))); };   /* ngang sức: chỉ còn giới hạn tự nhiên theo quân số · gấp đôi ≈ 5,7 s · gấp 4 ≈ 2,5 s */

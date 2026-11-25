@@ -15,7 +15,7 @@ function startLevel(L,opts){
   if(!G.ren) G.ren=new Renderer($('game'),w); else { const r=new Renderer($('game'),w); G.ren=r; }
   const g=w.factions[0].general; G.ren.centerOn(g.x,g.y,true); G.ren.cam.z=Math.max(0.8,Math.min(1.6,G.ren.vw/(24*TS)));
   G.sel=new Set([g.id]); G.ren.selected=G.sel; G.paused=false; G.resultShown=false; G.acc=0; G.hints={}; G.hintQ=[];
-  ['menu','levels','help','pause','result','forge','gear','artscr','p2p'].forEach(id=>$(id).classList.add('hidden')); $('hud').classList.remove('hidden');
+  ['menu','levels','help','pause','result','forge','gear','decor','tutDone','artscr','p2p'].forEach(id=>$(id).classList.add('hidden')); $('hud').classList.remove('hidden');
   document.body.classList.toggle('mini', !!cfg.mini);
   drawBadge(); setupMinimap(); updateSel();
   $('toasts').innerHTML='';
@@ -240,7 +240,7 @@ function pause(on){ if(!G.world&&!G.bw) return; G.paused=on; $('pause').classLis
 function bwSetPause(on){ // P2P: dừng là dừng CẢ HAI MÁY
   if(G.bw&&G.bw.cfg&&G.bw.cfg.p2p&&typeof P2P!=='undefined'&&P2P.connected){ P2P.setPause(on); pause(on); }
   else pause(on); }
-function showScreen(id){ ['menu','levels','help','pause','result','forge','gear','artscr','p2p'].forEach(s=>$(s).classList.toggle('hidden',s!==id)); if(id==='menu'||id==='levels'||id==='forge'||id==='gear'||id==='artscr') $('hud').classList.add('hidden'); }
+function showScreen(id){ ['menu','levels','help','pause','result','forge','gear','decor','tutDone','artscr','p2p'].forEach(s=>$(s).classList.toggle('hidden',s!==id)); if(id==='menu'||id==='levels'||id==='forge'||id==='gear'||id==='artscr') $('hud').classList.add('hidden'); }
 function buildLevels(){ const grid=$('lvgrid'); grid.innerHTML=''; const max=Math.max(1,save.max||1);
   for(let L=1;L<=100;L++){ const b=document.createElement('button'); b.className='btn lv'; b.textContent=L; const avail=L<=40 && L<=max; if(save.done.includes(L)) b.classList.add('done'); if(!avail){ b.classList.add('lock'); b.textContent= L>40? '🔒' : '🔒'+L; b.title= L>40?'12-faction mode in development':'Win the previous stage to unlock'; }
     b.onclick=()=>{ audio.init(); if(avail) startLevel(L); }; grid.appendChild(b); } }
@@ -264,7 +264,8 @@ function setupMenus(){
   const max=Math.max(1,Math.min(40,save.max||1)); $('bPlay').textContent= max>1? `▶ Play Stage ${max}` : '▶ Play Stage 1';
   $('bPlay').onclick=()=>{ audio.init(); startLevel(Math.max(1,Math.min(40,save.max||1))); };
   $('bMini').onclick=()=>{ audio.init(); startLevel('mini'); };
-  $('bBW').onclick=()=>{ audio.init(); refreshContinue(); $('bossPick').classList.remove('hidden'); };
+  $('bBW').onclick=()=>{ audio.init(); if(needTut()){ startTutorial(); return; } refreshContinue(); $('bossPick').classList.remove('hidden'); };
+  $('bTut').onclick=()=>{ audio.init(); startTutorial(); };
   { const cl=campCleared(), cur=Math.min(CAMP_N,cl+1); $('bBoss1v1').innerHTML= cl>=CAMP_N? '⚔️ 1 vs 1 CAMPAIGN<br><small>👑 All 10 stages cleared — replay any stage</small>' : `⚔️ 1 vs 1 CAMPAIGN<br><small>Stage ${cur} of ${CAMP_N} · ${cl} cleared</small>`; }
   $('bBoss1v1').onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); Campaign.open(); };
   $('bBossRoyale').onclick=()=>{ audio.click(); const go=()=>{ $('bossPick').classList.add('hidden'); CivPick.open({go:'🌏 Start Warlords', diff:true, onPick:(id,st,df)=>{ try{ localStorage.removeItem(RSAVE); }catch(e){} G.bwCfg={royale:36, seed: 61+((Math.random()*999)|0), civ:id, diff:df, bio:1}; startBigWar(5); }, onBack:()=>$('bossPick').classList.remove('hidden')}); };
@@ -293,7 +294,7 @@ function setupMenus(){
     ask(bw.royale? 'Restart Warlords from the beginning?' : 'Restart this battle?', bw.royale? 'Your current conquest will be lost.' : 'Progress in this battle will be lost.', '↻ Restart', bwRestart); };
   $('bLevels').onclick=()=>{ audio.init(); buildLevels(); showScreen('levels'); };
   $('bHelp').onclick=()=>{ audio.init(); G.helpFrom='menu'; showScreen('help'); };
-  document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{ if((!$('forge').classList.contains('hidden')||!$('gear').classList.contains('hidden')) && G.forgeFrom==='campaign'){ $('forge').classList.add('hidden'); $('gear').classList.add('hidden'); Campaign.open(); return; } if((!$('forge').classList.contains('hidden')||!$('gear').classList.contains('hidden')) && G.forgeFrom==='result'){ $('forge').classList.add('hidden'); $('gear').classList.add('hidden'); $('result').classList.remove('hidden'); return; } if(G.helpFrom==='pause'){ G.helpFrom=null; $('help').classList.add('hidden'); $('pause').classList.remove('hidden'); } else showScreen('menu'); });
+  document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{ if((!$('forge').classList.contains('hidden')||!$('gear').classList.contains('hidden')||!$('decor').classList.contains('hidden')) && G.forgeFrom==='campaign'){ $('forge').classList.add('hidden'); $('gear').classList.add('hidden'); $('decor').classList.add('hidden'); Campaign.open(); return; } if((!$('forge').classList.contains('hidden')||!$('gear').classList.contains('hidden')) && G.forgeFrom==='result'){ $('forge').classList.add('hidden'); $('gear').classList.add('hidden'); $('result').classList.remove('hidden'); return; } if(G.helpFrom==='pause'){ G.helpFrom=null; $('help').classList.add('hidden'); $('pause').classList.remove('hidden'); } else showScreen('menu'); });
   $('tc').onclick=()=>{ if(G.world&&G.ren){ const d=G.world.drum; G.ren.centerOn(d.x,d.y); } };
   $('bPause').onclick=()=>{ audio.init(); pause(true); };
   $('bResume').onclick=()=>bwSetPause(false);
@@ -307,6 +308,8 @@ function setupMenus(){
   $('bForge').onclick=()=>{ audio.init(); G.forgeFrom='menu'; openForge(); };
   $('bRForge').onclick=()=>{ audio.init(); audio.click(); G.forgeFrom='result'; $('result').classList.add('hidden'); renderGear(); $('gear').classList.remove('hidden'); };   // 🪙 Armory từ màn kết quả
   $('bGear').onclick=()=>{ audio.init(); audio.click(); G.forgeFrom='menu'; openGear(); };
+  const armTab=(id)=>{ audio.click(); ['gear','forge','decor'].forEach(s=>$(s).classList.toggle('hidden',s!==id)); if(id==='gear') renderGear(); else if(id==='forge') renderForge(); else renderDecor(); };
+  $('bToDecor').onclick=()=>armTab('decor'); $('bToDecor2').onclick=()=>armTab('decor'); $('bDecGear').onclick=()=>armTab('gear'); $('bDecForge').onclick=()=>armTab('forge');
   $('bToForge').onclick=()=>{ audio.click(); $('gear').classList.add('hidden'); renderForge(); $('forge').classList.remove('hidden'); };
   $('bToGear').onclick=()=>{ audio.click(); $('forge').classList.add('hidden'); renderGear(); $('gear').classList.remove('hidden'); };
   $('bArt').onclick=()=>{ audio.init(); renderArtGrid(); showScreen('artscr'); };
@@ -342,6 +345,30 @@ function renderForge(){
 
 // ---------- 🎒 Quân nhu: mua bằng xu, chọn tối đa 3 món mang vào trận ----------
 function openGear(){ renderGear(); showScreen('gear'); }
+// 🏮 (5.5) TRANG TRÍ TRẠI: mua một lần bằng xu, bật/tắt tuỳ thích; bản xem trước vẽ đúng như trong trận
+function decorState(){ const d=save.decor||(save.decor={own:{},on:[]}); if(!d.own) d.own={}; if(!Array.isArray(d.on)) d.on=[]; d.on=d.on.filter(id=>d.own[id]&&BW_DECOR_BY[id]); return d; }
+function renderDecor(){ refreshXu(); const D=decorState(), list=$('decList'); list.innerHTML=''; $('decOn').textContent=`On: ${D.on.length}/${BW_DECOR.length}.`;
+  for(const it of BW_DECOR){ const own=!!D.own[it.id], on=D.on.includes(it.id), d=document.createElement('div'); d.className='fcard'+(on?' on':''); d.dataset.decor=it.id;
+    d.innerHTML=`<div class="fi">${it.emoji}</div><div class="fb"><div class="fn">${it.name}${own? '<span class="own">owned</span>' : ''}</div><div class="fd">${it.desc}</div></div>`;
+    const b=document.createElement('button'); b.className='btn'; b.dataset.dec=it.id;
+    if(!own){ b.innerHTML=`${artIcon('ui:coin','🪙')} ${it.cost}`; b.disabled=(save.xu||0)<it.cost; b.onclick=()=>{ if((save.xu||0)<it.cost) return; save.xu-=it.cost; D.own[it.id]=1; D.on.push(it.id); Save.set(save); audio.coin&&audio.coin(); renderDecor(); }; }
+    else { b.textContent= on? '✔ On' : 'Off'; if(on) b.style.background='linear-gradient(#c8f7c5,#4ade80)'; b.onclick=()=>{ audio.click(); const i=D.on.indexOf(it.id); if(i>=0) D.on.splice(i,1); else D.on.push(it.id); Save.set(save); renderDecor(); }; }
+    d.appendChild(b); d.onmouseenter=()=>{ G.decHover=it.id; }; d.onmouseleave=()=>{ G.decHover=null; }; d.addEventListener('touchstart',()=>{ G.decHover=it.id; clearTimeout(G._dhT); G._dhT=setTimeout(()=>{ G.decHover=null; },2500); },{passive:true}); list.appendChild(d); }
+  if(!G._decLoop){ G._decLoop=true; const tick=()=>{ if($('decor').classList.contains('hidden')){ G._decLoop=false; return; } drawDecorPreview(); requestAnimationFrame(tick); }; requestAnimationFrame(tick); } }
+function drawDecorPreview(){ const cv=$('decPrev'), c=cv.getContext('2d'), D=decorState(), ids=D.on.slice(); if(G.decHover&&!ids.includes(G.decHover)) ids.push(G.decHover);   /* chạm/rê vào món chưa mua: xem thử */
+  c.clearRect(0,0,cv.width,cv.height); c.save(); c.scale(0.9,0.9); const x=255, y=300, t=performance.now()/1000;
+  BW.drawDecor(c,x,y,ids,t,0); c.fillStyle='rgba(0,0,0,0.22)'; c.beginPath(); c.ellipse(x,y+46,95,26,0,0,7); c.fill();
+  const im=ArtImages['prop:tent']; if(im){ c.drawImage(recolorUnit(im,0),x-95,y-110,190,190); } else { c.fillStyle='#3b82f6'; c.strokeStyle='#2a1a12'; c.lineWidth=5; c.beginPath(); c.moveTo(x-85,y+45); c.lineTo(x,y-75); c.lineTo(x+85,y+45); c.closePath(); c.fill(); c.stroke(); }
+  BW.drawDecor(c,x,y,ids,t,1); c.restore(); }
+// 🎓 (5.5) HƯỚNG DẪN LẦN ĐẦU
+function needTut(){ try{ if(localStorage.getItem('ltm_tut')==='1') return false; }catch(e){ return false; } if((save.bwMax||1)>1||save.tut||soloLoadInfo()||royaleLoadInfo()){ tutMark(); return false; } return true; }   /* người chơi cũ (đã qua ải / đang có ván lưu): không bắt học lại */
+function tutMark(){ save.tut=1; Save.set(save); try{ localStorage.setItem('ltm_tut','1'); }catch(e){} }
+function startTutorial(){ G.bwCfg={civ:save.civ||'rome',map:0,tut:true}; G.tutShown=false; startBigWar(1); $('stageIntro').classList.add('hidden'); G.bw.tutStart(); }
+function tutFinish(){ const bw=G.bw, skipped=!!(bw&&bw.tut&&bw.tut.skipped), first=!save.tut; G.tutShown=true; tutMark(); if(!skipped&&first){ save.xu=(save.xu||0)+50; Save.set(save); refreshXu(); }
+  stopBigWar(true); $('menu').classList.add('hidden'); $('tdTitle').textContent= skipped? '🎓 Tutorial skipped' : '🎓 Tutorial complete!';
+  $('tdText').innerHTML= skipped? 'You can replay it any time from <b>📖 How to play</b>.' : (first? 'You earned <b>🪙 50 coins</b>. ' : '')+'Now take on the 10-stage campaign — each boss is smarter than the last.';
+  $('tutDone').classList.remove('hidden'); const t0=performance.now(), ghost=()=>performance.now()-t0<500;   /* cú chạm 'Got it' trên màn trận còn sinh một 'click' rơi đúng vào nút của thẻ này: bỏ qua 0,5 s đầu */
+  $('tdGo').onclick=()=>{ if(ghost()) return; audio.click(); $('tutDone').classList.add('hidden'); Campaign.open(); }; $('tdMenu').onclick=()=>{ if(ghost()) return; audio.click(); $('tutDone').classList.add('hidden'); $('menu').classList.remove('hidden'); setupMenus(); }; }
 function renderGear(){ refreshXu(); const inv=save.inv, pack=save.pack, list=$('gearList'), MAX=BW.gear.slots; list.innerHTML='';
   for(let i=pack.length-1;i>=0;i--){ if(!BW_GEAR_BY[pack[i]]) pack.splice(i,1); }
   $('gearPack').textContent=`Packed: ${pack.length}/${MAX}.`;
@@ -422,13 +449,15 @@ function rotSync(){ const r=$('rotate'); if(!r) return; const h=(getComputedStyl
 function rotateHint(show){ const r=$('rotate'); clearTimeout(G._rotT); r.classList.remove('off'); if(show) G._rotT=setTimeout(()=>{ r.classList.add('off'); rotSync(); },6000); rotSync(); }
 function startBigWar(lv){
   lv=Math.max(1,Math.min(BW_LEVELS.length,lv||1));
-  { const cf=G.bwCfg||(G.bwCfg={}); if(cf.p2p) delete cf.up; else cf.up=Object.assign({},save.up); }   // ⚒️ Lò rèn: chỉ trận một người chơi (P2P hai bên phải ngang nhau)
+  { const cf=G.bwCfg||(G.bwCfg={}); if(cf.p2p) delete cf.up; else cf.up=Object.assign({},save.up); }
+  const decorOn=decorState().on.slice();   // ⚒️ Lò rèn: chỉ trận một người chơi (P2P hai bên phải ngang nhau)
   G.lastBwCfg=Object.assign({},G.bwCfg||{}); G.bw=new BigWar(lv, G.bwCfg||{}); G.bw.autoMenu=false;
+  G.bw.decor=decorOn;   /* 🏮 đồ trang trí trại (chỉ là hình, máy nào vẽ theo máy đó) */
   G.bw.gearSetup(save.pack.filter(id=>(save.inv[id]||0)>0), {stock:(id)=>save.inv[id]||0, spend:(id)=>{ save.inv[id]=Math.max(0,(save.inv[id]||0)-1); Save.set(save); }});   // 🎒 quân nhu mang theo (P2P: gearSetup tự bỏ qua)
-  G.bw.onCoin=(n)=>{ save.xu=(save.xu||0)+n; Save.set(save); refreshXu(); if(!saveDue) saveDue=performance.now(); };   /* 🪙 xu theo mốc ở Quần Hùng: xu vào túi ngay, và ván được lưu ngay sau đó (không thể thoát game để "hạ lại" cùng một nước lấy xu lần nữa) */
+  G.bw.onCoin=(n)=>{ if(G.bw&&G.bw.cfg.tut) return;   /* trận hướng dẫn không phát xu lẻ: chỉ thưởng 50 xu khi học xong */ save.xu=(save.xu||0)+n; Save.set(save); refreshXu(); if(!saveDue) saveDue=performance.now(); };   /* 🪙 xu theo mốc ở Quần Hùng: xu vào túi ngay, và ván được lưu ngay sau đó (không thể thoát game để "hạ lại" cùng một nước lấy xu lần nữa) */
   G.bw.lv=lv; G.world=null; G.paused=false; G.resultShown=false; G.sel.clear(); G.bwCfg=null;
   document.body.classList.remove('mini');
-  ['menu','levels','help','pause','result','forge','gear','artscr'].forEach(id=>$(id).classList.add('hidden'));
+  ['menu','levels','help','pause','result','forge','gear','decor','tutDone','artscr'].forEach(id=>$(id).classList.add('hidden'));
   $('hud').classList.add('hidden'); $('bwbar').classList.remove('hidden'); $('ask').classList.add('hidden'); $('civPick').classList.add('hidden'); $('bossPick').classList.add('hidden');
   $('campaign').classList.add('hidden'); stageIntro(G.bw,!!G.bwResume); G.bwResume=false;
   $('bwRetry').style.display= G.bw.cfg&&G.bw.cfg.p2p? 'none':''; rotateHint(true); // băng "xoay ngang" chỉ hiện 6 giây đầu trận rồi nhường chỗ cho bản đồ
@@ -436,7 +465,7 @@ function startBigWar(lv){
 // 💾 Lưu ván Quần Hùng vào bộ nhớ máy: tự lưu 15 giây/lần, khi ẩn app, khi về menu
 const RSAVE='ltm_royale_save_v1';
 const SSAVE='ltm_solo_save_v1';   /* (5.3) ván 1v1 đang đánh dở cũng được lưu: thoát app rồi vào đánh tiếp */
-function royaleSave(){ try{ const bw=G.bw; if(!bw||bw.cfg.p2p||bw.cfg.classic) return false; const K=bw.royale? RSAVE : SSAVE;
+function royaleSave(){ try{ const bw=G.bw; if(!bw||bw.cfg.p2p||bw.cfg.classic||bw.cfg.tut) return false; const K=bw.royale? RSAVE : SSAVE;
   if(bw.over){ localStorage.removeItem(K); return false; } if(!bw.royale&&bw.time<15) return false;
   localStorage.setItem(K, JSON.stringify(bw.saveState())); return true; }catch(e){ console.warn('save fail',e); return false; } }
 function soloLoadInfo(){ try{ const sv=JSON.parse(localStorage.getItem(SSAVE)||'null'); return sv&&sv.v===1&&sv.lv>=1&&sv.lv<=CAMP_N&&sv.cfg&&!sv.cfg.royale? sv : null; }catch(e){ return null; } }
@@ -529,6 +558,7 @@ function frame(now){
     bw._idle=!PACE.act; bw._touch=ptrs.size;   /* cho bộ dựng bản đồ biết: đang rảnh (dựng sẵn vùng lân cận) hay ngón tay đang kéo (không dựng) */
     if(!G.paused) (bw.p2p==='guest'? bw.cosmetic(Math.min(0.05,dt)) : bw.update(Math.min(0.05,dt)));
     bw.draw(cv.getContext('2d'), rct.width, rct.height, dpr, now/1000, dt);
+    if(bw.tut&&bw.tut.done&&!G.tutShown){ tutFinish(); requestAnimationFrame(frame); return; }
     if(bw.over && !G.resultShown){ G.bwTimer=(G.bwTimer||0)+dt; if(G.bwTimer>1.4){ G.bwTimer=0; showBwResult(); } }
     requestAnimationFrame(frame); return;
   }

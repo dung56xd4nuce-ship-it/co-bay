@@ -199,6 +199,10 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
   #result .card{padding:8px 16px;max-height:calc(100dvh - 12px)} #result h1{font-size:28px;text-shadow:0 3px 0 var(--ink)} #result h1 img{max-height:13vh!important} #rStage{font-size:14px;margin-top:0} #rStage .unl,#rStage .rec{display:inline;margin:0 0 0 8px;font-size:13px}
   #result .sub{margin:1px 0!important;font-size:12px} #result .stats{font-size:12.5px;gap:1px 16px;margin:4px 0 6px;grid-template-columns:1fr 1fr 1fr} #result .menuBtns{gap:6px} #result .menuBtns .btn{font-size:15px;padding:5px 14px} }
 @media (max-height:420px) and (orientation:landscape){ #campHint{display:none} .campcard h2{font-size:18px} .stg{min-height:54px;padding:5px 9px} #stageIntro{top:14%} }
+.decwrap{display:flex;gap:10px;align-items:flex-start;min-height:0}.decwrap canvas{flex:0 0 auto;width:min(40vw,230px);height:auto;border-radius:14px;background:linear-gradient(#bfe6ff,#8fd08a 62%,#74b96c)}.decside{flex:1 1 auto;min-width:0}
+#decor .fcard.on{border-color:#4ade80;background:rgba(74,222,128,.14)}
+@media (orientation:portrait){ .decwrap{flex-direction:column;align-items:stretch}.decwrap canvas{width:min(62vw,240px);align-self:center} }
+@media (max-height:420px) and (orientation:landscape){ .decwrap canvas{width:150px} }
 #civStage{display:flex;align-items:center;gap:6px;font-weight:800;font-size:14px;white-space:nowrap}
 #civStage .btn{width:38px;height:38px;min-height:0;padding:0;font-size:16px}
 @media (max-width:560px){ .civfoot .btn{font-size:15px;padding:7px 10px} .civfoot .btn.big{font-size:17px;padding:8px 12px} #civStage{font-size:13px;gap:4px} #civStage .btn{width:36px;height:36px} .civbody{flex-direction:column} .civgrid{flex:1 1 auto;grid-template-columns:repeat(auto-fill,minmax(118px,1fr))} .civinfo{flex:none;max-height:30vh} #civSearch{width:110px} }
@@ -243,18 +247,23 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
   <div id="menu" class="screen"><canvas id="menuBg"></canvas>
     <div class="logo">LOAN THE<span class="meme">MEME!</span></div>
     <div class="sub">Chibi strategy · Fog of war · Ambushes · Sieges · Conquer the realm</div>
-    <div class="menuBtns"><button class="btn big" id="bBW" style="background:linear-gradient(#ffd0c2,#ff7a50);font-size:26px;padding:12px 30px">👑 BATTLE</button><button class="btn" id="bP2P" style="background:linear-gradient(#c9e7ff,#7db8ff)">📶 2-PLAYER P2P</button><button class="btn" id="bPlay" style="display:none">🥁 Drum Campaign</button><button class="btn" id="bMini" style="display:none">⚡ Blitz</button><button class="btn" id="bGear" style="background:linear-gradient(#fff0b8,#ffc93c)"><span class="ic" data-art="ui:coin">🪙</span> Armory</button><button class="btn" id="bForge" style="display:none"><span class="ic" data-art="ui:forge">⚒️</span> Forge</button><button class="btn" id="bLevels" style="display:none">🗺️ Stages</button><button class="btn" id="bArt">🎨 Art pack</button><button class="btn" id="bFull">⛶ Full screen</button><button class="btn" id="bHelp">📖 How to play</button></div>
+    <div class="menuBtns"><button class="btn big" id="bBW" style="background:linear-gradient(#ffd0c2,#ff7a50);font-size:26px;padding:12px 30px">👑 BATTLE</button><button class="btn" id="bP2P" style="background:linear-gradient(#c9e7ff,#7db8ff)">📶 2-PLAYER P2P</button><button class="btn" id="bPlay" style="display:none">🥁 Drum Campaign</button><button class="btn" id="bMini" style="display:none">⚡ Blitz</button><button class="btn" id="bGear" style="background:linear-gradient(#fff0b8,#ffc93c)"><span class="ic" data-art="ui:coin">🪙</span> Armory</button><button class="btn" id="bForge" style="display:none"><span class="ic" data-art="ui:forge">⚒️</span> Forge</button><button class="btn" id="bLevels" style="display:none">🗺️ Stages</button><button style="display:none" class="btn" id="bArt">🎨 Art pack</button><button class="btn" id="bFull">⛶ Full screen</button><button class="btn" id="bHelp">📖 How to play</button></div>
     <div class="coinbar"><span class="ic" data-art="ui:coin">🪙</span> <b class="xu">0</b> Meme Coins</div>
     <button class="btn sndBtn sndCorner" id="bMSound" aria-label="Sound on/off"><span class="ic" data-art="ui:sound">🔊</span></button>
-    <div id="ver" style="position:absolute;right:calc(10px + var(--safe-r));bottom:calc(6px + var(--safe-b));font-size:12px;font-weight:700;opacity:.6;pointer-events:none">v5.4</div>
+    <div id="ver" style="position:absolute;right:calc(10px + var(--safe-r));bottom:calc(6px + var(--safe-b));font-size:12px;font-weight:700;opacity:.6;pointer-events:none">v5.5</div>
   </div>
   <div id="gear" class="screen hidden"><div class="card wide"><div class="fhead"><h2>🎒 Supplies</h2><div class="coinbar"><span class="ic" data-art="ui:coin">🪙</span> <b class="xu">0</b> Coins</div></div>
-    <div class="civtabs armtabs"><button class="btn on" disabled>🎒 Supplies</button><button class="btn" id="bToForge"><span class="ic" data-art="ui:forge">⚒️</span> Forge</button></div>
+    <div class="civtabs armtabs"><button class="btn on" disabled>🎒 Supplies</button><button class="btn" id="bToForge"><span class="ic" data-art="ui:forge">⚒️</span> Forge</button><button class="btn" id="bToDecor">🏮 Camp decor</button></div>
     <p class="note" style="margin:2px 0 6px">Buy supplies with coins and <b>pack up to 3 kinds</b> for battle. In battle tap <b>🎒</b>, then the item — it works on the army or stronghold you have selected. Each use takes one from your stock. <b id="gearPack"></b></p>
     <div id="gearList" class="flist"></div>
     <div style="text-align:right;margin-top:8px"><button class="btn" data-back>← Back</button></div></div></div>
+  <div id="decor" class="screen hidden"><div class="card wide"><div class="fhead"><h2>🏮 Camp decor</h2><div class="coinbar"><span class="ic" data-art="ui:coin">🪙</span> <b class="xu">0</b> Coins</div></div>
+    <div class="civtabs armtabs"><button class="btn" id="bDecGear">🎒 Supplies</button><button class="btn" id="bDecForge"><span class="ic" data-art="ui:forge">⚒️</span> Forge</button><button class="btn on" disabled>🏮 Camp decor</button></div>
+    <div class="decwrap"><canvas id="decPrev" width="460" height="400"></canvas><div class="decside"><p class="note" style="margin:0 0 6px">Dress up your camp with coins. Decorations are <b>for looks only</b> — buy once, keep forever, switch any of them on or off. <b id="decOn"></b></p><div id="decList" class="flist"></div></div></div>
+    <div style="text-align:right;margin-top:8px"><button class="btn" data-back>← Back</button></div></div></div>
+  <div id="tutDone" class="screen hidden"><div class="card" style="text-align:center;max-width:440px"><h2 id="tdTitle">🎓 Tutorial complete!</h2><p id="tdText" style="margin:6px 0 10px"></p><div class="menuBtns" style="flex-direction:column;align-items:stretch"><button class="btn big" id="tdGo">⚔️ Start Stage 1</button><button class="btn" id="tdMenu">🏠 Menu</button></div></div></div>
   <div id="forge" class="screen hidden"><div class="card wide"><div class="fhead"><h2><span class="ic" data-art="ui:forge">⚒️</span> Forge</h2><div class="coinbar"><span class="ic" data-art="ui:coin">🪙</span> <b class="xu">0</b> Coins</div></div>
-    <div class="civtabs armtabs"><button class="btn" id="bToGear">🎒 Supplies</button><button class="btn on" disabled><span class="ic" data-art="ui:forge">⚒️</span> Forge</button></div>
+    <div class="civtabs armtabs"><button class="btn" id="bToGear">🎒 Supplies</button><button class="btn on" disabled><span class="ic" data-art="ui:forge">⚒️</span> Forge</button><button class="btn" id="bToDecor2">🏮 Camp decor</button></div>
     <div class="fprev"><canvas id="forgeHero" width="220" height="220"></canvas><div id="forgeStats"></div></div>
     <div id="forgeList" class="flist"></div>
     <p class="note">Forge upgrades are permanent and strengthen your nation in Battle and Warlords (not in 2-player P2P). Earn coins by winning battles, taking enemy camps and conquering nations.</p>
@@ -297,6 +306,7 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
   <div style="text-align:right"><button class="btn" data-back>✖ Close</button></div></div></div>
 <div id="help" class="screen hidden"><div class="card" style="max-height:86vh;overflow:auto">
     <h2>📜 THE ART OF WAR — HOW TO PLAY</h2>
+    <p style="margin:0 0 8px"><button class="btn" id="bTut" style="background:linear-gradient(#c8f7c5,#4ade80)">🎓 Play the tutorial battle</button></p>
     <style>#help table{border-collapse:collapse;width:100%;margin:6px 0 14px;font-size:14px}#help th,#help td{border:1px solid rgba(120,90,60,.45);padding:4px 7px;text-align:center}#help th{background:rgba(120,90,60,.2)}#help h3{margin:14px 0 4px}</style>
     <p><b>Commanding:</b> tap a BLUE army (or one of your camps), then tap <b>anywhere</b>: tap an outpost to attack or garrison it, tap <b>empty ground</b> to march there and ⛺ <b>camp in the field</b>, tap an <b>enemy army</b> to 🐎 <b>pursue</b> it. A menu appears for every order. Gray neutral posts with fewer troops <b>defect to you</b> (their troops join).</p>
     <h3>👆 Controls</h3>
@@ -353,6 +363,8 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
     <p>Every army is one unit type, shown on its banner. Tap an army to see what it <b>▲ beats</b> and what it is <b>▼ weak to</b> on the ground it stands on. 🐎 <b>Knights</b> rule open ground but are helpless in forests · 🔱 <b>Spearmen</b> stop cavalry in rough terrain · 🏹 <b>Archers</b> and 🎯 <b>Crossbowmen</b> shred infantry but bounce off 🛡️ <b>Shieldbearers</b> · 🪓 <b>Blademasters</b> break shields · 🗡️ <b>Assassins</b> hunt archers and slip through forest and mountain · ⚔️ <b>Swordsmen</b> are solid all-rounders. ⚒️ Training grounds re-equip an army to their unit type.</p>
     <h3>🗺️ Terrain &amp; roads</h3>
     <p>The map is open <b>plains</b> crossed by <b>roads</b>, with forests, mountains, deserts, valleys and rivers. <b>Every unit can go anywhere on land</b> — forest and mountain only slow you down: infantry a little (forest ×0.58, mountain ×0.42), <b>🐎 cavalry a lot</b> (×0.42 / ×0.30) and assassins barely at all. Rivers can only be crossed at a <b>⛩️ ford</b>. Roads are 12% faster for everyone. The order menu shows the travel time before you confirm.</p>
+    <p><b>🪙 Meme Coins</b> buy three things in the <b>Armory</b>: 🎒 supplies to use in battle, ⚒️ Forge upgrades, and <b>🏮 Camp decor</b> — banners, lanterns, blossoms, fireworks and more to make your camp shine (looks only).</p>
+    <p><b>⏱️ How long a battle lasts.</b> 🏰 <b>Assaulting a camp or a town</b> (village, fort, citadel) is a long fight — up to twice as long — so defenders have time to send help. 🪤 Ambushes keep their usual pace. Everywhere else, an even fight lasts a while, but the <b>bigger the gap in numbers, the faster it ends</b>: twice as many troops wins in about 5 seconds, four times as many in about 2–3.</p>
     <h3>🧩 Mixed garrisons &amp; splitting</h3>
     <p>A stronghold is a <b>depot that can hold several unit types</b>: troops you march in keep their type. An army in the field is always <b>one type</b>. When you order troops out of a stronghold, the menu lets you pick <b>which type</b> goes (or all types — one army per type) and <b>how many</b>: All, ½ or ¼ — the rest stay to guard. The stronghold defends with its most numerous type.</p>
     <p><b>🏳️ Neutral garrisons</b> join an army that clearly outnumbers them. In later stages they are warier: you need a bigger margin (up to 2.5×) and only part of them join — otherwise you must fight for the post.</p>
@@ -2639,7 +2651,7 @@ function startLevel(L,opts){
   if(!G.ren) G.ren=new Renderer($('game'),w); else { const r=new Renderer($('game'),w); G.ren=r; }
   const g=w.factions[0].general; G.ren.centerOn(g.x,g.y,true); G.ren.cam.z=Math.max(0.8,Math.min(1.6,G.ren.vw/(24*TS)));
   G.sel=new Set([g.id]); G.ren.selected=G.sel; G.paused=false; G.resultShown=false; G.acc=0; G.hints={}; G.hintQ=[];
-  ['menu','levels','help','pause','result','forge','gear','artscr','p2p'].forEach(id=>$(id).classList.add('hidden')); $('hud').classList.remove('hidden');
+  ['menu','levels','help','pause','result','forge','gear','decor','tutDone','artscr','p2p'].forEach(id=>$(id).classList.add('hidden')); $('hud').classList.remove('hidden');
   document.body.classList.toggle('mini', !!cfg.mini);
   drawBadge(); setupMinimap(); updateSel();
   $('toasts').innerHTML='';
@@ -2864,7 +2876,7 @@ function pause(on){ if(!G.world&&!G.bw) return; G.paused=on; $('pause').classLis
 function bwSetPause(on){ // P2P: dừng là dừng CẢ HAI MÁY
   if(G.bw&&G.bw.cfg&&G.bw.cfg.p2p&&typeof P2P!=='undefined'&&P2P.connected){ P2P.setPause(on); pause(on); }
   else pause(on); }
-function showScreen(id){ ['menu','levels','help','pause','result','forge','gear','artscr','p2p'].forEach(s=>$(s).classList.toggle('hidden',s!==id)); if(id==='menu'||id==='levels'||id==='forge'||id==='gear'||id==='artscr') $('hud').classList.add('hidden'); }
+function showScreen(id){ ['menu','levels','help','pause','result','forge','gear','decor','tutDone','artscr','p2p'].forEach(s=>$(s).classList.toggle('hidden',s!==id)); if(id==='menu'||id==='levels'||id==='forge'||id==='gear'||id==='artscr') $('hud').classList.add('hidden'); }
 function buildLevels(){ const grid=$('lvgrid'); grid.innerHTML=''; const max=Math.max(1,save.max||1);
   for(let L=1;L<=100;L++){ const b=document.createElement('button'); b.className='btn lv'; b.textContent=L; const avail=L<=40 && L<=max; if(save.done.includes(L)) b.classList.add('done'); if(!avail){ b.classList.add('lock'); b.textContent= L>40? '🔒' : '🔒'+L; b.title= L>40?'12-faction mode in development':'Win the previous stage to unlock'; }
     b.onclick=()=>{ audio.init(); if(avail) startLevel(L); }; grid.appendChild(b); } }
@@ -2888,7 +2900,8 @@ function setupMenus(){
   const max=Math.max(1,Math.min(40,save.max||1)); $('bPlay').textContent= max>1? `▶ Play Stage ${max}` : '▶ Play Stage 1';
   $('bPlay').onclick=()=>{ audio.init(); startLevel(Math.max(1,Math.min(40,save.max||1))); };
   $('bMini').onclick=()=>{ audio.init(); startLevel('mini'); };
-  $('bBW').onclick=()=>{ audio.init(); refreshContinue(); $('bossPick').classList.remove('hidden'); };
+  $('bBW').onclick=()=>{ audio.init(); if(needTut()){ startTutorial(); return; } refreshContinue(); $('bossPick').classList.remove('hidden'); };
+  $('bTut').onclick=()=>{ audio.init(); startTutorial(); };
   { const cl=campCleared(), cur=Math.min(CAMP_N,cl+1); $('bBoss1v1').innerHTML= cl>=CAMP_N? '⚔️ 1 vs 1 CAMPAIGN<br><small>👑 All 10 stages cleared — replay any stage</small>' : `⚔️ 1 vs 1 CAMPAIGN<br><small>Stage ${cur} of ${CAMP_N} · ${cl} cleared</small>`; }
   $('bBoss1v1').onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); Campaign.open(); };
   $('bBossRoyale').onclick=()=>{ audio.click(); const go=()=>{ $('bossPick').classList.add('hidden'); CivPick.open({go:'🌏 Start Warlords', diff:true, onPick:(id,st,df)=>{ try{ localStorage.removeItem(RSAVE); }catch(e){} G.bwCfg={royale:36, seed: 61+((Math.random()*999)|0), civ:id, diff:df, bio:1}; startBigWar(5); }, onBack:()=>$('bossPick').classList.remove('hidden')}); };
@@ -2917,7 +2930,7 @@ function setupMenus(){
     ask(bw.royale? 'Restart Warlords from the beginning?' : 'Restart this battle?', bw.royale? 'Your current conquest will be lost.' : 'Progress in this battle will be lost.', '↻ Restart', bwRestart); };
   $('bLevels').onclick=()=>{ audio.init(); buildLevels(); showScreen('levels'); };
   $('bHelp').onclick=()=>{ audio.init(); G.helpFrom='menu'; showScreen('help'); };
-  document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{ if((!$('forge').classList.contains('hidden')||!$('gear').classList.contains('hidden')) && G.forgeFrom==='campaign'){ $('forge').classList.add('hidden'); $('gear').classList.add('hidden'); Campaign.open(); return; } if((!$('forge').classList.contains('hidden')||!$('gear').classList.contains('hidden')) && G.forgeFrom==='result'){ $('forge').classList.add('hidden'); $('gear').classList.add('hidden'); $('result').classList.remove('hidden'); return; } if(G.helpFrom==='pause'){ G.helpFrom=null; $('help').classList.add('hidden'); $('pause').classList.remove('hidden'); } else showScreen('menu'); });
+  document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{ if((!$('forge').classList.contains('hidden')||!$('gear').classList.contains('hidden')||!$('decor').classList.contains('hidden')) && G.forgeFrom==='campaign'){ $('forge').classList.add('hidden'); $('gear').classList.add('hidden'); $('decor').classList.add('hidden'); Campaign.open(); return; } if((!$('forge').classList.contains('hidden')||!$('gear').classList.contains('hidden')) && G.forgeFrom==='result'){ $('forge').classList.add('hidden'); $('gear').classList.add('hidden'); $('result').classList.remove('hidden'); return; } if(G.helpFrom==='pause'){ G.helpFrom=null; $('help').classList.add('hidden'); $('pause').classList.remove('hidden'); } else showScreen('menu'); });
   $('tc').onclick=()=>{ if(G.world&&G.ren){ const d=G.world.drum; G.ren.centerOn(d.x,d.y); } };
   $('bPause').onclick=()=>{ audio.init(); pause(true); };
   $('bResume').onclick=()=>bwSetPause(false);
@@ -2931,6 +2944,8 @@ function setupMenus(){
   $('bForge').onclick=()=>{ audio.init(); G.forgeFrom='menu'; openForge(); };
   $('bRForge').onclick=()=>{ audio.init(); audio.click(); G.forgeFrom='result'; $('result').classList.add('hidden'); renderGear(); $('gear').classList.remove('hidden'); };   // 🪙 Armory từ màn kết quả
   $('bGear').onclick=()=>{ audio.init(); audio.click(); G.forgeFrom='menu'; openGear(); };
+  const armTab=(id)=>{ audio.click(); ['gear','forge','decor'].forEach(s=>$(s).classList.toggle('hidden',s!==id)); if(id==='gear') renderGear(); else if(id==='forge') renderForge(); else renderDecor(); };
+  $('bToDecor').onclick=()=>armTab('decor'); $('bToDecor2').onclick=()=>armTab('decor'); $('bDecGear').onclick=()=>armTab('gear'); $('bDecForge').onclick=()=>armTab('forge');
   $('bToForge').onclick=()=>{ audio.click(); $('gear').classList.add('hidden'); renderForge(); $('forge').classList.remove('hidden'); };
   $('bToGear').onclick=()=>{ audio.click(); $('forge').classList.add('hidden'); renderGear(); $('gear').classList.remove('hidden'); };
   $('bArt').onclick=()=>{ audio.init(); renderArtGrid(); showScreen('artscr'); };
@@ -2966,6 +2981,30 @@ function renderForge(){
 
 // ---------- 🎒 Quân nhu: mua bằng xu, chọn tối đa 3 món mang vào trận ----------
 function openGear(){ renderGear(); showScreen('gear'); }
+// 🏮 (5.5) TRANG TRÍ TRẠI: mua một lần bằng xu, bật/tắt tuỳ thích; bản xem trước vẽ đúng như trong trận
+function decorState(){ const d=save.decor||(save.decor={own:{},on:[]}); if(!d.own) d.own={}; if(!Array.isArray(d.on)) d.on=[]; d.on=d.on.filter(id=>d.own[id]&&BW_DECOR_BY[id]); return d; }
+function renderDecor(){ refreshXu(); const D=decorState(), list=$('decList'); list.innerHTML=''; $('decOn').textContent=`On: ${D.on.length}/${BW_DECOR.length}.`;
+  for(const it of BW_DECOR){ const own=!!D.own[it.id], on=D.on.includes(it.id), d=document.createElement('div'); d.className='fcard'+(on?' on':''); d.dataset.decor=it.id;
+    d.innerHTML=`<div class="fi">${it.emoji}</div><div class="fb"><div class="fn">${it.name}${own? '<span class="own">owned</span>' : ''}</div><div class="fd">${it.desc}</div></div>`;
+    const b=document.createElement('button'); b.className='btn'; b.dataset.dec=it.id;
+    if(!own){ b.innerHTML=`${artIcon('ui:coin','🪙')} ${it.cost}`; b.disabled=(save.xu||0)<it.cost; b.onclick=()=>{ if((save.xu||0)<it.cost) return; save.xu-=it.cost; D.own[it.id]=1; D.on.push(it.id); Save.set(save); audio.coin&&audio.coin(); renderDecor(); }; }
+    else { b.textContent= on? '✔ On' : 'Off'; if(on) b.style.background='linear-gradient(#c8f7c5,#4ade80)'; b.onclick=()=>{ audio.click(); const i=D.on.indexOf(it.id); if(i>=0) D.on.splice(i,1); else D.on.push(it.id); Save.set(save); renderDecor(); }; }
+    d.appendChild(b); d.onmouseenter=()=>{ G.decHover=it.id; }; d.onmouseleave=()=>{ G.decHover=null; }; d.addEventListener('touchstart',()=>{ G.decHover=it.id; clearTimeout(G._dhT); G._dhT=setTimeout(()=>{ G.decHover=null; },2500); },{passive:true}); list.appendChild(d); }
+  if(!G._decLoop){ G._decLoop=true; const tick=()=>{ if($('decor').classList.contains('hidden')){ G._decLoop=false; return; } drawDecorPreview(); requestAnimationFrame(tick); }; requestAnimationFrame(tick); } }
+function drawDecorPreview(){ const cv=$('decPrev'), c=cv.getContext('2d'), D=decorState(), ids=D.on.slice(); if(G.decHover&&!ids.includes(G.decHover)) ids.push(G.decHover);   /* chạm/rê vào món chưa mua: xem thử */
+  c.clearRect(0,0,cv.width,cv.height); c.save(); c.scale(0.9,0.9); const x=255, y=300, t=performance.now()/1000;
+  BW.drawDecor(c,x,y,ids,t,0); c.fillStyle='rgba(0,0,0,0.22)'; c.beginPath(); c.ellipse(x,y+46,95,26,0,0,7); c.fill();
+  const im=ArtImages['prop:tent']; if(im){ c.drawImage(recolorUnit(im,0),x-95,y-110,190,190); } else { c.fillStyle='#3b82f6'; c.strokeStyle='#2a1a12'; c.lineWidth=5; c.beginPath(); c.moveTo(x-85,y+45); c.lineTo(x,y-75); c.lineTo(x+85,y+45); c.closePath(); c.fill(); c.stroke(); }
+  BW.drawDecor(c,x,y,ids,t,1); c.restore(); }
+// 🎓 (5.5) HƯỚNG DẪN LẦN ĐẦU
+function needTut(){ try{ if(localStorage.getItem('ltm_tut')==='1') return false; }catch(e){ return false; } if((save.bwMax||1)>1||save.tut||soloLoadInfo()||royaleLoadInfo()){ tutMark(); return false; } return true; }   /* người chơi cũ (đã qua ải / đang có ván lưu): không bắt học lại */
+function tutMark(){ save.tut=1; Save.set(save); try{ localStorage.setItem('ltm_tut','1'); }catch(e){} }
+function startTutorial(){ G.bwCfg={civ:save.civ||'rome',map:0,tut:true}; G.tutShown=false; startBigWar(1); $('stageIntro').classList.add('hidden'); G.bw.tutStart(); }
+function tutFinish(){ const bw=G.bw, skipped=!!(bw&&bw.tut&&bw.tut.skipped), first=!save.tut; G.tutShown=true; tutMark(); if(!skipped&&first){ save.xu=(save.xu||0)+50; Save.set(save); refreshXu(); }
+  stopBigWar(true); $('menu').classList.add('hidden'); $('tdTitle').textContent= skipped? '🎓 Tutorial skipped' : '🎓 Tutorial complete!';
+  $('tdText').innerHTML= skipped? 'You can replay it any time from <b>📖 How to play</b>.' : (first? 'You earned <b>🪙 50 coins</b>. ' : '')+'Now take on the 10-stage campaign — each boss is smarter than the last.';
+  $('tutDone').classList.remove('hidden'); const t0=performance.now(), ghost=()=>performance.now()-t0<500;   /* cú chạm 'Got it' trên màn trận còn sinh một 'click' rơi đúng vào nút của thẻ này: bỏ qua 0,5 s đầu */
+  $('tdGo').onclick=()=>{ if(ghost()) return; audio.click(); $('tutDone').classList.add('hidden'); Campaign.open(); }; $('tdMenu').onclick=()=>{ if(ghost()) return; audio.click(); $('tutDone').classList.add('hidden'); $('menu').classList.remove('hidden'); setupMenus(); }; }
 function renderGear(){ refreshXu(); const inv=save.inv, pack=save.pack, list=$('gearList'), MAX=BW.gear.slots; list.innerHTML='';
   for(let i=pack.length-1;i>=0;i--){ if(!BW_GEAR_BY[pack[i]]) pack.splice(i,1); }
   $('gearPack').textContent=`Packed: ${pack.length}/${MAX}.`;
@@ -3046,13 +3085,15 @@ function rotSync(){ const r=$('rotate'); if(!r) return; const h=(getComputedStyl
 function rotateHint(show){ const r=$('rotate'); clearTimeout(G._rotT); r.classList.remove('off'); if(show) G._rotT=setTimeout(()=>{ r.classList.add('off'); rotSync(); },6000); rotSync(); }
 function startBigWar(lv){
   lv=Math.max(1,Math.min(BW_LEVELS.length,lv||1));
-  { const cf=G.bwCfg||(G.bwCfg={}); if(cf.p2p) delete cf.up; else cf.up=Object.assign({},save.up); }   // ⚒️ Lò rèn: chỉ trận một người chơi (P2P hai bên phải ngang nhau)
+  { const cf=G.bwCfg||(G.bwCfg={}); if(cf.p2p) delete cf.up; else cf.up=Object.assign({},save.up); }
+  const decorOn=decorState().on.slice();   // ⚒️ Lò rèn: chỉ trận một người chơi (P2P hai bên phải ngang nhau)
   G.lastBwCfg=Object.assign({},G.bwCfg||{}); G.bw=new BigWar(lv, G.bwCfg||{}); G.bw.autoMenu=false;
+  G.bw.decor=decorOn;   /* 🏮 đồ trang trí trại (chỉ là hình, máy nào vẽ theo máy đó) */
   G.bw.gearSetup(save.pack.filter(id=>(save.inv[id]||0)>0), {stock:(id)=>save.inv[id]||0, spend:(id)=>{ save.inv[id]=Math.max(0,(save.inv[id]||0)-1); Save.set(save); }});   // 🎒 quân nhu mang theo (P2P: gearSetup tự bỏ qua)
-  G.bw.onCoin=(n)=>{ save.xu=(save.xu||0)+n; Save.set(save); refreshXu(); if(!saveDue) saveDue=performance.now(); };   /* 🪙 xu theo mốc ở Quần Hùng: xu vào túi ngay, và ván được lưu ngay sau đó (không thể thoát game để "hạ lại" cùng một nước lấy xu lần nữa) */
+  G.bw.onCoin=(n)=>{ if(G.bw&&G.bw.cfg.tut) return;   /* trận hướng dẫn không phát xu lẻ: chỉ thưởng 50 xu khi học xong */ save.xu=(save.xu||0)+n; Save.set(save); refreshXu(); if(!saveDue) saveDue=performance.now(); };   /* 🪙 xu theo mốc ở Quần Hùng: xu vào túi ngay, và ván được lưu ngay sau đó (không thể thoát game để "hạ lại" cùng một nước lấy xu lần nữa) */
   G.bw.lv=lv; G.world=null; G.paused=false; G.resultShown=false; G.sel.clear(); G.bwCfg=null;
   document.body.classList.remove('mini');
-  ['menu','levels','help','pause','result','forge','gear','artscr'].forEach(id=>$(id).classList.add('hidden'));
+  ['menu','levels','help','pause','result','forge','gear','decor','tutDone','artscr'].forEach(id=>$(id).classList.add('hidden'));
   $('hud').classList.add('hidden'); $('bwbar').classList.remove('hidden'); $('ask').classList.add('hidden'); $('civPick').classList.add('hidden'); $('bossPick').classList.add('hidden');
   $('campaign').classList.add('hidden'); stageIntro(G.bw,!!G.bwResume); G.bwResume=false;
   $('bwRetry').style.display= G.bw.cfg&&G.bw.cfg.p2p? 'none':''; rotateHint(true); // băng "xoay ngang" chỉ hiện 6 giây đầu trận rồi nhường chỗ cho bản đồ
@@ -3060,7 +3101,7 @@ function startBigWar(lv){
 // 💾 Lưu ván Quần Hùng vào bộ nhớ máy: tự lưu 15 giây/lần, khi ẩn app, khi về menu
 const RSAVE='ltm_royale_save_v1';
 const SSAVE='ltm_solo_save_v1';   /* (5.3) ván 1v1 đang đánh dở cũng được lưu: thoát app rồi vào đánh tiếp */
-function royaleSave(){ try{ const bw=G.bw; if(!bw||bw.cfg.p2p||bw.cfg.classic) return false; const K=bw.royale? RSAVE : SSAVE;
+function royaleSave(){ try{ const bw=G.bw; if(!bw||bw.cfg.p2p||bw.cfg.classic||bw.cfg.tut) return false; const K=bw.royale? RSAVE : SSAVE;
   if(bw.over){ localStorage.removeItem(K); return false; } if(!bw.royale&&bw.time<15) return false;
   localStorage.setItem(K, JSON.stringify(bw.saveState())); return true; }catch(e){ console.warn('save fail',e); return false; } }
 function soloLoadInfo(){ try{ const sv=JSON.parse(localStorage.getItem(SSAVE)||'null'); return sv&&sv.v===1&&sv.lv>=1&&sv.lv<=CAMP_N&&sv.cfg&&!sv.cfg.royale? sv : null; }catch(e){ return null; } }
@@ -3153,6 +3194,7 @@ function frame(now){
     bw._idle=!PACE.act; bw._touch=ptrs.size;   /* cho bộ dựng bản đồ biết: đang rảnh (dựng sẵn vùng lân cận) hay ngón tay đang kéo (không dựng) */
     if(!G.paused) (bw.p2p==='guest'? bw.cosmetic(Math.min(0.05,dt)) : bw.update(Math.min(0.05,dt)));
     bw.draw(cv.getContext('2d'), rct.width, rct.height, dpr, now/1000, dt);
+    if(bw.tut&&bw.tut.done&&!G.tutShown){ tutFinish(); requestAnimationFrame(frame); return; }
     if(bw.over && !G.resultShown){ G.bwTimer=(G.bwTimer||0)+dt; if(G.bwTimer>1.4){ G.bwTimer=0; showBwResult(); } }
     requestAnimationFrame(frame); return;
   }
@@ -3603,6 +3645,7 @@ class BigWar{
     return a;
   }
   tapScreen(sx,sy){ // nút 📣 > menu lệnh > rút lui > thoát zoom > thông báo > nút 🪤 > bản đồ nhỏ
+    if(this.tut&&!this.tut.done){ const r=this.tutScreen(sx,sy); if(r===true) return true; if(r===false) return false; }   /* 🎓 hướng dẫn: khoá mọi nút ngoài việc đang được yêu cầu */
     const hit=(r)=>r&&sx>=r.x&&sx<=r.x+r.w&&sy>=r.y&&sy<=r.y+r.h;
     if(this.rallyOpen&&this._rallyRects){ for(const r of this._rallyRects){ if(hit(r)){ this.rallyOpen=false;
         if(r.n){ this.rallyPick=r.n; this.menu=null; this.sel=null; this.selA=null; this.selG=null; } audio.click(); return true; } }
@@ -3640,6 +3683,7 @@ class BigWar{
     this.camX=Math.max(0,Math.min(BW.W-viewW, k*BW.W-viewW/2)); this.camY=Math.max(0,Math.min(Math.max(0,BW.H-viewH), ky*BW.H-viewH/2)); this.revealHud&&this.revealHud(); this.camDrag=null; this.jumpT=null; this.focusB=null; return true;
   }
   tap(wx,wy){
+    if(this.tut&&!this.tut.done){ const q=this.tutWorld(wx,wy); if(!q) return; wx=q.x; wy=q.y; }   /* 🎓 chỉ nhận chạm vào đúng mục tiêu của bước hướng dẫn (chạm lệch chút vẫn tính) */
     if(this.over) return;
     if(this.rallyPick&&this._asRemote==null){ const N=this.rallyPick; this.rallyPick=0; // đang chờ chọn điểm tập kết (thao tác của chính người cầm máy này)
       if(this.p2p==='guest'&&typeof P2P!=='undefined'){ P2P.sendOp({op:'rally',n:N===Infinity?0:N,wx,wy}); this.texts.push({x:wx,y:wy-40,s:'📣 Rally order sent',col:'#7dffcf',t:0,max:1.4}); this.rallyMark={x:wx,y:wy,t:0,big:N===Infinity}; return; }
@@ -3879,6 +3923,13 @@ class BigWar{
       A:{fid:atkE.fid,mul:1,es:[atkE.e]}, B:{fid:defE.fid,mul:defMulV||1,es:[defE.e]}};
     const tot=this.bSideSum(b.A)+this.bSideSum(b.B);
     b.K=1/(3.5+Math.sqrt(Math.max(1,tot))/14);     // trận càng đông càng lâu, tối thiểu ~5 giây
+    /* (5.5) KIỂU TRẬN quyết định nhịp: 🏰 công trại/thành trấn kéo dài · 🪤 phục kích giữ nhịp cũ · ⚔️ chỗ khác: chênh lệch càng lớn càng nhanh tan */
+    { const nd=b.nodeId>=0? this.nodes[b.nodeId] : null, amb=!!(tag&&/AMBUSH/.test(tag));
+      b.kind= amb? 'ambush' : nd&&(nd.camp||nd.struct)? 'siege' : 'field'; b.L= b.kind==='siege'? (nd.camp? BW.btl.camp : BW.btl[nd.struct]||BW.btl.village) : 1;
+      b.A0=Math.max(1,this.bSideSum(b.A)); b.B0=Math.max(1,this.bSideSum(b.B)); }
+    { const big=Math.max(b.A0,b.B0)/Math.min(b.A0,b.B0), F0=this.localFid, mine=b.A.fid===F0||b.B.fid===F0;   /* cho người chơi thấy kiểu trận: dài (công thành) hay chóng vánh (chênh lệch lớn) */
+      if(mine&&b.kind==='siege') this.texts.push({x,y:y-140,s:'🏰 Siege — a long battle',col:'#ffd54a',t:0,max:2.2});
+      else if(mine&&b.kind==='field'&&big>=2) this.texts.push({x,y:y-140,s:`⚡ ×${big>=10?Math.round(big):big.toFixed(1)} outnumbered — quick rout`,col:'#7dffcf',t:0,max:2.2}); }
     for(const S of [b.A,b.B]) for(const e of S.es){ if(e.kind==='army'&&e.ref.smokeT>0){ S.mul*=BW.gear.smokeMul; e.ref.smokeT=0; this.texts.push({x,y:y-110,s:'💨 Strike from the smoke ×'+BW.gear.smokeMul,col:'#ffe08a',t:0,max:2,big:1}); } }
     for(const e of b.A.es) this.bLock(e,b); for(const e of b.B.es) this.bLock(e,b);
     this.battles.push(b);
@@ -3890,7 +3941,7 @@ class BigWar{
   bLock(e,b){ if(e.kind==='army'){ e.ref.btl=b.id; } else { e.ref.btl=b.id; } }
   bSideSum(S){ let t=0; for(const e of S.es) t+=Math.max(0,e.ref.count); return t; }
   bJoin(b,fid,e){ const S= fid===b.A.fid? b.A : fid===b.B.fid? b.B : null;
-    if(!S){ return false; } S.es.push(e); this.bLock(e,b);
+    if(!S){ return false; } S.es.push(e); this.bLock(e,b); if(S===b.A&&b.A0) b.A0+=Math.max(0,e.ref.count); else if(S===b.B&&b.B0) b.B0+=Math.max(0,e.ref.count);   /* viện binh nhập trận: nhịp tính theo cả quân mới tới */
     if(e.kind==='army'&&e.ref.smokeT>0){ const tot=this.bSideSum(S), sh= tot>0? Math.max(0,e.ref.count)/tot : 1; S.mul*=1+(BW.gear.smokeMul-1)*sh; e.ref.smokeT=0;   /* 💨 đạo quân trong khói nhập trận: cú đánh bất ngờ tính theo phần quân của nó trong phe */
       this.texts.push({x:b.x,y:b.y-110,s:'💨 Strike from the smoke!',col:'#ffe08a',t:0,max:2,big:1}); }
     return true; }
@@ -3952,6 +4003,7 @@ class BigWar{
   }
   update(dt){
     if(this.over) return;
+    if(this.tut) this.tutUpdate(dt);
     this.time+=dt;
     if(this.fxArrow){ this.fxArrow.t+=dt; if(this.fxArrow.t>0.6) this.fxArrow=null; }
     if(this._navWarm&&this._navWarm.length){ const k=this._navWarm.pop(); this.navCost(k); this.navComp(k); }
@@ -4078,7 +4130,11 @@ class BigWar{
       let effA=0; for(const e of b.A.es) effA+=e.ref.count*BW.counter(e.ref.type,domB,b.ter)*this.civAtk(e.ref.owner,e.ref.type,b.ter); effA*=b.A.mul*this.pwOf(b.A.fid);
       let effB=0; for(const e of b.B.es) effB+=e.ref.count*BW.counter(e.ref.type,domA,b.ter)*this.civAtk(e.ref.owner,e.ref.type,b.ter); effB*=b.B.mul*this.pwOf(b.B.fid);
       let dA=effB*b.K*dt, dB=effA*b.K*dt;
-      dA=Math.min(dA,sa*dt/3); dB=Math.min(dB,sb*dt/3); // không bên nào bay hơi nhanh hơn 1/3 mỗi giây
+      if(b.kind==='field'){ const r=Math.max(effA,effB)/Math.max(1e-6,Math.min(effA,effB)), Tm=BW.btlFieldT(r);   /* ⚔️ ngoài đồng: bên yếu hơn tan trong khoảng Tm giây (tính theo quân lúc mở trận) — chênh lệch càng lớn càng nhanh */
+        dA=Math.min(dA,b.A0*dt/Tm); dB=Math.min(dB,b.B0*dt/Tm); b.r=r; }
+      else if(b.kind==='siege'){ const r= b.r0||(b.r0=Math.max(effA,effB)/Math.max(1e-6,Math.min(effA,effB))), T= b.T||(b.T=BW.btlSiegeT(b.L,r,Math.min(b.A0,b.B0))), m=6/T;   /* 🏰 công trại/thành trấn: quân thủ hao ĐỀU suốt T giây (không sụp ngay rồi kéo đuôi) — viện binh có thời gian kéo về; cường độ hạ theo nên tổng thương vong như cũ */
+        dA=Math.min(dA*m,b.A0*dt/T); dB=Math.min(dB*m,b.B0*dt/T); b.r=r; }
+      else { dA=Math.min(dA,sa*dt/3); dB=Math.min(dB,sb*dt/3); } // 🪤 phục kích: nhịp cũ — không bên nào bay hơi nhanh hơn 1/3 mỗi giây
       for(const e of b.A.es){ const q=e.ref.count/sa; e.ref.count=Math.max(0,e.ref.count-dA*q); }
       for(const e of b.B.es){ const q=e.ref.count/sb; e.ref.count=Math.max(0,e.ref.count-dB*q); }
       b.accA=(b.accA||0)+dA; b.accB=(b.accB||0)+dB;
@@ -4585,6 +4641,7 @@ class BigWar{
     c.restore();
     // HUD trên canvas
     this.drawHud(c,vw,vh,tm);
+    if(this.tut&&!this.tut.done) this.drawTut(c,vw,vh,tm);   /* 🎓 lớp hướng dẫn nằm trên cùng (trên cả menu lệnh) */
   }
   // KHUNG BẢN ĐỒ kiểu cổ: bóng đổ vào trong, viền gỗ sẫm + chỉ vàng kép, hoa văn 4 góc và mốc giữa cạnh
   drawMapFrame(c,scale){
@@ -4655,10 +4712,12 @@ class BigWar{
   drawNode(c,n,tm){
     const col= n.owner===2? {color:'#b9b29c',dark:'#6f6a58',light:'#efe9d6'} : BW.facPal(n.owner);
     if(n.camp){ // trại: lều to + cờ
+      const deco= n.owner===this.localFid&&this.decor&&this.decor.length? this.decor : null, dt0=deco? performance.now()/1000 : 0; if(deco) BW.drawDecor(c,n.x,n.y,deco,dt0,0);   /* 🏮 đồ trang trí trại đã mua (sau lều) */
       c.fillStyle='rgba(0,0,0,0.22)'; c.beginPath(); c.ellipse(n.x,n.y+46,95,26,0,0,7); c.fill();
       const im=ArtImages['prop:tent'];
       if(im){ const cv2=recolorUnit(im, n.owner===this.localFid?0:1); c.drawImage(cv2,n.x-95,n.y-110,190,190); }
       else { c.fillStyle=col.color; c.strokeStyle='#2a1a12'; c.lineWidth=5; c.beginPath(); c.moveTo(n.x-85,n.y+45); c.lineTo(n.x,n.y-75); c.lineTo(n.x+85,n.y+45); c.closePath(); c.fill(); c.stroke(); }
+      if(deco) BW.drawDecor(c,n.x,n.y,deco,dt0,1);
       c.font='900 30px "Baloo 2",system-ui'; c.textAlign='center'; c.lineWidth=7; c.strokeStyle='#2a1a12'; c.fillStyle='#fff';
       const mine=n.owner===this.localFid, cap=mine&&n.capOf===this.localFid, crown= cap? ArtImages['ui:general'] : null;
       const nm= mine? (cap? (crown? 'OUR CAPITAL' : '👑 OUR CAPITAL') : 'OUR CAMP'): this.natTag(n.owner)+(this.allied(this.localFid,n.owner)?' 🤝':'');
@@ -5037,7 +5096,7 @@ class BigWar{
         this._menuRects.push({x:mx+6,y:oy,w:mw-12,h:ih-6,id:o.id}); });
       c.textAlign='center'; }
     // dòng hướng dẫn 9 giây đầu: tự xuống dòng trên máy hẹp, nằm trên mép đáy an toàn
-    if(!this.sel && !this.selA && this.time<9 && !this.rallyPick && !this.rallyOpen && !this.menu){ const a2=0.6+0.4*Math.sin(tm*4); c.globalAlpha=a2; c.lineWidth=5; c.strokeStyle='#2a1a12'; c.textAlign='center';
+    if(!this.tut && !this.sel && !this.selA && this.time<9 && !this.rallyPick && !this.rallyOpen && !this.menu){ const a2=0.6+0.4*Math.sin(tm*4); c.globalAlpha=a2; c.lineWidth=5; c.strokeStyle='#2a1a12'; c.textAlign='center';
       const s='Tap a BLUE army, then tap ANYWHERE: empty ground = camp, enemy = pursue. Forests/valleys/fords trigger AUTO-AMBUSH x2–x10. Enemy numbers stay hidden — 🕵️ SCOUT them!';
       const sShort='Tap a BLUE army, then tap a target. Forests, valleys & fords = AMBUSH. 🕵️ SCOUT hidden enemies!';
       const maxW=L.W-28; let fz=16, lines=null; for(;fz>=13;fz--){ c.font=`800 ${fz}px ${FONT}`; if(c.measureText(s).width<=maxW){ lines=[s]; break; } }
@@ -5947,6 +6006,10 @@ BigWar.prototype.aiSnipe=function(fid,en){ const D=this.D, F=this.localFid; if(t
   if(this.armies.some(a=>a.owner===fid&&!a.done&&a.to===m.id)) return false;
   let best=null, bs=0; for(const e of en){ if(e.btl||e.eco||e.count<200) continue; const d=hyp(e.x-m.x,e.y-m.y); if(d>BW.range*1.6) continue; const est=this.aiSee(m,fid); const ra=bwResolve(e.type,Math.round(e.count*(1-D.keep)*this.aiOver()),est.type,est.count,this.defMul({...m,type:est.type}))[0]; if(ra>e.count*0.25&&ra-d*0.2>bs){ bs=ra-d*0.2; best=e; } }
   if(!best) return false; if(!this.aiSend(best,m)) return false; this._snipeT=this.time+30; this.note('🗡️ The enemy strikes at your undefended camp!',m.x,m.y,'🗡️'); audio.drum&&audio.drum(true); return true; };
+// ⏱️ (5.5) NHỊP GIAO TRANH theo yêu cầu người chơi
+BW.btl={camp:2.5, citadel:2.2, fort:1.9, village:1.6, ratioK:0.12, ratioMax:1.6, siegeT:20, siegeSz:1.2, fieldMin:2.5, fieldEven:14, fieldPow:1.3};
+BW.btlSiegeT=function(L,r,small){ const ra=Math.min(BW.btl.ratioMax,1+BW.btl.ratioK*(Math.max(1,r)-1)); return Math.max(3,Math.min(BW.btl.siegeT*L/ra, 3+Math.sqrt(Math.max(0,small))*BW.btl.siegeSz)); };   /* trại 1000 quân bị 2000 đánh ≈ 39 s · trại 50 quân ≈ 11 s */
+BW.btlFieldT=function(r){ return Math.max(BW.btl.fieldMin, Math.min(BW.btl.fieldEven, BW.btl.fieldEven/Math.pow(Math.max(1,r),BW.btl.fieldPow))); };   /* ngang sức: chỉ còn giới hạn tự nhiên theo quân số · gấp đôi ≈ 5,7 s · gấp 4 ≈ 2,5 s */
 
 // ---- 09g_mix.js
 // 🧩 (5.4) CỨ ĐIỂM NHIỀU BINH CHỦNG + TÁCH QUÂN
@@ -5978,6 +6041,110 @@ BigWar.prototype.rescuePick=function(x,y){ const F=this.localFid; let best=null,
     for(const a of this.armies){ if(a.done||a.count<=0||!this.isFoe(a.owner,F)) continue; if(a.to===n.id) danger+=2500+a.count; else if(!(a.to>=0&&this.nodes[a.to].owner===F)&&hyp(a.x-n.x,a.y-n.y)<520) danger+=300+a.count*0.3; }   /* địch đang kéo thẳng tới trại này nặng hơn hẳn địch chỉ đi ngang gần */
     const d=hyp(n.x-x,n.y-y), snap=Math.max(170, 70/Math.max(0.05,this.scale||1)); const sc=(d<snap? 1e6 : 0)+danger+(n.camp?400:0)-d*0.6; if((danger>0||d<snap)&&sc>bs){ bs=sc; best=n; } }
   return best; };
+
+// ---- 09h_decor.js
+// 🏮 (5.5) TRANG TRÍ TRẠI — mua bằng Meme Coin, chỉ để ĐẸP (không cộng chỉ số). Bật nhiều món cùng lúc được; vẽ quanh đại bản doanh của người chơi.
+const BW_DECOR=[
+  {id:'banners',  name:'War Banners',       emoji:'🚩', cost:60,  desc:'Bright pennants on tall poles around your camp.'},
+  {id:'lanterns', name:'Festival Lanterns', emoji:'🏮', cost:90,  desc:'A string of glowing red lanterns over the tents.'},
+  {id:'blossom',  name:'Cherry Blossoms',   emoji:'🌸', cost:120, desc:'Blossom trees beside the camp, petals drifting in the wind.'},
+  {id:'gold',     name:'Golden Palisade',   emoji:'✨', cost:180, desc:'A ring of golden stakes that sparkles in the sun.'},
+  {id:'fireworks',name:'Fireworks',         emoji:'🎆', cost:220, desc:'Fireworks burst above your camp all battle long.'},
+  {id:'dragon',   name:'Dragon Standard',   emoji:'🐉', cost:260, desc:'A huge dragon banner and a glowing ring of honour.'},
+];
+const BW_DECOR_BY={}; for(const d of BW_DECOR) BW_DECOR_BY[d.id]=d;
+// layer 0 = sau lều, 1 = trước lều. (x,y) = tâm trại theo toạ độ bản đồ; t = giây.
+BW.drawDecor=function(c,x,y,ids,t,layer){ if(!ids||!ids.length) return; const has=(k)=>ids.indexOf(k)>=0, S=Math.sin, C=Math.cos; c.save(); c.lineJoin='round'; c.lineCap='round';
+  if(layer===0){
+    if(has('dragon')){ const p=0.5+0.5*S(t*2.2); c.globalAlpha=0.35+0.25*p; c.strokeStyle='#ffd54a'; c.lineWidth=7; c.beginPath(); c.ellipse(x,y+48,150+8*p,44+3*p,0,0,7); c.stroke(); c.globalAlpha=0.16; c.fillStyle='#ffd54a'; c.beginPath(); c.ellipse(x,y+48,150,44,0,0,7); c.fill(); c.globalAlpha=1;
+      const px=x+6, top=y-250; c.strokeStyle='#5a3a1e'; c.lineWidth=9; c.beginPath(); c.moveTo(px,y+30); c.lineTo(px,top); c.stroke(); c.fillStyle='#ffd54a'; c.beginPath(); c.arc(px,top-6,10,0,7); c.fill();
+      c.beginPath(); const L=150, H=64; for(let i=0;i<=12;i++){ const u=i/12, wx=px+u*L, wy=top+8+S(t*3+u*5)*9*u; if(i===0) c.moveTo(wx,wy); else c.lineTo(wx,wy); } for(let i=12;i>=0;i--){ const u=i/12, wx=px+u*L, wy=top+8+H*(1-u*0.25)+S(t*3+u*5+0.6)*9*u; c.lineTo(wx,wy); } c.closePath(); c.fillStyle='#c81e1e'; c.fill(); c.strokeStyle='#ffd54a'; c.lineWidth=5; c.stroke();
+      c.strokeStyle='#ffd54a'; c.lineWidth=6; c.beginPath(); for(let i=0;i<=14;i++){ const u=i/14, wx=px+14+u*(L-34), wy=top+8+H*0.5+S(u*9+t*3)*13; if(i===0) c.moveTo(wx,wy); else c.lineTo(wx,wy); } c.stroke(); c.fillStyle='#ffd54a'; c.beginPath(); c.arc(px+L-18,top+8+H*0.5+S(9+t*3)*13,8,0,7); c.fill(); }
+    if(has('blossom')){ for(const sx of [-150,158]){ const bx=x+sx, by=y+34; c.strokeStyle='#6b4226'; c.lineWidth=10; c.beginPath(); c.moveTo(bx,by); c.quadraticCurveTo(bx+(sx<0?-8:8),by-50,bx,by-88); c.stroke();
+        for(const [dx,dy,r,col] of [[0,-112,40,'#ffb7d0'],[-30,-92,30,'#ff9ec0'],[30,-94,31,'#ffc8dc'],[-6,-136,26,'#ffd9e6'],[18,-118,20,'#ff8fb5']]){ c.fillStyle=col; c.beginPath(); c.arc(bx+dx,by+dy,r,0,7); c.fill(); } } }
+    if(has('lanterns')){ const x0=x-128, x1=x+128, yt=y-150; c.strokeStyle='#5a3a1e'; c.lineWidth=7; for(const px of [x0,x1]){ c.beginPath(); c.moveTo(px,y+34); c.lineTo(px,yt); c.stroke(); }
+      c.strokeStyle='#3b2a1a'; c.lineWidth=3; c.beginPath(); c.moveTo(x0,yt); c.quadraticCurveTo(x,yt+58,x1,yt); c.stroke();
+      for(let i=1;i<=5;i++){ const u=i/6, lx=x0+(x1-x0)*u, ly=yt+58*2*u*(1-u)*1+10+S(t*2+i)*2, g=0.6+0.4*S(t*3+i*1.7); c.globalAlpha=0.28*g; c.fillStyle='#ffb347'; c.beginPath(); c.arc(lx,ly+10,24,0,7); c.fill(); c.globalAlpha=1;
+        c.fillStyle='#e02424'; c.beginPath(); c.ellipse(lx,ly+10,11,14,0,0,7); c.fill(); c.fillStyle='#ffd54a'; c.fillRect(lx-7,ly-6,14,4); c.fillRect(lx-7,ly+22,14,4); c.strokeStyle='#ffd54a'; c.lineWidth=2; c.beginPath(); c.moveTo(lx,ly+26); c.lineTo(lx,ly+36); c.stroke(); } }
+    if(has('banners')){ const cols=['#ff3b3b','#ffd23b','#3bb4ff','#52e07a']; [[-176,18],[-112,-62],[112,-62],[176,18]].forEach(([dx,dy],i)=>{ const px=x+dx, py=y+dy+30, top=py-120; c.strokeStyle='#5a3a1e'; c.lineWidth=6; c.beginPath(); c.moveTo(px,py); c.lineTo(px,top); c.stroke();
+        const w=S(t*4+i*1.3)*7, dir=dx<0?-1:1; c.fillStyle=cols[i]; c.strokeStyle='#2a1a12'; c.lineWidth=3; c.beginPath(); c.moveTo(px,top+2); c.lineTo(px+dir*52,top+18+w); c.lineTo(px,top+36); c.closePath(); c.fill(); c.stroke(); }); }
+    if(has('fireworks')){ for(let k=0;k<3;k++){ const T=2.6, ph=((t+k*0.87)%T)/T, seed=Math.floor((t+k*0.87)/T)*7+k*13, fx=x+((seed*37)%240)-120, fy=y-230-((seed*53)%90), col=['#ff5b5b','#ffd54a','#7dffcf','#b78bff','#ff9ee0'][seed%5];
+        if(ph<0.25){ c.globalAlpha=0.8; c.strokeStyle='#fff3c4'; c.lineWidth=3; const u=ph/0.25; c.beginPath(); c.moveTo(fx,y-60-(fy-(y-60))*0*u); c.moveTo(fx,y-40+(fy-(y-40))*u+16); c.lineTo(fx,y-40+(fy-(y-40))*u); c.stroke(); }
+        else { const u=(ph-0.25)/0.75, R=14+70*Math.sqrt(u); c.globalAlpha=Math.max(0,1-u); c.strokeStyle=col; c.lineWidth=4; for(let a=0;a<12;a++){ const an=a*Math.PI/6+seed; c.beginPath(); c.moveTo(fx+C(an)*R*0.55,fy+S(an)*R*0.55+u*u*18); c.lineTo(fx+C(an)*R,fy+S(an)*R+u*u*18); c.stroke(); } c.fillStyle='#fff'; c.globalAlpha=Math.max(0,0.9-u*2); c.beginPath(); c.arc(fx,fy,6,0,7); c.fill(); } } c.globalAlpha=1; }
+  } else {
+    if(has('gold')){ for(let i=0;i<13;i++){ const u=i/12, an=Math.PI*(0.04+0.92*u), px=x-C(an)*150, py=y+48+S(an)*40; c.fillStyle='#b8860b'; c.strokeStyle='#5a3a1e'; c.lineWidth=2.5; c.beginPath(); c.moveTo(px-7,py+6); c.lineTo(px-7,py-22); c.lineTo(px,py-34); c.lineTo(px+7,py-22); c.lineTo(px+7,py+6); c.closePath(); c.fill(); c.stroke(); c.fillStyle='#ffd54a'; c.fillRect(px-4,py-22,4,24);
+        const sp=S(t*3+i*2.1); if(sp>0.82){ c.fillStyle='#fff'; c.globalAlpha=(sp-0.82)/0.18; c.beginPath(); c.moveTo(px,py-46); c.lineTo(px+4,py-36); c.lineTo(px+12,py-34); c.lineTo(px+4,py-31); c.lineTo(px,py-22); c.lineTo(px-4,py-31); c.lineTo(px-12,py-34); c.lineTo(px-4,py-36); c.closePath(); c.fill(); c.globalAlpha=1; } } }
+    if(has('blossom')){ for(let i=0;i<14;i++){ const ph=((t*0.22+i*0.137)%1), px=x-190+((i*71)%380)+S(t*1.5+i)*14, py=y-150+ph*220; c.globalAlpha=0.9*(1-Math.abs(ph-0.5)*1.6>0? Math.min(1,1.6-Math.abs(ph-0.5)*3) : 0); c.fillStyle= i%2? '#ffb7d0' : '#ffd9e6'; c.beginPath(); c.ellipse(px,py,6,3.4,t*2+i,0,7); c.fill(); } c.globalAlpha=1; }
+  }
+  c.restore(); };
+
+// ---- 09i_tutorial.js
+// 🎓 (5.5) HƯỚNG DẪN LẦN ĐẦU — một trận tập có KHOÁ THAO TÁC: mỗi bước chỉ cho làm đúng một việc (chỗ được chạm sáng lên, phần còn lại tối đi),
+// kèm ghi chú ngắn. Máy đứng yên suốt trận tập. Xong thì báo cho 08_main.js (tut.done) để thưởng xu và mở chiến dịch.
+BW.TUT=[
+  {k:'sel',  text:'Welcome, Commander! This is YOUR stronghold. The number is how many troops it holds.\n👆 TAP it to select it.'},
+  {k:'tgt',  text:'Grey posts are NEUTRAL. If your army is bigger, their troops JOIN you.\n👆 TAP the grey post.'},
+  {k:'go',   text:'This is the order menu. “All · ½ · ¼” sets how many troops go — the rest stay to guard.\n👆 TAP the order to send your army.'},
+  {k:'wait', text:'Armies march on their own. Roads are fastest; forests and mountains slow them down; rivers are crossed at fords.'},
+  {k:'sel2', text:'The post is yours — and your army GREW!\n👆 TAP your new post.'},
+  {k:'tgt2', text:'Red posts belong to the ENEMY. Their numbers stay hidden until you scout or fight them.\n👆 TAP the red post.'},
+  {k:'go2',  text:'Each unit type beats one type and fears another — the menu shows ▲ or ▼.\n👆 TAP “Attack”.'},
+  {k:'wait2',text:'Battle! The bigger, better-matched army wins. Reinforcements can join a fight in progress.'},
+  {k:'info', text:'You won! To win a stage, capture the enemy CAMP — and never leave your own camp empty.\n🌾 Farms feed bigger armies · 📣 calls your camps together · 🚑 rescues a camp · 🎒 uses supplies.'},
+];
+BigWar.prototype.tutStart=function(){ const F=this.localFid, d=(a,b)=>hyp(a.x-b.x,a.y-b.y); this.aiTurn=()=>{}; this.nextWaveF={1:1e9}; this.nextAiScout=1e9; this.intro=null; this.autoMenu=false; this.armies.length=0;
+  const A=this.nodes.filter(n=>n.owner===F&&!n.camp&&!n.eco).sort((a,b)=>b.count-a.count)[0]; A.count=600; A.mix=null;
+  const neu=this.nodes.filter(n=>n.owner===2&&!n.eco&&!n.camp).sort((a,b)=>d(a,A)-d(b,A)), T1=neu[0], T2=neu.slice(1).sort((a,b)=>d(a,T1)-d(b,T1))[0];
+  T1.count=120; T1.ambush=false; T2.owner=1; T2.type=this.civType(1); T2.count=150; T2.mix=null; T2.ambush=false; T2.food=50;
+  this.tut={step:-1,A,T1,T2,t:0,done:false,skipped:false,nag:0}; this.tutGo(0); if(this._updateVision) this._updateVision(); };
+BigWar.prototype.tutGo=function(i){ const U=this.tut; U.step=i; U.t=0; const k=BW.TUT[i].k, m=(a,b)=>({x:(a.x+b.x)/2,y:(a.y+b.y)/2});
+  const f= k==='sel'? U.A : k==='tgt'||k==='go'? m(U.A,U.T1) : k==='wait'||k==='sel2'? U.T1 : k==='tgt2'||k==='go2'||k==='wait2'? m(U.T1,U.T2) : null;
+  if(f){ const need= k==='sel'||k==='sel2'||k==='wait'? 1.15 : Math.max(0.55,Math.min(1.15, 0.5*Math.min(this.lastVw||800,this.lastVh||400)/Math.max(1,(this.scale0||0.3))/ (hyp(U.A.x-U.T2.x,U.A.y-U.T2.y)+260))); this.jumpTo(f.x,f.y,need); } };
+BigWar.prototype.tutFocus=function(){ const U=this.tut, k=BW.TUT[U.step].k, sc=this.scale||1, w=(n)=>({x:(n.x-this.camX)*sc,y:(n.y-(this.camY||0))*sc,r:Math.max(46,95*sc)});
+  if(k==='sel') return w(U.A); if(k==='tgt') return w(U.T1); if(k==='sel2') return w(U.T1); if(k==='tgt2') return w(U.T2);
+  if(k==='go'||k==='go2'){ const r=(this._menuRects||[]).find(q=>q.id==='attack'||q.id==='move')||(this._menuRects||[]).find(q=>!q.sel&&q.id!=='cancel'); return r? {rect:r} : null; }
+  return null; };
+// chạm màn hình: true = nuốt (không làm gì) · false = bỏ qua HUD, coi là chạm bản đồ · null = để game xử lý bình thường
+BigWar.prototype.tutScreen=function(sx,sy){ const U=this.tut, k=BW.TUT[U.step].k, hit=(r)=>r&&sx>=r.x&&sx<=r.x+r.w&&sy>=r.y&&sy<=r.y+r.h;
+  if(hit(U.skipR)){ U.done=true; U.skipped=true; return true; }
+  if(k==='info'){ if(hit(U.okR)){ U.done=true; audio.click&&audio.click(); } return true; }
+  if(k==='wait'||k==='wait2') return true;
+  if(k==='go'||k==='go2'){ const f=this.tutFocus(); if(f&&f.rect&&hit(f.rect)) return null; U.nag=1; return true; }
+  return false; };
+BigWar.prototype.tutWorld=function(wx,wy){ const U=this.tut, k=BW.TUT[U.step].k, n= k==='sel'? U.A : k==='tgt'||k==='sel2'? U.T1 : k==='tgt2'? U.T2 : null; if(n&&hyp(wx-n.x,wy-n.y)<=Math.max(115,60/Math.max(0.05,this.scale||1))) return {x:n.x,y:n.y}; U.nag=1; return null; };
+BigWar.prototype.tutUpdate=function(dt){ const U=this.tut; if(!U||U.done) return; U.t+=dt; U.nag=Math.max(0,U.nag-dt*2.5); const F=this.localFid, k=BW.TUT[U.step].k;
+  for(const a of this.armies) if(a.owner===F) a.food=Math.max(a.food||0,80);
+  const menuTo=(n)=>this.menu&&this.menu.tgtNode===n, marching=(n)=>this.armies.some(a=>a.owner===F&&!a.done&&(a.to===n.id||a.btl));
+  if(k==='sel'){ if(this.sel===U.A) this.tutGo(1); }
+  else if(k==='tgt'){ if(menuTo(U.T1)) this.tutGo(2); else if(this.sel!==U.A&&!this.menu) this.tutGo(0); }
+  else if(k==='go'){ if(marching(U.T1)||U.T1.owner===F) this.tutGo(3); else if(!this.menu) this.tutGo(this.sel===U.A?1:0); }
+  else if(k==='wait'){ if(U.T1.owner===F&&!this.armies.some(a=>a.owner===F&&!a.done)){ U.T1.count=Math.max(U.T1.count,600); this.sel=null; this.menu=null; this.tutGo(4); } else if(U.t>40&&!marching(U.T1)){ U.A.count=Math.max(U.A.count,600); this.tutGo(0); } }
+  else if(k==='sel2'){ if(this.sel===U.T1) this.tutGo(5); }
+  else if(k==='tgt2'){ if(menuTo(U.T2)) this.tutGo(6); else if(this.sel!==U.T1&&!this.menu) this.tutGo(4); }
+  else if(k==='go2'){ if(marching(U.T2)||U.T2.owner===F) this.tutGo(7); else if(!this.menu) this.tutGo(this.sel===U.T1?5:4); }
+  else if(k==='wait2'){ if(U.T2.owner===F) this.tutGo(8); else if(U.t>3&&!marching(U.T2)&&!U.T2.btl){ U.T2.count=Math.min(U.T2.count,80); U.T1.count=Math.max(U.T1.count,600); this.sel=null; this.tutGo(4); } } };
+BigWar.prototype.drawTut=function(c,vw,vh,tm){ const U=this.tut; if(!U||U.done) return; const S=BW.TUT[U.step], f=this.tutFocus(), t=performance.now()/1000, pulse=0.5+0.5*Math.sin(t*5), wait=S.k==='wait'||S.k==='wait2';
+  c.save(); c.setTransform(c.getTransform().a,0,0,c.getTransform().d,0,0);
+  if(!wait){ c.fillStyle='rgba(8,6,20,0.62)'; c.beginPath(); c.rect(0,0,vw,vh);
+    if(f&&f.rect){ const r=f.rect; c.rect(r.x-4,r.y-3,r.w+8,r.h+6); } else if(f){ c.moveTo(f.x+f.r,f.y); c.arc(f.x,f.y,f.r,0,Math.PI*2,true); }
+    c.fill('evenodd'); }
+  if(f){ c.strokeStyle= U.nag>0? '#ff6b5b' : '#ffd54a'; c.lineWidth=4+3*pulse+U.nag*4; c.globalAlpha=0.65+0.35*pulse; if(f.rect){ const r=f.rect; rr(c,r.x-6,r.y-5,r.w+12,r.h+10,12); c.stroke(); } else { c.beginPath(); c.arc(f.x,f.y,f.r+4+6*pulse,0,7); c.stroke(); } c.globalAlpha=1;
+    const hx= f.rect? f.rect.x+f.rect.w-26 : f.x+f.r*0.35, hy=(f.rect? f.rect.y+f.rect.h*0.5 : f.y+f.r*0.45)+10+8*pulse; c.font='34px system-ui'; c.textAlign='center'; c.fillText('👆',hx,hy+26); }
+  // khung ghi chú — KHÔNG được che chỗ cần chạm (và cả menu lệnh): thử đặt dưới → trên → bên trái → bên phải vùng cần tránh
+  const FONT2='"Baloo 2",system-ui,sans-serif', fs= vw<420? 14 : 15.5, lh=fs*1.32, info=S.k==='info';
+  const wrap=(pw)=>{ c.font=`700 ${fs}px ${FONT2}`; const L=[]; for(const para of S.text.split('\n')){ let cur=''; for(const w of para.split(' ')){ const tt=cur? cur+' '+w : w; if(c.measureText(tt).width>pw-28&&cur){ L.push(cur); cur=w; } else cur=tt; } L.push(cur); } return L; };
+  let av=null; if(f&&f.rect){ let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9; for(const r of this._menuRects||[]){ x0=Math.min(x0,r.x); y0=Math.min(y0,r.y); x1=Math.max(x1,r.x+r.w); y1=Math.max(y1,r.y+r.h); } av={x0:x0-14,y0:y0-14,x1:x1+14,y1:y1+14}; } else if(f) av={x0:f.x-f.r-12,y0:f.y-f.r-12,x1:f.x+f.r+12,y1:f.y+f.r+60};
+  const TOP=58, BOT=vh-8; let pw=Math.min(vw-20,540), lines=wrap(pw), ph=lines.length*lh+34+(info?50:0), px=(vw-pw)/2, top;
+  if(info||!av) top= info? (vh-ph)/2 : TOP;
+  else if(BOT-av.y1>=ph) top=Math.min(BOT-ph,av.y1+6);
+  else if(av.y0-TOP>=ph) top=Math.max(TOP,av.y0-ph-6);
+  else { const lw=av.x0-16, rw=vw-av.x1-16, side= lw>=rw? 'L':'R', w2=Math.max(lw,rw); pw=Math.max(200,Math.min(540,w2)); lines=wrap(pw); ph=lines.length*lh+34; px= side==='L'? Math.max(8,av.x0-8-pw) : Math.min(vw-pw-8,av.x1+8); top=Math.max(TOP,Math.min(BOT-ph,(av.y0+av.y1)/2-ph/2)); }
+  c.fillStyle='rgba(28,18,48,0.96)'; c.strokeStyle='#ffd54a'; c.lineWidth=3; rr(c,px,top,pw,ph,14); c.fill(); c.stroke();
+  c.textAlign='left'; c.fillStyle='#ffd54a'; c.font=`900 12px ${FONT2}`; c.fillText(`🎓 TUTORIAL · ${U.step+1}/${BW.TUT.length}`,px+14,top+19);
+  c.font=`700 ${fs}px ${FONT2}`; lines.forEach((q,i)=>{ c.fillStyle= q.startsWith('👆')? '#7dffcf' : '#fff'; c.fillText(q,px+14,top+24+lh*(i+1)); });
+  if(info){ const bw2=170, bx=px+pw/2-bw2/2, by=top+ph-48; c.fillStyle='#4ade80'; rr(c,bx,by,bw2,38,12); c.fill(); c.fillStyle='#0b2a14'; c.font=`900 18px ${FONT2}`; c.textAlign='center'; c.fillText('Got it ▶',bx+bw2/2,by+26); U.okR={x:bx,y:by,w:bw2,h:38}; } else U.okR=null;
+  const sw=74, sx=px+pw-sw-8, sy=top+5; c.fillStyle='rgba(255,255,255,0.14)'; rr(c,sx,sy,sw,22,8); c.fill(); c.fillStyle='#d8d0ea'; c.font=`800 12px ${FONT2}`; c.textAlign='center'; c.fillText('Skip ▸',sx+sw/2,sy+16); U.skipR={x:sx-6,y:sy-8,w:sw+12,h:38};
+  c.restore(); };
 
 // ---- 10_p2p.js
 // ============ 📶 P2P 2 NGƯỜI — WebRTC, chủ phòng cầm trịch (host-authoritative) ============

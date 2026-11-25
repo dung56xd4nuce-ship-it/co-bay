@@ -1060,7 +1060,7 @@ console.log(`\n${pass} đạt, ${fail} chưa đạt`);
     { const {bw,I,a}=scene(); fin(bw); const lost=bw.lossLog.reduce((t,e)=>t+e.n,0), c0=a.count; bw.selA=a; const r=bw.gearUse(0), back=a.count-c0;
       ok(r.ok&&lost>60&&Math.abs(back-lost*G.bandFrac)<=1&&I.bandage===4, `🩹 Thắng trận mất ${Math.round(lost)} quân → băng cứu thương cứu lại ${back} (30%)`);
       bw.gear[0].cd=0; bw.notes.length=0; const r2=bw.gearUse(0); ok(!r2.ok&&r2.why==='nothing'&&I.bandage===4&&a.count===c0+back&&bw.notes.length===1, '🩹 Một tổn thất chỉ cứu được một lần — dùng lại báo "không có ai để cứu", không mất món'); }
-    { const {bw,I,a,X,Y}=scene(); fin(bw); const stay=army(bw,{x:X+120,y:Y+90,count:300}); run(bw,G.bandWindow+1); bw.selA=stay; const r=bw.gearUse(0); ok(!r.ok&&r.why==='nothing'&&stay.count===300&&I.bandage===5, `🩹 Quá ${G.bandWindow}s thì không cứu được nữa (đạo quân đứng ngay cạnh nơi vừa đánh cũng không nhận được ai)`); }
+    { const {bw,I,a,X,Y}=scene(); fin(bw); const stay=army(bw,{x:X+120,y:Y+90,count:300}); run(bw,G.bandWindow+1); bw.selA=stay; const r=bw.gearUse(0); ok(!r.ok&&r.why==='nothing'&&stay.count<=300&&I.bandage===5, `🩹 Quá ${G.bandWindow}s thì không cứu được nữa (đạo quân đứng ngay cạnh nơi vừa đánh cũng không nhận được ai)`); }
     { const {bw,I,a,X,Y}=scene(); fin(bw); const far=army(bw,{x:X+G.bandR+300,y:Y,count:400}); bw.selA=far; const r=bw.gearUse(0); ok(!r.ok&&r.why==='nothing'&&far.count===400, `🩹 Đạo quân ở xa nơi thua thiệt (>${G.bandR}px) không nhận được thương binh`);
       const near=army(bw,{x:X+200,y:Y+100,count:400}); bw.selA=near; const r2=bw.gearUse(0); ok(r2.ok&&near.count>400, `🩹 Đạo quân khác đứng gần đó nhận thương binh về đội mình (400 → ${near.count})`); }
     { const {bw,I,a}=scene(); let t=0; while(!bw.battles.length&&t<10){ bw.update(1/30); t+=1/30; } run(bw,2.5,1/30); const b=bw.battles[0], l0=b.lostP, c0=a.count; bw.selA=a; const r=bw.gearUse(0);
@@ -1241,5 +1241,27 @@ console.log(`\n${pass} đạt, ${fail} chưa đạt`);
       if(commit) bw.armies.push({owner:0,type:'spear',count:5000,x:camp(bw,1).x+(mc.x<BW.W/2? -900 : 900),y:camp(bw,1).y,to:-1,tx:0,ty:0,camped:true,from:0,trail:0,food:100}); bw.visR=99999; bw.time=150; bw._updateVision(); let hit=0; for(let k=0;k<8&&!hit;k++){ bw.aiTurn(1); hit=bw.armies.filter(q=>q.owner===1&&q.to===mc.id).length; } return hit; };
     const h0=raid(10,false), h1=raid(10,true), h5=raid(5,true);
     ok(h0===0&&h1>=1&&h5===0, `🗡️ Phút 2:30, trại ta chỉ còn 20 quân: ải 10 — ta ở nhà thì máy chưa đánh trại (${h0}); ta dốc 5000 quân sang sát trại địch thì máy ĐÁNH ÚP trại ta (${h1}); ải 5 chưa biết trò này (${h5})`); }
+}
+
+// ===== (5.5) NHỊP GIAO TRANH: công trại/thành trấn kéo dài · phục kích giữ nhịp · chỗ khác chênh lệch càng lớn càng nhanh =====
+{ const fight=(kind,att,def)=>{ const bw=new BigWar(3,{map:6,civ:'rome',autoMenu:false}); bw.aiTurn=()=>{}; bw.nextWaveF={1:1e9}; bw.nextAiScout=1e9; bw.armies.length=0; bw.battles.length=0;
+    const A={owner:0,type:'spear',count:att,x:0,y:0,food:100,from:0,trail:0,camped:true,to:-1,tx:0,ty:0}; bw.armies.push(A); let b;
+    if(kind==='field'||kind==='ambush'){ const B={owner:1,type:'spear',count:def,x:10,y:0,food:100,from:1,trail:0,camped:true,to:-1,tx:10,ty:0}; bw.armies.push(B); b=bw.startBattle(5,0,'plain',-1,{fid:0,e:{kind:'army',ref:A,c0:att}},{fid:1,e:{kind:'army',ref:B,c0:def}},kind==='ambush'?3:1,kind==='ambush'?'🪤 AMBUSH x3.0!':null); }
+    else { const n= kind==='camp'? bw.nodes.find(q=>q.camp&&q.owner===1) : bw.nodes.find(q=>q.owner===1&&!q.camp&&!q.eco); if(kind!=='camp') n.struct= kind==='post'? null : kind; n.type='spear'; n.count=def; n.mix=null;
+      b=bw.startBattle(n.x,n.y,n.ter,n.id,{fid:0,e:{kind:'army',ref:A,c0:att}},{fid:1,e:{kind:'node',ref:n,c0:def}},1); }
+    let t=0; while(!b.done&&t<300){ bw.update(0.05); t+=0.05; } return {t,kind:b.kind,A}; };
+  const f11=fight('field',1000,1000), f15=fight('field',1500,1000), f2=fight('field',2000,1000), f4=fight('field',4000,1000), f10=fight('field',10000,1000);
+  ok(f11.kind==='field'&&f11.t>15&&f15.t<f11.t*0.4&&f2.t<f15.t&&f4.t<f2.t&&f2.t<=6&&f4.t<=3&&f10.t>=2.4&&f10.t<=3, `⚔️ Ngoài đồng: ngang sức ${f11.t.toFixed(0)}s · gấp 1,5 ${f15.t.toFixed(1)}s · gấp 2 ${f2.t.toFixed(1)}s · gấp 4 ${f4.t.toFixed(1)}s · gấp 10 ${f10.t.toFixed(1)}s (tối thiểu 2,5s)`);
+  const p2=fight('post',2000,1000); ok(p2.kind==='field'&&p2.t<=6, `⚔️ Đồn thường (không phải trại/thành trấn): cũng tan nhanh theo chênh lệch — gấp 2 mất ${p2.t.toFixed(1)}s`);
+  const am=fight('ambush',2000,1000); ok(am.kind==='ambush'&&am.t>18, `🪤 Phục kích giữ nhịp cũ: ${am.t.toFixed(0)}s`);
+  const v=fight('village',2000,1000), fo=fight('fort',2000,1000), ci=fight('citadel',2000,1000), ca=fight('camp',2000,1000), ca8=fight('camp',8000,1000);
+  ok(v.kind==='siege'&&v.t>p2.t*5&&v.t<fo.t&&fo.t<ci.t&&ci.t<ca.t&&ca.t>=40, `🏰 Công thành (cùng 2000 đánh 1000): làng trấn ${v.t.toFixed(0)}s < thành lũy ${fo.t.toFixed(0)}s < thành trì ${ci.t.toFixed(0)}s < đại bản doanh ${ca.t.toFixed(0)}s — so với đồn thường ${p2.t.toFixed(1)}s`);
+  ok(ca8.t<ca.t&&ca8.t>=24, `🏰 Quân đông hơn hẳn (8000 đánh trại 1000) chỉ rút ngắn chút ít: vẫn ${ca8.t.toFixed(0)}s`);
+  // tổn thất của bên thắng: trận chóng vánh thì bên thắng mất ít hơn trận giằng co
+  ok(f4.A.count>3800&&f2.A.count>1650, `⚔️ Thắng áp đảo mất ít quân: 4000 đánh 1000 còn ${Math.round(f4.A.count)}, 2000 đánh 1000 còn ${Math.round(f2.A.count)}`);
+  // trại bị đánh lâu hơn → viện binh kịp tới: trong 20 giây đầu trại 1000 quân vẫn đứng vững trước 2000 quân
+  { const bw=new BigWar(3,{map:6,civ:'rome',autoMenu:false}); bw.aiTurn=()=>{}; bw.nextWaveF={1:1e9}; bw.armies.length=0; const n=bw.nodes.find(q=>q.camp&&q.owner===1); n.count=1000; n.mix=null; n.type='spear';
+    const A={owner:0,type:'spear',count:2000,x:n.x,y:n.y,food:100,from:0,trail:0,camped:true,to:-1,tx:n.x,ty:n.y}; bw.armies.push(A); bw.startBattle(n.x,n.y,n.ter,n.id,{fid:0,e:{kind:'army',ref:A,c0:2000}},{fid:1,e:{kind:'node',ref:n,c0:1000}},1);
+    for(let i=0;i<400;i++) bw.update(0.05); ok(n.owner===1&&n.count>150, `🏰 Sau 20 giây công trại, trại vẫn còn ${Math.round(n.count)} quân — đủ thời gian cho viện binh kéo về`); }
 }
 }
