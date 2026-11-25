@@ -77,12 +77,12 @@ for(const [dn,dev] of [...DEVICES, PORTRAIT[1], ['Android nhỏ ngang 640×360',
   r=await T.tapEl('#civStage .dif[data-dif="2"]'); await p.waitForTimeout(200); ok(r.ok&&/Hard/.test(await T.ev(()=>document.querySelector('#civStage .dif.on').textContent)),'chạm chọn được mức Hard');
   await T.tapEl('#civGo'); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.royale&&__ltm.bw.lastVw>0,null,{timeout:20000}); await p.waitForTimeout(500);
   const ry=await T.ev(()=>({diff:__ltm.bw.cfg.diff,fly:__ltm.bw.D.fly,top:document.getElementById('siTop').textContent,bio:__ltm.bw.biomeId,land:document.getElementById('siLand').textContent,name:__ltm.bw.biome.name}));
-  ok(ry.diff===2&&ry.fly===5&&ry.top==='WARLORDS · HARD'&&ry.land.includes(ry.name),`vào Quần Hùng mức Khó: băng "${ry.top}" · ${ry.land}`);
+  ok(ry.diff===2&&ry.fly===5&&ry.top==='CONQUEST 1/3 · HARD'&&ry.land.includes(ry.name),`vào Quần Hùng mức Khó: băng "${ry.top}" · ${ry.land}`);
   await T.ev(()=>{ const bw=__ltm.bw; bw.intro=null; for(let i=0;i<200;i++) bw.update(0.05); stopBigWar(true); }); await p.waitForTimeout(400); await T.tapEl('#bBW'); await p.waitForTimeout(250);
   ok(/Hard/.test(await txt('#bBossContinue')),'nút CONTINUE WARLORDS ghi mức "Hard"');
   await T.tapEl('#bBossContinue'); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.royale&&__ltm.bw.lastVw>0,null,{timeout:20000}); await p.waitForTimeout(300);
   ok(await T.ev(()=>__ltm.bw.cfg.diff===2&&__ltm.bw.D.diff===2&&__ltm.bw.biomeId)===ry.bio,'chơi tiếp Quần Hùng: vẫn mức Khó, vẫn kiểu địa hình cũ');
-  await T.ev(()=>{ stopBigWar(true); localStorage.removeItem('ltm_royale_save_v1'); }); await p.waitForTimeout(300); await T.tapEl('#bBW'); await p.waitForTimeout(200); await T.tapEl('#bBossRoyale'); await p.waitForTimeout(350);
+  await T.ev(()=>{ stopBigWar(true); localStorage.removeItem('ltm_royale_save_v1'); }); await p.waitForTimeout(300); await T.tapEl('#bBW'); await p.waitForTimeout(200); await T.tapEl('#bBossRoyale'); await p.waitForTimeout(350); await T.tapEl('#conqNew'); await p.waitForTimeout(350);
   ok(/Hard/.test(await T.ev(()=>document.querySelector('#civStage .dif.on').textContent)),'lần sau mở Quần Hùng: nhớ mức khó đã chọn');
   ok(T.errs.length===0,'không lỗi JS'+(T.errs.length?': '+T.errs[0]:'')); await T.ctx.close();
 }

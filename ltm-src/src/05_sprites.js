@@ -57,6 +57,7 @@ function body(c, col, dark, opts={}){
 }
 function arm(c,x,y,col){ c.beginPath(); c.arc(x,y,6.5,0,Math.PI*2); fillStroke(c,col,2.5); }
 
+const BW_UNIT_ALIAS={tribal:'saber',militia:'spear'};
 function makeUnitSprite(type, fi, variant){
   const key=type+':'+fi+':'+(variant||'');
   if(SpriteCache.has(key)) return SpriteCache.get(key);
@@ -64,6 +65,7 @@ function makeUnitSprite(type, fi, variant){
   c.lineJoin='round'; c.lineCap='round';
   const F = fi===NEUTRAL ? {color:'#d9d4c7',dark:'#8d8779',light:'#f5f1e6',emblem:'none'} : FACTIONS[fi];
   const col=F.color, dark=F.dark, skin='#ffdcb8';
+  if(!ArtImages['unit:'+type]&&BW_UNIT_ALIAS[type]) type=BW_UNIT_ALIAS[type];   /* (5.7) quân bộ lạc / dân binh chưa có hình riêng: mượn dáng binh chủng gần nhất */
   const art = ArtImages['unit:'+type];
   if(art){ c.drawImage(recolorUnit(art, fi),0,0,SPR,SPR);
     if(type==='general' && variant>0){ drawGeneralWeapon(c,variant,true); }

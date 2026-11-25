@@ -1,5 +1,6 @@
 // VĂN MINH & BINH CHỦNG — như người chơi: chọn nước theo tên / châu lục / ngẫu nhiên, vào trận đúng nước, đúng binh chủng sở trường,
 // tên nước hiện trong trận, thẻ binh chủng, báo trước tương quan, lưu-chơi tiếp giữ nguyên nước.
+const BW_CIVS_N=44;
 import { launch, open, ok, finish, DEVICES, PORTRAIT } from './lib.mjs';
 const b=await launch();
 for(const [dn,dev] of DEVICES){ console.log(dn);
@@ -56,13 +57,14 @@ for(const [dn,dev] of DEVICES){ console.log(dn);
   ok(!(await T.visible('#civPick'))&&await T.visible('#campaign')&&await T.ev(()=>!__ltm.bw),'Back: quay về màn chiến dịch, chưa vào trận'); await T.tapEl('#campBack'); await p.waitForTimeout(250); ok(await T.visible('#bossPick'),'Back lần nữa: về bảng chọn chế độ');
   // --- Quần Hùng: 37 nước khác nhau; lưu rồi chơi tiếp giữ nguyên các nước
   await T.tapEl('#bBossRoyale'); await p.waitForTimeout(350); await p.fill('#civSearch','rome'); await p.waitForTimeout(200); await T.tapEl('#civGrid .civ[data-civ="rome"]'); await p.waitForTimeout(150); await T.tapEl('#civGo'); await p.waitForTimeout(1200);
+  await T.ev(()=>{ save.conq.stage=2; Save.set(save); startConq('great'); }); await p.waitForTimeout(1500);   /* (5.7) Chinh phạt: kiểm ở chặng Đại chiến (mọi nước) */
   const ro=await T.ev(()=>{ const bw=__ltm.bw; bw.skipIntro(); const ids=Object.keys(bw.civs).map(f=>bw.civs[f].id); const camps=bw.nodes.filter(n=>n.camp&&n.owner!==2);
     return {me:bw.civOf(0).id,n:ids.length,uniq:new Set(ids).size,campsNamed:camps.every(c=>!!bw.civOf(c.owner)),campSig:camps.filter(c=>c.type===bw.civOf(c.owner).sig).length,camps:camps.length,list:ids.join(',')}; });
-  ok(ro.me==='rome'&&ro.n===37&&ro.uniq===37,`Quần Hùng: ta là La Mã, ${ro.n} nước là ${ro.uniq} nền văn minh khác nhau`);
+  ok(ro.me==='rome'&&ro.n===BW_CIVS_N&&ro.uniq===BW_CIVS_N,`Đại chiến: ta là La Mã, ${ro.n} nước là ${ro.uniq} nền văn minh khác nhau`);
   ok(ro.campsNamed&&ro.campSig===ro.camps,`cả ${ro.camps} kinh đô đều có tên nước và sinh đúng binh chủng sở trường (${ro.campSig})`);
   await T.ev(()=>{ __ltm.bw.time=222; }); await T.tapEl('#bwBack'); await p.waitForTimeout(400); await T.tapEl('#bBW'); await p.waitForTimeout(200); await T.tapEl('#bBossContinue'); await p.waitForTimeout(1200);
   const ro2=await T.ev(()=>{ const bw=__ltm.bw; return bw? Object.keys(bw.civs).map(f=>bw.civs[f].id).join(',') : ''; });
-  ok(ro2===ro.list,'lưu → thoát → CONTINUE: 37 nước giữ nguyên như cũ');
+  ok(ro2===ro.list,'lưu → thoát → CONTINUE: mọi nước giữ nguyên như cũ');
   ok(T.errs.length===0,'không lỗi JS'+(T.errs.length?': '+T.errs[0]:''));
   await T.ctx.close(); }
 // màn chọn nước ở màn dọc + máy nhỏ: mọi nút bấm được, không bị che, không tràn màn hình

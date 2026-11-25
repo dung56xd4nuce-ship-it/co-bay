@@ -86,7 +86,7 @@ BigWar.prototype.coin=function(n,why,x,y){ if(!this.royale||(this.cfg&&this.cfg.
 
 // ---------- HUD: nút 🎒 cạnh nút 📣 + bảng chọn món ----------
 const BW_GEAR_SHORT={bun:'refill supply',tea:'march +50% · 30s',plank:'ford anywhere · 60s',smoke:'hidden 30s · strike ×1.5',scarecrow:'looks ×3 · 60s',compass:'reveal area · 30s',bandage:'recover 30% of losses'};
-BigWar.prototype.gearHudOn=function(){ return !!(this.gear&&!(this.cfg&&this.cfg.p2p)&&!this.over&&!this.rallyOpen&&!this.rallyPick&&!this._retreatBtn); };
+BigWar.prototype.gearHudOn=function(){ return !!(this.gear&&this.conq!=='tribe'&&!(this.cfg&&this.cfg.p2p)&&!this.over&&!this.rallyOpen&&!this.rallyPick&&!this._retreatBtn); };
 BigWar.prototype.drawGearHud=function(c,L,tm){ this._gearBtn=null; this._gearMenu=null; this._gearRects=[]; if(!this.gearHudOn()){ this.gearOpen=false; return; }
   const FONT='"Baloo 2",system-ui', R=L.rally, bx=R.x+R.w+8, by=R.y, bs=R.w; this._gearBtn={x:bx,y:by,w:bs,h:bs};
   const GR=this.gear, ready=GR.some(g=>g.cd<=0&&this.gearStock(g.id)>0);

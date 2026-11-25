@@ -188,6 +188,8 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
 .stg.cleared{border-color:#4ade80;background:rgba(74,222,128,.13)}.stg.cleared .no{background:#22a559}
 .stg.cur{border-color:#ffd54a;background:rgba(255,213,74,.16);box-shadow:0 0 0 2px rgba(255,213,74,.25)}.stg.cur .no{background:#e0a200;color:#2b1d00}.stg.cur em{color:#ffd54a;font-size:14px}
 .stg.lock{opacity:.5;cursor:default}.stg.lock .no{background:#444}
+.conqdone{margin-top:6px;padding:8px 10px;border-radius:12px;background:rgba(255,213,74,.16);border:2px solid #ffd54a;font-weight:800;font-size:13px}
+#conquest .stg{min-height:74px}#conquest .stg .no{font-size:20px}
 #stageIntro{position:absolute;left:0;right:0;top:22%;z-index:9;text-align:center;pointer-events:none;color:#fff;text-shadow:0 2px 0 #000,0 0 12px rgba(0,0,0,.9);animation:siIn 4.6s ease both;padding:10px 12px;background:linear-gradient(90deg,transparent,rgba(20,10,40,.78) 18%,rgba(20,10,40,.78) 82%,transparent)}
 #stageIntro .si1{font-weight:900;letter-spacing:3px;font-size:clamp(14px,3.6vw,20px);color:#ffd54a}#stageIntro .si2{font-weight:900;font-size:clamp(24px,7vw,42px);line-height:1.1}#stageIntro .si3{font-weight:700;font-size:clamp(12px,3.2vw,16px);opacity:.95;margin-top:2px}
 @keyframes siIn{0%{opacity:0;transform:scale(1.15)}9%{opacity:1;transform:scale(1)}82%{opacity:1}100%{opacity:0}}
@@ -199,7 +201,7 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
   #bossPick h2{grid-column:1/-1;margin:0;font-size:18px} #bossPick .btn.big{font-size:15px;padding:6px 10px;margin:0;line-height:1.2} #bossPick p{display:none} #bossPick .card>div:last-child{grid-column:1/-1}
   #result .card{padding:8px 16px;max-height:calc(100dvh - 12px)} #result h1{font-size:28px;text-shadow:0 3px 0 var(--ink)} #result h1 img{max-height:13vh!important} #rStage{font-size:14px;margin-top:0} #rStage .unl,#rStage .rec{display:inline;margin:0 0 0 8px;font-size:13px}
   #result .sub{margin:1px 0!important;font-size:12px} #result .stats{font-size:12.5px;gap:1px 16px;margin:4px 0 6px;grid-template-columns:1fr 1fr 1fr} #result .menuBtns{gap:6px} #result .menuBtns .btn{font-size:15px;padding:5px 14px} }
-@media (max-height:420px) and (orientation:landscape){ #campHint{display:none} .campcard h2{font-size:18px} .stg{min-height:54px;padding:5px 9px} #stageIntro{top:14%} }
+@media (max-height:420px) and (orientation:landscape){ #campHint,#conqHint{display:none} .campcard h2{font-size:18px} .stg{min-height:54px;padding:5px 9px} #stageIntro{top:14%} }
 .decwrap{display:flex;gap:10px;align-items:flex-start;min-height:0}.decwrap canvas{flex:0 0 auto;width:min(40vw,230px);height:auto;border-radius:14px;background:linear-gradient(#bfe6ff,#8fd08a 62%,#74b96c)}.decside{flex:1 1 auto;min-width:0}
 #decor .fcard.on{border-color:#4ade80;background:rgba(74,222,128,.14)}
 @media (orientation:portrait){ .decwrap{flex-direction:column;align-items:stretch}.decwrap canvas{width:min(62vw,240px);align-self:center} }
@@ -281,13 +283,17 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
   <button class="btn big" id="bSoloContinue" style="display:none;background:linear-gradient(#c8f7c5,#4ade80)">▶ CONTINUE</button>
   <button class="btn big" id="bBoss1v1">⚔️ 1 vs 1 — 10-stage campaign</button>
   <button class="btn big" id="bBossContinue" style="display:none;background:linear-gradient(#c8f7c5,#4ade80)">▶ CONTINUE</button>
-  <button class="btn big" id="bBossRoyale" style="background:linear-gradient(#ffe9b9,#ffb13d)">🌏 WARLORDS — new game, 37 nations at war (auto-save)</button>
-  <p style="font-size:13px;opacity:0.8">Warlords: dozens of nations fight each other on a huge map. A nation falls only when it loses its last camp — its land and armies then surrender to the conqueror. Be the last one standing!</p>
+  <button class="btn big" id="bBossRoyale" style="background:linear-gradient(#ffe9b9,#ffb13d)">🌏 CONQUEST — Tribes → Civil War → Great War</button>
+  <p style="font-size:13px;opacity:0.8">Conquest: start as one tribe, unite the tribes, win your country's civil war, then conquer every nation in the Great War. A rival falls when it loses its capital — its land and armies surrender to the conqueror.</p>
   <div style="text-align:right"><button class="btn" id="bBossClose">✖ Close</button></div></div></div>
 <div id="campaign" class="screen hidden"><div class="card wide campcard"><div class="fhead"><h2>⚔️ Campaign</h2><div id="campProg" class="campprog"></div></div>
   <p id="campHint" style="margin:0 0 6px;opacity:.85">Each stage: a new land and a smarter boss. Clear a stage to unlock the next — your progress is saved.</p>
   <div id="campList" class="camplist"></div>
   <div class="menuBtns" style="margin-top:8px;justify-content:space-between"><button class="btn" id="campBack">← Back</button><button class="btn" id="campForge" style="background:linear-gradient(#fff0b8,#ffc93c)"><span class="ic" data-art="ui:coin">🪙</span> Armory</button></div></div></div>
+<div id="conquest" class="screen hidden"><div class="card wide campcard"><div class="fhead"><h2>🌏 Conquest</h2><div id="conqProg" class="campprog"></div></div>
+  <p id="conqHint" style="margin:0 0 6px;opacity:.85">Tribes → Civil War → Great War. Unite each map to unlock the next — one nation all the way. Games save automatically.</p>
+  <div id="conqList" class="camplist"></div>
+  <div class="menuBtns" style="margin-top:8px;justify-content:space-between"><button class="btn" id="conqBack">← Back</button><button class="btn" id="conqNew">🆕 New conquest</button></div></div></div>
 <div id="stageIntro" class="hidden"><div class="si1" id="siTop"></div><div class="si2" id="siName"></div><div class="si3" id="siLand"></div><div class="si3" id="siBoss"></div></div>
 <div id="p2p" class="screen hidden"><div class="card" style="max-width:560px">
   <h2>📶 P2P — 2-PLAYER BATTLE</h2>

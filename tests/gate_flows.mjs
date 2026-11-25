@@ -29,22 +29,23 @@ for(const [dn,dev] of DEVICES){ console.log(dn);
   ok(await T.vis('#menu')&&await T.ev(()=>!__ltm.bw),'Leave: về menu');
   // --- Quần Hùng: ↻ phải chơi lại ĐÚNG Quần Hùng (trước đây biến thành ải 1v1)
   await T.ev(()=>localStorage.removeItem('ltm_royale_save_v1'));
-  await T.tapEl('#bBW'); await p.waitForTimeout(150); r=await T.tapEl('#bBossRoyale'); ok(r.ok,'chạm được nút WARLORDS '+(r.why||'')); await p.waitForTimeout(400);
+  await T.tapEl('#bBW'); await p.waitForTimeout(150); r=await T.tapEl('#bBossRoyale'); ok(r.ok,'chạm được nút CONQUEST '+(r.why||'')); await p.waitForTimeout(400);
   ok(await T.vis('#civPick'),'Quần Hùng: hiện màn CHỌN NƯỚC'); await T.tapEl('#civGo'); await p.waitForTimeout(1100);
   ok(await T.ev(()=>!!__ltm.bw&&__ltm.bw.royale===true),'vào ván Quần Hùng');
   await T.ev(()=>{ __ltm.bw.skipIntro(); window.__bw0=__ltm.bw; }); await p.waitForTimeout(200);
   await T.tapEl('#bwRetry'); await p.waitForTimeout(150); ok(await T.vis('#ask'),'↻ Quần Hùng hỏi lại');
   await T.tapEl('#askY'); await p.waitForTimeout(900);
-  ok(await T.ev(()=>__ltm.bw!==window.__bw0&&__ltm.bw.royale===true&&__ltm.bw.nodes.filter(n=>n.camp).length>30&&__ltm.bw.cfg.civ===window.__bw0.cfg.civ),'↻ Quần Hùng → vẫn là Quần Hùng (37 nước), vẫn nước đã chọn');
+  ok(await T.ev(()=>__ltm.bw!==window.__bw0&&__ltm.bw.royale===true&&__ltm.bw.conq==='tribe'&&__ltm.bw.nodes.filter(n=>n.camp).length>=8&&__ltm.bw.cfg.civ===window.__bw0.cfg.civ),'↻ Chinh phạt → vẫn là màn Bộ lạc, vẫn nước đã chọn');
   // 🏠 Quần Hùng: không hỏi (đã tự lưu), về menu, có bản lưu
   await T.ev(()=>{ __ltm.bw.skipIntro(); __ltm.bw.time=321; }); await T.tapEl('#bwBack'); await p.waitForTimeout(400);
   ok(await T.vis('#menu')&&await T.ev(()=>!!localStorage.getItem('ltm_royale_save_v1')),'🏠 Quần Hùng: về menu và ĐÃ LƯU ván');
   // chọn "Warlords mới" khi đang có ván lưu → phải hỏi lại
   await T.tapEl('#bBW'); await p.waitForTimeout(200);
   ok(await T.vis('#bBossContinue'),'có nút CONTINUE WARLORDS');
-  await T.tapEl('#bBossRoyale'); await p.waitForTimeout(200);
-  ok(await T.vis('#ask')&&await T.ev(()=>!!localStorage.getItem('ltm_royale_save_v1')&&!__ltm.bw),'ván mới khi đang có ván lưu: hỏi lại, CHƯA xoá gì');
-  await T.tapEl('#askN'); await p.waitForTimeout(200);
+  await T.tapEl('#bBossRoyale'); await p.waitForTimeout(300); ok(await T.vis('#conquest'),'CONQUEST khi đã có cuộc chinh phạt: mở màn 3 chặng');
+  await T.tapEl('#conqNew'); await p.waitForTimeout(200);
+  ok(await T.vis('#ask')&&await T.ev(()=>!!localStorage.getItem('ltm_royale_save_v1')&&!__ltm.bw),'chinh phạt mới khi đang có ván lưu: hỏi lại, CHƯA xoá gì');
+  await T.tapEl('#askN'); await p.waitForTimeout(200); await T.tapEl('#conqBack'); await p.waitForTimeout(200);
   r=await T.tapEl('#bBossContinue'); ok(r.ok,'chạm được CONTINUE '+(r.why||'')); await p.waitForTimeout(900);
   ok(await T.ev(()=>!!__ltm.bw&&__ltm.bw.royale&&Math.abs(__ltm.bw.time-321)<3),'CONTINUE: vào lại đúng ván đã lưu (đồng hồ 321s)');
   // ⏸ → Restart trong Quần Hùng cũng hỏi lại
@@ -54,10 +55,10 @@ for(const [dn,dev] of DEVICES){ console.log(dn);
   await T.tapEl('#bResume'); await p.waitForTimeout(200); ok(await T.ev(()=>!G.paused)&&!(await T.visible('#pause')),'Resume: chạy tiếp');
   // màn kết quả Quần Hùng: không có "ải kế", "chơi lại" = ván Quần Hùng mới
   await T.ev(()=>{ const bw=__ltm.bw; bw.over=true; bw.result={win:true}; }); await p.waitForTimeout(2200);
-  ok(await T.vis('#result'),'hiện màn kết quả'); ok(!(await T.visible('#bNext')),'Quần Hùng thắng: không hiện "Next stage"');
-  ok(/Warlords/i.test(await T.ev(()=>document.getElementById('bAgain').textContent)),'nút chơi lại ghi "New Warlords game"');
-  r=await T.tapEl('#bAgain'); ok(r.ok,'chạm được nút chơi lại'); await p.waitForTimeout(900);
-  ok(await T.ev(()=>!!__ltm.bw&&__ltm.bw.royale===true&&__ltm.bw.time<5),'→ ván Quần Hùng mới');
+  ok(await T.vis('#result'),'hiện màn kết quả'); ok(await T.visible('#bNext')&&/Civil War/.test(await T.ev(()=>document.getElementById('bNext').textContent)),'thắng màn Bộ lạc: nút "Begin the Civil War"');
+  ok(/Conquest/i.test(await T.ev(()=>document.getElementById('bAgain').textContent)),'nút phụ ghi "Conquest map"');
+  r=await T.tapEl('#bNext'); ok(r.ok,'chạm được nút chặng kế'); await p.waitForTimeout(1500);
+  ok(await T.ev(()=>!!__ltm.bw&&__ltm.bw.royale===true&&__ltm.bw.conq==='civil'&&__ltm.bw.time<5),'→ ván Nội chiến mới');
   // thắng ải → ải kế giữ nguyên nước đã chọn
   await T.ev(()=>{ G.bwCfg={map:4,civ:'japan'}; startBigWar(2); const bw=__ltm.bw; bw.skipIntro(); bw.over=true; bw.result={win:true}; }); await p.waitForTimeout(2200);
   await T.tapEl('#bNext'); await p.waitForTimeout(600);

@@ -13,6 +13,8 @@ const ART_LIST = [
   ['U09','unit:shield','units/shield.png','unit','Shieldbearer'],
   ['U10','unit:crossbow','units/crossbow.png','unit','Crossbowman'],
   ['U11','unit:medic','units/medic.png','unit','Medic'],
+  ['U12','unit:tribal','units/tribal.png','unit','Tribal Warrior'],
+  ['U13','unit:militia','units/militia.png','unit','Militia'],
   // Vũ khí tướng (biểu tượng Lò rèn + cầm trên tay tướng)
   ['W00','weapon:0','weapons/w0.png','icon','Village Bamboo Sword'],
   ['W01','weapon:1','weapons/w1.png','icon','Forged Iron Sword'],

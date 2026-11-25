@@ -46,6 +46,10 @@ await T.startBattle({royale:36,seed:61,map:1,civ:'rome'},5); await p.waitForFunc
 for(const z of [1,2,0.5]){ await p.evaluate((z)=>{ const bw=__ltm.bw; bw.zoom=bw.zoomTgt=z; },z); await wait(2500); }
 for(const fx of [0.15,0.5,0.85]){ await p.evaluate((fx)=>{ const bw=__ltm.bw, sc=bw.scale0*bw.zoom; bw.camX=BW.W*fx-bw.lastVw/sc/2; },fx); await wait(2000); }
 await T.tapEl('#bwPause'); await wait(500); await scan(); await T.tapEl('#bResume'); await wait(300);
+// (5.7) Chinh phạt: chiến binh bộ lạc + dân binh
+for(const st of ['tribe','civil']){ await p.evaluate((st)=>{ G.bwCfg={royale:st==='tribe'?9:17,conq:st,seed:77,civ:'rome',diff:1,bio:1,L:{camp:st==='tribe'?3000:7000}}; startBigWar(5); const bw=__ltm.bw; bw.skipIntro&&bw.skipIntro(); const c=bw.nodes[0];
+    for(const [t,dx] of [['tribal',200],['militia',320]]) bw.armies.push({owner:0,type:t,count:900,x:c.x+dx,y:c.y+140,to:-1,tx:c.x+dx,ty:c.y+140,trail:0,camped:true,food:100});
+    bw.camX=c.x-bw.lastVw/(bw.scale0*bw.zoom)/2; bw.camY=c.y-bw.lastVh/(bw.scale0*bw.zoom)/2; },st); await wait(1500); }
 // (5.6) thua một trận 1v1 → băng DEFEAT
 await p.evaluate(()=>{ const bw=__ltm.bw; bw.over=true; bw.result={win:false}; }); await wait(400); await p.evaluate(()=>{ stopBigWar(true); G.resultShown=false; G.bwCfg={map:0,civ:'rome'}; startBigWar(1); const bw=__ltm.bw; bw.over=true; bw.result={win:false}; }); await wait(2200); await scan(); await p.evaluate(()=>{ document.getElementById('result').classList.add('hidden'); stopBigWar(true); }); await wait(200);
 await T.startBattle({royale:36,seed:61,map:1,civ:'rome'},5); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.lastVw>0); await wait(800);

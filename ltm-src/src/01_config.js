@@ -56,6 +56,8 @@ const UNIT = {
   spear:    { name:'Spearman',hp:90,  dmg:12, cd:1.15, range:1, speed:1.8, armor:0,    emoji:'🔱' },
   shield:   { name:'Shieldbearer', hp:135, dmg:7,  cd:1.30, range:1, speed:1.6, armor:0,    emoji:'🛡️' },
   crossbow: { name:'Crossbowman',     hp:65,  dmg:22, cd:2.40, range:5, speed:1.7, armor:0,    emoji:'🎯', proj:'bolt' },
+  tribal:   { name:'Tribal Warrior', hp:95, dmg:12, cd:1.10, range:1, speed:2.0, armor:0, emoji:'🦴' },   /* (5.7) Chinh phạt · Bộ lạc: một loại quân duy nhất, không khắc chế */
+  militia:  { name:'Militia', hp:80, dmg:10, cd:1.10, range:1, speed:1.9, armor:0, emoji:'🔨' },   /* (5.7) Nội chiến: quân địa phương ở làng/đồn đã chiếm (đánh ×0,8, không khắc ai, không ai khắc) */
   medic:    { name:'Medic',       hp:65,  dmg:5,  cd:1.40, range:1, speed:1.8, armor:0,    emoji:'💊' },
 };
 // Vũ khí của tướng (Lò rèn) — mỗi bậc có hiệu ứng riêng

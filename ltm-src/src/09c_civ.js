@@ -80,7 +80,7 @@ function civPerks(cv){ const out=[], u=UNIT[cv.sig]? UNIT[cv.sig].name : cv.sig,
 const BW_TYPE_MOVE={ cavalry:'🐎 fast on open ground · slow in forest & mountain', shield:'🚶 any terrain · slow', assassin:'🌲 fast through forest & mountain' };
 // tại địa hình ter, binh chủng t khắc những loại nào (good) và ngại những loại nào (bad)
 function bwMatch(t,ter){ const good=[], bad=[]; for(const b of BW_TYPES){ if(b===t) continue; const r=BW.counter(t,b,ter)/Math.max(0.01,BW.counter(b,t,ter)); if(r>=1.25) good.push(b); else if(r<=0.8) bad.push(b); } return {good,bad}; }
-function bwTypeName(t,pl){ const n=UNIT[t]? UNIT[t].name : t; return pl? (/man$/.test(n)? n.replace(/man$/,'men') : n+'s') : n; }
+function bwTypeName(t,pl){ const n=UNIT[t]? UNIT[t].name : t; if(t==='militia') return n; return pl? (/man$/.test(n)? n.replace(/man$/,'men') : n+'s') : n; }
 
 // ---- gán văn minh cho các phe (cố định theo hạt giống bản đồ → lưu/nạp và P2P luôn khớp) ----
 BigWar.prototype.assignCivs=function(){
@@ -93,11 +93,11 @@ BigWar.prototype.assignCivs=function(){
   BW.civPal={}; for(const f in civs){ if(+f===0) continue; if(!cfg.royale&&+f===1) continue; BW.civPal[f]={color:civs[f].color,light:civs[f].light}; }
 };
 BigWar.prototype.civOf=function(fid){ return (this.civs&&this.civs[fid])||null; };
-BigWar.prototype.natName=function(fid){ const cv=this.civOf(fid); return cv? cv.name : (fid===2? 'Neutral' : 'Nation '+fid); };
-BigWar.prototype.natTag=function(fid){ const cv=this.civOf(fid); return cv? cv.icon+' '+cv.name.toUpperCase() : 'NATION '+fid; };
+BigWar.prototype.natName=function(fid){ if(this.facName&&this.facName[fid]) return this.facName[fid]; const cv=this.civOf(fid); return cv? cv.name : (fid===2? 'Neutral' : 'Nation '+fid); };
+BigWar.prototype.natTag=function(fid){ const cv=this.civOf(fid); if(this.facName&&this.facName[fid]&&cv) return cv.icon+' '+this.facName[fid].toUpperCase(); return cv? cv.icon+' '+cv.name.toUpperCase() : 'NATION '+fid; };
 // hệ số sát thương theo văn minh: binh chủng sở trường + địa hình sở trường
 BigWar.prototype.civAtk=function(owner,type,ter){ const cv=this.civOf(owner), up= this.up? this.upMul('atk',owner) : 1; if(!cv) return up; return (type===cv.sig? cv.atk : 1)*(cv.ter&&cv.ter===ter? 1.15 : 1)*up; };   /* ×Lò rèn (Power + Weapon) cho người chơi */
 // loại quân một phe sinh ra ở trại / đội quân thứ i lúc khai trận
-BigWar.prototype.civType=function(fid,i){ const cv=this.civOf(fid); if(!cv) return BW_TYPES[(i||0)%BW_TYPES.length]; if(i==null) return cv.sig; return cv.roster[[0,1,0,2][i%4]]; };
+BigWar.prototype.civType=function(fid,i){ if(this.conq==='tribe') return 'tribal'; const cv=this.civOf(fid); if(!cv) return BW_TYPES[(i||0)%BW_TYPES.length]; if(i==null) return cv.sig; return cv.roster[[0,1,0,2][i%4]]; };
 // dự báo tương quan khi đạo quân kiểu `ta` của ta đánh kiểu `tb` tại địa hình ter: >1 có lợi
 BigWar.prototype.matchup=function(ta,tb,ter){ return BW.counter(ta,tb,ter)/Math.max(0.01,BW.counter(tb,ta,ter)); };
