@@ -101,6 +101,7 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
 .sndBtn.off .ic{filter:grayscale(1);opacity:.45}
 .sndCorner{position:absolute;left:calc(10px + var(--safe-l));bottom:calc(8px + max(var(--safe-b), var(--rot-h, 0px)));width:48px;height:48px;padding:0!important;border-radius:50%;font-size:22px!important;display:flex;align-items:center;justify-content:center;z-index:3}
 .sndCorner .ic img{width:30px;height:30px}
+.achCorner{position:absolute;right:calc(10px + var(--safe-r));top:calc(10px + var(--safe-t));width:52px;height:52px;padding:0!important;border-radius:50%;font-size:26px!important;display:flex;align-items:center;justify-content:center;z-index:3;background:linear-gradient(#ffe7b0,#ffb54a)}.achbadge{position:absolute;right:-4px;bottom:-4px;font-size:11px;font-weight:900;background:#2a1a12;color:#ffd54a;border-radius:9px;padding:1px 5px;line-height:1.3}.achbadge:empty{display:none}
 .sndCorner.off::after{content:'';position:absolute;left:7px;right:7px;top:calc(50% - 2.5px);height:5px;background:#e23b3b;border-radius:3px;transform:rotate(-38deg);box-shadow:0 0 0 2px #2a1a12}
 .flist{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px}
 .fcard{display:flex;gap:8px;align-items:center;padding:6px!important;background:linear-gradient(rgba(255,255,255,.08),rgba(255,255,255,.02));border:2px solid rgba(255,255,255,.15);border-radius:14px;padding:8px}
@@ -117,7 +118,7 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
 .gbtns .btn{min-width:82px;min-height:36px}
 .gbtns .btn.on{background:linear-gradient(#b9ffd9,#3ddc84)}
 .fn .own{color:#7dffcf;font-size:13px;margin-left:4px}
-.armtabs .btn[disabled]{opacity:1;filter:none}
+.armtabs .btn[disabled]{opacity:1;filter:none}.armtabs{flex-wrap:wrap;overflow:visible}
 #gearPack{color:var(--gold)}
 .note{font-size:12px;opacity:.8}
 .agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:6px;margin:8px 0}
@@ -191,6 +192,12 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
 .chrongrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;max-height:58vh;overflow:auto}.civ.chron{cursor:default}.civ.chron.off{opacity:.5;filter:grayscale(.7)}.civ.chron.on{border-color:#ffd54a}
 #conquest .stg.asc{border-color:#ffd54a;background:linear-gradient(90deg,rgba(255,213,74,.18),rgba(255,107,214,.12))}#conquest .stg.asc .no{background:linear-gradient(#ffe27a,#ff9f1a);color:#3a2000}
 #campaign .stg.endless .no{background:linear-gradient(#b48cff,#5b3fd6)}
+.gport{width:64px;height:64px;border-radius:50%;flex:0 0 64px}.gxp{height:6px;border-radius:4px;background:rgba(255,255,255,.15);margin-top:4px;overflow:hidden}.gxp i{display:block;height:100%;background:linear-gradient(90deg,#7dffcf,#4ade80)}.gtag{font-size:12px;font-weight:800;color:#ffd54a;margin-left:6px}
+.mtitle{font-weight:900;color:#ffd54a;text-shadow:0 2px 0 #3a2000;font-size:16px;margin:-2px 0 4px}
+.achtitles{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;margin:0 0 6px}.achtitles .btn{font-size:13px;padding:4px 10px}
+.achgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));grid-auto-rows:min-content;gap:6px;overflow:auto;flex:1 1 auto;min-height:0}.achgrid .agroup{grid-column:1/-1;font-weight:900;color:#ffd54a;margin-top:4px}
+.ach{display:flex;gap:8px;align-items:center;padding:6px 8px;border-radius:12px;border:2px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06)}.ach .em{font-style:normal;font-size:24px;width:34px;text-align:center}.ach span{display:flex;flex-direction:column}.ach small{font-size:12px;opacity:.85}.ach .rw{color:#ffd54a;opacity:1}.ach.off{opacity:.55}.ach.on{border-color:#4ade80}
+#result .rx{grid-column:1/-1;color:#7dffcf;font-weight:800}
 .conqdone{margin-top:6px;padding:8px 10px;border-radius:12px;background:rgba(255,213,74,.16);border:2px solid #ffd54a;font-weight:800;font-size:13px}
 #conquest .stg{min-height:74px}#conquest .stg .no{font-size:20px}
 #stageIntro{position:absolute;left:0;right:0;top:22%;z-index:9;text-align:center;pointer-events:none;color:#fff;text-shadow:0 2px 0 #000,0 0 12px rgba(0,0,0,.9);animation:siIn 4.6s ease both;padding:10px 12px;background:linear-gradient(90deg,transparent,rgba(20,10,40,.78) 18%,rgba(20,10,40,.78) 82%,transparent)}
@@ -253,23 +260,38 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
   <div id="menu" class="screen"><canvas id="menuBg"></canvas>
     <div class="logo">LOAN THE<span class="meme">MEME!</span></div>
     <div class="sub">Chibi strategy · Fog of war · Ambushes · Sieges · Conquer the realm</div>
+    <div id="menuTitle" class="mtitle" style="display:none"></div>
     <div class="menuBtns"><button class="btn big" id="bBW" style="background:linear-gradient(#ffd0c2,#ff7a50);font-size:26px;padding:12px 30px">👑 BATTLE</button><button class="btn" id="bP2P" style="background:linear-gradient(#c9e7ff,#7db8ff)">📶 2-PLAYER P2P</button><button class="btn" id="bPlay" style="display:none">🥁 Drum Campaign</button><button class="btn" id="bMini" style="display:none">⚡ Blitz</button><button class="btn" id="bGear" style="background:linear-gradient(#fff0b8,#ffc93c)"><span class="ic" data-art="ui:coin">🪙</span> Armory</button><button class="btn" id="bForge" style="display:none"><span class="ic" data-art="ui:forge">⚒️</span> Forge</button><button class="btn" id="bLevels" style="display:none">🗺️ Stages</button><button style="display:none" class="btn" id="bArt">🎨 Art pack</button><button class="btn" id="bFull">⛶ Full screen</button><button class="btn" id="bHelp">📖 How to play</button></div>
     <div class="coinbar"><span class="ic" data-art="ui:coin">🪙</span> <b class="xu">0</b> Meme Coins</div>
+    <button class="btn achCorner" id="bAch" aria-label="Achievements">🏆<span id="achBadge" class="achbadge"></span></button>
     <button class="btn sndBtn sndCorner" id="bMSound" aria-label="Sound on/off"><span class="ic" data-art="ui:sound">🔊</span></button>
-    <div id="ver" style="position:absolute;right:calc(10px + var(--safe-r));bottom:calc(6px + var(--safe-b));font-size:12px;font-weight:700;opacity:.6;pointer-events:none">v5.9</div>
+    <div id="ver" style="position:absolute;right:calc(10px + var(--safe-r));bottom:calc(6px + var(--safe-b));font-size:12px;font-weight:700;opacity:.6;pointer-events:none">v6.0</div>
   </div>
   <div id="gear" class="screen hidden"><div class="card wide"><div class="fhead"><h2>🎒 Supplies</h2><div class="coinbar"><span class="ic" data-art="ui:coin">🪙</span> <b class="xu">0</b> Coins</div></div>
-    <div class="civtabs armtabs"><button class="btn on" disabled>🎒 Supplies</button><button class="btn" id="bToForge"><span class="ic" data-art="ui:forge">⚒️</span> Forge</button><button class="btn" id="bToDecor">🏮 Camp decor</button></div>
+    <div class="civtabs armtabs"><button class="btn on" disabled>🎒 Supplies</button><button class="btn" id="bToForge"><span class="ic" data-art="ui:forge">⚒️</span> Forge</button><button class="btn" id="bToDecor">🏮 Decor</button><button class="btn" data-armtab="gens">🎖️ Generals</button></div>
     <p class="note" style="margin:2px 0 6px">Buy supplies with coins and <b>pack up to 3 kinds</b> for battle. In battle tap <b>🎒</b>, then the item — it works on the army or stronghold you have selected. Each use takes one from your stock. <b id="gearPack"></b></p>
     <div id="gearList" class="flist"></div>
     <div style="text-align:right;margin-top:8px"><button class="btn" data-back>← Back</button></div></div></div>
   <div id="decor" class="screen hidden"><div class="card wide"><div class="fhead"><h2>🏮 Camp decor</h2><div class="coinbar"><span class="ic" data-art="ui:coin">🪙</span> <b class="xu">0</b> Coins</div></div>
-    <div class="civtabs armtabs"><button class="btn" id="bDecGear">🎒 Supplies</button><button class="btn" id="bDecForge"><span class="ic" data-art="ui:forge">⚒️</span> Forge</button><button class="btn on" disabled>🏮 Camp decor</button></div>
+    <div class="civtabs armtabs"><button class="btn" id="bDecGear">🎒 Supplies</button><button class="btn" id="bDecForge"><span class="ic" data-art="ui:forge">⚒️</span> Forge</button><button class="btn on" disabled>🏮 Decor</button><button class="btn" data-armtab="gens">🎖️ Generals</button></div>
     <div class="decwrap"><canvas id="decPrev" width="460" height="400"></canvas><div class="decside"><p class="note" style="margin:0 0 6px">Dress up your camp with coins. Decorations are <b>for looks only</b> — buy once, keep forever, switch any of them on or off. <b id="decOn"></b></p><div id="decList" class="flist"></div></div></div>
     <div style="text-align:right;margin-top:8px"><button class="btn" data-back>← Back</button></div></div></div>
+  <div id="gens" class="screen hidden"><div class="card wide"><div class="fhead"><h2>🎖️ Generals</h2><div class="coinbar"><span class="ic" data-art="ui:coin">🪙</span> <b class="xu">0</b> Coins</div></div>
+    <div class="civtabs armtabs"><button class="btn" data-armtab="gear">🎒 Supplies</button><button class="btn" data-armtab="forge"><span class="ic" data-art="ui:forge">⚒️</span> Forge</button><button class="btn" data-armtab="decor">🏮 Decor</button><button class="btn on" data-armtab="gens" disabled>🎖️ Generals</button></div>
+    <p class="note" style="margin:2px 0 6px">Recruit generals with coins and <b>bring 1 (or 2) into battle</b>. Each has a talent that always helps your side. Generals gain experience every battle (<b>win +3</b>, lose +1) and grow stronger up to <b>level 5</b>. <b id="genSlots"></b></p>
+    <div id="genList" class="flist"></div>
+    <div style="text-align:right;margin-top:8px"><button class="btn" data-back>← Back</button></div></div></div>
+  <div id="chalScr" class="screen hidden"><div class="card wide campcard"><div class="fhead"><h2>📅 Challenges</h2><div id="chalProg" class="campprog"></div></div>
+    <p style="margin:0 0 6px;opacity:.85;font-size:13px">A new daily battle every day and a new tribal map every week — same map, nation and rules for everyone. Win within the time limit for coins; daily wins in a row build a 🔥 streak. Challenge battles are not saved.</p>
+    <div id="chalList" class="camplist"></div>
+    <div class="menuBtns" style="margin-top:8px"><button class="btn" id="chalBack">← Back</button></div></div></div>
+  <div id="achScr" class="screen hidden"><div class="card wide campcard"><div class="fhead"><h2>🏆 Achievements</h2><div id="achProg" class="campprog"></div></div>
+    <div id="achTitles" class="achtitles"></div>
+    <div id="achGrid" class="achgrid"></div>
+    <div class="menuBtns" style="margin-top:8px"><button class="btn" id="achBack">← Back</button></div></div></div>
   <div id="tutDone" class="screen hidden"><div class="card" style="text-align:center;max-width:440px"><h2 id="tdTitle">🎓 Tutorial complete!</h2><p id="tdText" style="margin:6px 0 10px"></p><div class="menuBtns" style="flex-direction:column;align-items:stretch"><button class="btn big" id="tdGo">⚔️ Start Stage 1</button><button class="btn" id="tdMenu">🏠 Menu</button></div></div></div>
   <div id="forge" class="screen hidden"><div class="card wide"><div class="fhead"><h2><span class="ic" data-art="ui:forge">⚒️</span> Forge</h2><div class="coinbar"><span class="ic" data-art="ui:coin">🪙</span> <b class="xu">0</b> Coins</div></div>
-    <div class="civtabs armtabs"><button class="btn" id="bToGear">🎒 Supplies</button><button class="btn on" disabled><span class="ic" data-art="ui:forge">⚒️</span> Forge</button><button class="btn" id="bToDecor2">🏮 Camp decor</button></div>
+    <div class="civtabs armtabs"><button class="btn" id="bToGear">🎒 Supplies</button><button class="btn on" disabled><span class="ic" data-art="ui:forge">⚒️</span> Forge</button><button class="btn" id="bToDecor2">🏮 Decor</button><button class="btn" data-armtab="gens">🎖️ Generals</button></div>
     <div class="fprev"><canvas id="forgeHero" width="220" height="220"></canvas><div id="forgeStats"></div></div>
     <div id="forgeList" class="flist"></div>
     <p class="note">Forge upgrades are permanent and strengthen your nation in Battle and Warlords (not in 2-player P2P). Earn coins by winning battles, taking enemy camps and conquering nations.</p>
@@ -286,6 +308,7 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
   <button class="btn big" id="bSoloContinue" style="display:none;background:linear-gradient(#c8f7c5,#4ade80)">▶ CONTINUE</button>
   <button class="btn big" id="bBoss1v1">⚔️ 1 vs 1 — 10-stage campaign</button>
   <button class="btn big" id="bBossContinue" style="display:none;background:linear-gradient(#c8f7c5,#4ade80)">▶ CONTINUE</button>
+  <button class="btn big" id="bChal" style="background:linear-gradient(#d9f7ff,#5cc8ff)">📅 Daily &amp; weekly challenges</button>
   <button class="btn big" id="bBossRoyale" style="background:linear-gradient(#ffe9b9,#ffb13d)">🌏 CONQUEST — Tribes → Civil War → Great War</button>
   <p style="font-size:13px;opacity:0.8">Conquest: start as one tribe, unite the tribes, win your country's civil war, then conquer every nation in the Great War. A rival falls when it loses its capital — its land and armies surrender to the conqueror.</p>
   <div style="text-align:right"><button class="btn" id="bBossClose">✖ Close</button></div></div></div>
@@ -2921,7 +2944,7 @@ function pause(on){ if(!G.world&&!G.bw) return; G.paused=on; $('pause').classLis
 function bwSetPause(on){ // P2P: dừng là dừng CẢ HAI MÁY
   if(G.bw&&G.bw.cfg&&G.bw.cfg.p2p&&typeof P2P!=='undefined'&&P2P.connected){ P2P.setPause(on); pause(on); }
   else pause(on); }
-function showScreen(id){ ['menu','levels','help','pause','result','forge','gear','decor','tutDone','artscr','p2p'].forEach(s=>$(s).classList.toggle('hidden',s!==id)); if(id==='menu'||id==='levels'||id==='forge'||id==='gear'||id==='artscr') $('hud').classList.add('hidden'); }
+function showScreen(id){ ['menu','levels','help','pause','result','forge','gear','decor','tutDone','artscr','p2p','gens'].forEach(s=>$(s).classList.toggle('hidden',s!==id)); if(id==='menu'||id==='levels'||id==='forge'||id==='gear'||id==='artscr'||id==='gens') $('hud').classList.add('hidden'); }
 function buildLevels(){ const grid=$('lvgrid'); grid.innerHTML=''; const max=Math.max(1,save.max||1);
   for(let L=1;L<=100;L++){ const b=document.createElement('button'); b.className='btn lv'; b.textContent=L; const avail=L<=40 && L<=max; if(save.done.includes(L)) b.classList.add('done'); if(!avail){ b.classList.add('lock'); b.textContent= L>40? '🔒' : '🔒'+L; b.title= L>40?'12-faction mode in development':'Win the previous stage to unlock'; }
     b.onclick=()=>{ audio.init(); if(avail) startLevel(L); }; grid.appendChild(b); } }
@@ -2972,13 +2995,13 @@ function setupMenus(){
     ask(bw.royale? 'Restart Warlords from the beginning?' : 'Restart this battle?', bw.royale? 'Your current conquest will be lost.' : 'Progress in this battle will be lost.', '↻ Restart', bwRestart); };
   $('bLevels').onclick=()=>{ audio.init(); buildLevels(); showScreen('levels'); };
   $('bHelp').onclick=()=>{ audio.init(); G.helpFrom='menu'; showScreen('help'); };
-  document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{ if((!$('forge').classList.contains('hidden')||!$('gear').classList.contains('hidden')||!$('decor').classList.contains('hidden')) && G.forgeFrom==='campaign'){ $('forge').classList.add('hidden'); $('gear').classList.add('hidden'); $('decor').classList.add('hidden'); Campaign.open(); return; } if((!$('forge').classList.contains('hidden')||!$('gear').classList.contains('hidden')) && G.forgeFrom==='result'){ $('forge').classList.add('hidden'); $('gear').classList.add('hidden'); $('result').classList.remove('hidden'); return; } if(G.helpFrom==='pause'){ G.helpFrom=null; $('help').classList.add('hidden'); $('pause').classList.remove('hidden'); } else showScreen('menu'); });
+  document.querySelectorAll('[data-back]').forEach(b=>b.onclick=()=>{ const arm=['forge','gear','decor','gens'], inArm=arm.some(i=>!$(i).classList.contains('hidden')); if(inArm && G.forgeFrom==='campaign'){ arm.forEach(i=>$(i).classList.add('hidden')); Campaign.open(); return; } if(inArm && G.forgeFrom==='result'){ arm.forEach(i=>$(i).classList.add('hidden')); $('result').classList.remove('hidden'); return; } if(G.helpFrom==='pause'){ G.helpFrom=null; $('help').classList.add('hidden'); $('pause').classList.remove('hidden'); } else showScreen('menu'); });
   $('tc').onclick=()=>{ if(G.world&&G.ren){ const d=G.world.drum; G.ren.centerOn(d.x,d.y); } };
   $('bPause').onclick=()=>{ audio.init(); pause(true); };
   $('bResume').onclick=()=>bwSetPause(false);
   $('bRestart').onclick=()=>{ if(G.bw){ const bw=G.bw; if(bw.royale&&!bw.over){ ask('Restart Warlords from the beginning?','Your current conquest will be lost.','↻ Restart',()=>{ pause(false); bwRestart(); }); return; } pause(false); bwRestart(); } else startLevel(G.level); };
   $('bPHelp').onclick=()=>{ G.helpFrom='pause'; $('pause').classList.add('hidden'); $('help').classList.remove('hidden'); };
-  $('bMenu').onclick=()=>{ if(G.bw){ const bw=G.bw; if(bw.over||(bw.royale&&!(bw.cfg&&bw.cfg.p2p))){ leave(); return; }
+  $('bMenu').onclick=()=>{ if(G.bw){ const bw=G.bw; if(bw.over||(bw.royale&&!(bw.cfg&&bw.cfg.p2p)&&!(bw.cfg&&bw.cfg.chal))){ leave(); return; }
       ask(bw.cfg&&bw.cfg.p2p? 'Leave the 2-player match?' : 'Leave this battle?', bw.cfg&&bw.cfg.p2p? 'Your opponent will be disconnected.' : 'Progress in this battle will be lost.', '🏠 Leave', leave); return; }
     G.world=null; G.paused=true; showScreen('menu'); setupMenus(); };
   $('bAgain').onclick=()=>startLevel(G.level);
@@ -2986,7 +3009,10 @@ function setupMenus(){
   $('bForge').onclick=()=>{ audio.init(); G.forgeFrom='menu'; openForge(); };
   $('bRForge').onclick=()=>{ audio.init(); audio.click(); G.forgeFrom='result'; $('result').classList.add('hidden'); renderGear(); $('gear').classList.remove('hidden'); };   // 🪙 Armory từ màn kết quả
   $('bGear').onclick=()=>{ audio.init(); audio.click(); G.forgeFrom='menu'; openGear(); };
-  const armTab=(id)=>{ audio.click(); ['gear','forge','decor'].forEach(s=>$(s).classList.toggle('hidden',s!==id)); if(id==='gear') renderGear(); else if(id==='forge') renderForge(); else renderDecor(); };
+  $('bAch').onclick=()=>{ audio.init(); audio.click(); $('menu').classList.add('hidden'); Ach.open(); };   /* 🏆 (6.0) */
+  $('bChal').onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); Chal.open(); };   /* 📅 (6.0) */
+  const armTab=(id)=>{ audio.click(); ['gear','forge','decor','gens'].forEach(s=>$(s).classList.toggle('hidden',s!==id)); if(id==='gear') renderGear(); else if(id==='forge') renderForge(); else if(id==='gens') renderGens(); else renderDecor(); };
+  document.querySelectorAll('[data-armtab]').forEach(b=>{ if(!b.disabled) b.onclick=()=>armTab(b.dataset.armtab); });   /* 🎖️ (6.0) thẻ Tướng lĩnh trong Kho */
   $('bToDecor').onclick=()=>armTab('decor'); $('bToDecor2').onclick=()=>armTab('decor'); $('bDecGear').onclick=()=>armTab('gear'); $('bDecForge').onclick=()=>armTab('forge');
   $('bToForge').onclick=()=>{ audio.click(); $('gear').classList.add('hidden'); renderForge(); $('forge').classList.remove('hidden'); };
   $('bToGear').onclick=()=>{ audio.click(); $('forge').classList.add('hidden'); renderGear(); $('gear').classList.remove('hidden'); };
@@ -3039,6 +3065,31 @@ function drawDecorPreview(){ const cv=$('decPrev'), c=cv.getContext('2d'), D=dec
   BW.drawDecor(c,x,y,ids,t,0); c.fillStyle='rgba(0,0,0,0.22)'; c.beginPath(); c.ellipse(x,y+46,95,26,0,0,7); c.fill();
   const im=ArtImages['prop:tent']; if(im){ c.drawImage(recolorUnit(im,0),x-95,y-110,190,190); } else { c.fillStyle='#3b82f6'; c.strokeStyle='#2a1a12'; c.lineWidth=5; c.beginPath(); c.moveTo(x-85,y+45); c.lineTo(x,y-75); c.lineTo(x+85,y+45); c.closePath(); c.fill(); c.stroke(); }
   BW.drawDecor(c,x,y,ids,t,1); c.restore(); }
+// 🎖️ (6.0) TƯỚNG LĨNH: chiêu mộ bằng xu, chọn mang 1 (mở thêm ô thứ 2) — lên cấp qua các trận
+function genState(){ const g=save.gen||(save.gen={own:{},on:[],slot2:0}); if(!g.own) g.own={}; if(!Array.isArray(g.on)) g.on=[]; g.on=g.on.filter(id=>BW_GEN_BY[id]&&g.own[id]!=null).slice(0,g.slot2? 2 : 1); return g; }
+function genPack(){ const g=genState(); return g.on.map(id=>({id,lv:BW.genLevel(g.own[id])})); }
+const GEN_IMG={};
+function genPortrait(D,sz){ const k=D.id+':'+sz; if(GEN_IMG[k]) return GEN_IMG[k]; const c=document.createElement('canvas'); c.width=c.height=sz; const x=c.getContext('2d');
+  x.fillStyle=D.col; x.beginPath(); x.arc(sz/2,sz/2,sz/2,0,7); x.fill(); x.fillStyle='rgba(255,255,255,0.25)'; x.beginPath(); x.arc(sz/2,sz*0.38,sz*0.42,0,7); x.fill();
+  try{ x.save(); x.beginPath(); x.arc(sz/2,sz/2,sz/2-2,0,7); x.clip(); x.drawImage(makeUnitSprite('general',0,D.w),-sz*0.18,-sz*0.02,sz*1.36,sz*1.36); x.restore(); }catch(e){}
+  x.font=`${Math.round(sz*0.34)}px system-ui`; x.textAlign='center'; x.textBaseline='middle'; x.fillStyle='#fff'; x.beginPath(); x.fillStyle='rgba(20,12,36,.85)'; x.arc(sz*0.8,sz*0.8,sz*0.2,0,7); x.fill(); x.fillStyle='#fff'; x.fillText(D.icon,sz*0.8,sz*0.82);
+  x.strokeStyle='#2a1a12'; x.lineWidth=3; x.beginPath(); x.arc(sz/2,sz/2,sz/2-1.5,0,7); x.stroke(); return GEN_IMG[k]=c.toDataURL(); }
+function renderGens(){ refreshXu(); const g=genState(), list=$('genList'), MAX=g.slot2? 2 : 1; list.innerHTML='';
+  $('genSlots').textContent=`Bringing ${g.on.length}/${MAX}.`;
+  if(!g.slot2){ const d=document.createElement('div'); d.className='fcard'; d.dataset.gen='slot2'; d.innerHTML=`<div class="fi">🎖️</div><div class="fb"><div class="fn">Second general slot</div><div class="fd">Bring two generals into every battle — both talents work together.</div></div>`;
+    const b=document.createElement('button'); b.className='btn'; b.dataset.genbuy='slot2'; b.innerHTML=`${artIcon('ui:coin','🪙')} ${BW.genSlot2}`; b.disabled=(save.xu||0)<BW.genSlot2;
+    b.onclick=()=>{ if((save.xu||0)<BW.genSlot2) return; save.xu-=BW.genSlot2; g.slot2=1; Save.set(save); audio.fanfare&&audio.fanfare(); achCheck(); renderGens(); }; d.appendChild(b); list.appendChild(d); }
+  for(const D of BW_GENERALS){ const own=g.own[D.id]!=null, xp=g.own[D.id]|0, lv=BW.genLevel(xp), on=g.on.includes(D.id), d=document.createElement('div'); d.className='fcard'+(on?' on':''); d.dataset.gen=D.id;
+    const nx=BW.genXP[lv]||null, p0=BW.genXP[lv-1]||0, bar= own? (nx? Math.round((xp-p0)/(nx-p0)*100) : 100) : 0;
+    d.innerHTML=`<img class="gport" src="${genPortrait(D,128)}" alt=""><div class="fb"><div class="fn">${D.name}${own? `<span class="gtag">Lv ${lv}${lv>=5?' · MAX':''}</span>` : ''}</div><div class="fd"><b>${D.icon} ${D.skill}:</b> ${D.desc(D.val(own? lv : 1),own? lv : 1)}${own&&lv<5? ` <span style="opacity:.7">(Lv ${lv+1}: ${D.desc(D.val(lv+1),lv+1)})</span>` : ''}</div>${own? `<div class="gxp"><i style="width:${bar}%"></i></div><div class="fd" style="opacity:.75">XP ${xp}${nx? ' / '+nx : ''}</div>` : ''}</div>`;
+    const b=document.createElement('button'); b.className='btn'+(on?' on':''); b.dataset.genbtn=D.id;
+    if(!own){ b.innerHTML=`${artIcon('ui:coin','🪙')} ${D.cost}`; b.disabled=(save.xu||0)<D.cost; b.onclick=()=>{ if((save.xu||0)<D.cost) return; save.xu-=D.cost; g.own[D.id]=0; if(g.on.length<MAX) g.on.push(D.id); Save.set(save); audio.fanfare&&audio.fanfare(); achCheck(); renderGens(); }; }
+    else { b.textContent= on? '✔ Bringing' : 'Bring'; b.disabled= !on&&g.on.length>=MAX&&MAX>1; b.onclick=()=>{ audio.click(); const i=g.on.indexOf(D.id); if(i>=0) g.on.splice(i,1); else { if(g.on.length>=MAX) g.on.shift(); g.on.push(D.id); } Save.set(save); renderGens(); }; }
+    d.appendChild(b); list.appendChild(d); } }
+// sau mỗi trận: tướng mang theo nhận kinh nghiệm (thắng +3, thua +1); trả về dòng báo lên cấp
+function genAward(bw,win){ if(!bw||!bw.gens||!bw.gens.length) return []; const g=genState(), out=[];
+  for(const x of bw.gens){ if(g.own[x.id]==null) continue; const a=BW.genLevel(g.own[x.id]); g.own[x.id]=(g.own[x.id]|0)+(win? 3 : 1); const b=BW.genLevel(g.own[x.id]); if(b>a) out.push(`🎖️ ${BW_GEN_BY[x.id].name} reached level ${b}!`); }
+  Save.set(save); return out; }
 // 🎓 (5.5) HƯỚNG DẪN LẦN ĐẦU
 function needTut(){ try{ if(localStorage.getItem('ltm_tut')==='1') return false; }catch(e){ return false; } if((save.bwMax||1)>1||save.tut||soloLoadInfo()||royaleLoadInfo()){ tutMark(); return false; } return true; }   /* người chơi cũ (đã qua ải / đang có ván lưu): không bắt học lại */
 function tutMark(){ save.tut=1; Save.set(save); try{ localStorage.setItem('ltm_tut','1'); }catch(e){} }
@@ -3124,7 +3175,7 @@ function ask(title,sub,yes,cb){ const was=G.paused; G.paused=true; $('askT').tex
   const close=(ok)=>{ $('ask').classList.add('hidden'); G.paused=was; if(ok) cb(); };
   $('askY').onclick=()=>{ audio.click(); close(true); }; $('askN').onclick=()=>{ audio.click(); close(false); }; }
 // chơi lại ĐÚNG chế độ/bản đồ đang chơi (trước đây nút ↻ làm ván Quần Hùng biến thành ải 1v1)
-function bwRestart(){ const lv=(G.bw&&G.bw.lv)||1; G.paused=false; G.bwCfg=Object.assign({},G.lastBwCfg||{}); if(G.bwCfg.royale){ try{ localStorage.removeItem(RSAVE); }catch(e){} } else if(!G.bwCfg.p2p) soloClear(); startBigWar(lv); }
+function bwRestart(){ const lv=(G.bw&&G.bw.lv)||1; G.paused=false; G.bwCfg=Object.assign({},G.lastBwCfg||{}); if(G.bwCfg.chal){} else if(G.bwCfg.royale){ try{ localStorage.removeItem(RSAVE); }catch(e){} } else if(!G.bwCfg.p2p) soloClear(); startBigWar(lv); }
 // băng "xoay ngang" (chỉ hiện khi cầm dọc) nằm sát đáy: báo chiều cao của nó cho CSS (--rot-h) để các màn hình menu chừa chỗ, không bị băng che nút
 function rotSync(){ const r=$('rotate'); if(!r) return; const h=(getComputedStyle(r).display==='none')? 0 : Math.ceil(r.getBoundingClientRect().height); document.documentElement.style.setProperty('--rot-h',h+'px'); }
 function rotateHint(show){ const r=$('rotate'); clearTimeout(G._rotT); r.classList.remove('off'); if(show) G._rotT=setTimeout(()=>{ r.classList.add('off'); rotSync(); },6000); rotSync(); }
@@ -3134,6 +3185,7 @@ function startBigWar(lv){
   const decorOn=decorState().on.slice();   // ⚒️ Lò rèn: chỉ trận một người chơi (P2P hai bên phải ngang nhau)
   G.lastBwCfg=Object.assign({},G.bwCfg||{}); G.bw=new BigWar(lv, G.bwCfg||{}); G.bw.autoMenu=false;
   G.bw.decor=decorOn;   /* 🏮 đồ trang trí trại (chỉ là hình, máy nào vẽ theo máy đó) */
+  G.bw.genSetup(genPack());   /* 🎖️ tướng mang theo */
   G.bw.gearSetup(G.bw.conq==='tribe'? [] : save.pack.filter(id=>(save.inv[id]||0)>0), {stock:(id)=>save.inv[id]||0, spend:(id)=>{ save.inv[id]=Math.max(0,(save.inv[id]||0)-1); Save.set(save); }});   // 🎒 quân nhu mang theo (P2P: gearSetup tự bỏ qua)
   G.bw.onCoin=(n)=>{ if(G.bw&&G.bw.cfg.tut) return;   /* trận hướng dẫn không phát xu lẻ: chỉ thưởng 50 xu khi học xong */ save.xu=(save.xu||0)+n; Save.set(save); refreshXu(); if(!saveDue) saveDue=performance.now(); };   /* 🪙 xu theo mốc ở Quần Hùng: xu vào túi ngay, và ván được lưu ngay sau đó (không thể thoát game để "hạ lại" cùng một nước lấy xu lần nữa) */
   G.bw.lv=lv; G.world=null; G.paused=false; G.resultShown=false; G.sel.clear(); G.bwCfg=null;
@@ -3146,7 +3198,7 @@ function startBigWar(lv){
 // 💾 Lưu ván Quần Hùng vào bộ nhớ máy: tự lưu 15 giây/lần, khi ẩn app, khi về menu
 const RSAVE='ltm_royale_save_v1';
 const SSAVE='ltm_solo_save_v1';   /* (5.3) ván 1v1 đang đánh dở cũng được lưu: thoát app rồi vào đánh tiếp */
-function royaleSave(){ try{ const bw=G.bw; if(!bw||bw.cfg.p2p||bw.cfg.classic||bw.cfg.tut) return false; const K=bw.royale? RSAVE : SSAVE;
+function royaleSave(){ try{ const bw=G.bw; if(!bw||bw.cfg.p2p||bw.cfg.classic||bw.cfg.tut||bw.cfg.chal) return false;   /* 📅 thử thách không tự lưu (không đè ván đang lưu) */ const K=bw.royale? RSAVE : SSAVE;
   if(bw.over){ localStorage.removeItem(K); return false; } if(!bw.royale&&bw.time<15) return false;
   localStorage.setItem(K, JSON.stringify(bw.saveState())); return true; }catch(e){ console.warn('save fail',e); return false; } }
 function soloLoadInfo(){ try{ const sv=JSON.parse(localStorage.getItem(SSAVE)||'null'); return sv&&sv.v===1&&sv.lv>=1&&sv.lv<=CAMP_N&&sv.cfg&&!sv.cfg.royale? sv : null; }catch(e){ return null; } }
@@ -3230,7 +3282,8 @@ const Chronicle={
 };
 // 🎬 băng giới thiệu đầu trận: đang ở ải mấy, vùng đất nào, boss khôn tới đâu
 function stageIntro(bw,resumed){ const el=$('stageIntro'); if(!el) return; if(bw.cfg.p2p||bw.cfg.classic){ el.classList.add('hidden'); return; }
-  if(bw.conq){ const d=bw.D.diff, S=BW_CONQ[bw.conq]; $('siTop').textContent=`${bw.asc? '★'+bw.asc+' ASCENSION · ' : ''}CONQUEST ${S.i+1}/3 · ${BW.DIFF_NAMES[d].toUpperCase()}`; $('siName').textContent=S.icon+' '+S.name; $('siLand').textContent=`${bw.biome.icon} ${bw.biome.name} · ${bw.cfg.royale} rival ${S.unit}`; $('siBoss').textContent= resumed? '▶ Game resumed' : bw.asc? `★ ${BW_ASC.slice(0,bw.asc).length} hardships · newest: ${BW_ASC[bw.asc-1].txt} · coins ×${bw._coinK}` : S.blurb; }
+  if(bw.cfg.chal){ const X=bw.cfg.chal==='w'; $('siTop').textContent=`${X? '🏕️ WEEKLY' : '📅 DAILY'} CHALLENGE · 🎯 WIN WITHIN ${fmt(X? BW.chal.weekLim : BW.chal.dayLim)}`; $('siName').textContent= X? '🪓 Tribal Wars' : `⚔️ Stage ${bw.lv} boss`; $('siLand').textContent=`${bw.biome.icon} ${bw.biome.name} · “${bw.mapName}”`; $('siBoss').textContent=BW.modLines(bw.cfg).join(' · '); }
+  else if(bw.conq){ const d=bw.D.diff, S=BW_CONQ[bw.conq]; $('siTop').textContent=`${bw.asc? '★'+bw.asc+' ASCENSION · ' : ''}CONQUEST ${S.i+1}/3 · ${BW.DIFF_NAMES[d].toUpperCase()}`; $('siName').textContent=S.icon+' '+S.name; $('siLand').textContent=`${bw.biome.icon} ${bw.biome.name} · ${bw.cfg.royale} rival ${S.unit}`; $('siBoss').textContent= resumed? '▶ Game resumed' : bw.asc? `★ ${BW_ASC.slice(0,bw.asc).length} hardships · newest: ${BW_ASC[bw.asc-1].txt} · coins ×${bw._coinK}` : S.blurb; }
   else if(bw.royale){ const d=bw.D.diff; $('siTop').textContent='WARLORDS · '+BW.DIFF_NAMES[d].toUpperCase(); $('siName').textContent=bw.mapName; $('siLand').textContent=`${bw.biome.icon} ${bw.biome.name} · ${bw.cfg.royale} rival nations`; $('siBoss').textContent= resumed? '▶ Game resumed' : ['🙂 Rivals grow slowly and leave you alone at first','⚔️ Rivals fight each other — and you','💀 Rivals grow fast, guard their land and gang up on you'][d]; }
   else if(bw.endless){ $('siTop').textContent=`∞ ENDLESS · STAGE ${bw.endless}`; $('siName').textContent=`⚔️ Boss ×${(1+0.07*(bw.endless-BW_LEVELS.length)).toFixed(2)}`; $('siLand').textContent=`${bw.biome.icon} ${bw.biome.name} · “${bw.mapName}”`; $('siBoss').textContent= resumed? '▶ Battle resumed' : BW.modLines(bw.cfg).join(' · '); }
   else { const I=Campaign.info(bw.lv); $('siTop').textContent=`STAGE ${bw.lv} / ${BW_LEVELS.length}`; $('siName').textContent=I.L.name; $('siLand').textContent=`${bw.biome.icon} ${bw.biome.name} · “${bw.mapName}”`; $('siBoss').textContent= resumed? '▶ Battle resumed' : `Boss ${I.brains} · ${I.tac}`; }
@@ -3250,25 +3303,28 @@ function showBwResult(){
   $('rTitle').style.color= win? '#ffd54a' : '#f87171';
   const bk= win? 'ui:win':'ui:lose'; if(artOK(bk)) $('rTitle').innerHTML=`<img src="${ArtUrls[bk]}" style="max-width:min(70vw,460px);max-height:max(17vh,96px)">`;
   const meC=bw.civOf(bw.localFid), enC=bw.civOf(bw.localFid===0?1:0);
-  const CQ=BW_CONQ[bw.conq], CQn= CQ&&BW_CONQ[BW_CONQ_ORDER[CQ.i+1]];
+  const CH6=bw.cfg&&bw.cfg.chal, CQ= CH6? null : BW_CONQ[bw.conq], CQn= CQ&&BW_CONQ[BW_CONQ_ORDER[CQ.i+1]];   /* 📅 thử thách: không tính vào tiến trình chiến dịch / chinh phạt */
   $('rSub').textContent= CQ? (win? (CQ.id==='tribe'? `Every tribe now follows ${meC.icon} ${bw.natName(0)}!` : CQ.id==='civil'? `${meC.icon} ${meC.name} is one kingdom again — every region bows to you!` : `The whole world belongs to ${meC.icon} ${meC.name}!`) : `Your last camp has fallen in the ${CQ.name}...`) : bw.royale? (win? `The whole realm belongs to ${meC.icon} ${meC.name} — every nation has fallen!` : 'Your last camp has fallen — the realm belongs to others...') : (win? `${meC.icon} ${meC.name} has defeated ${enC.icon} ${enC.name}!` : `${enC.icon} ${enC.name} has taken our last camp...`);
   const EN=bw.endless|0, xu=coinK((bw.stats.eat/40 + bw.stats.win*4 + (win? 30+18*(EN||lv) : 8))*(bw._coinK||1));   /* (5.8) ~15% mức cũ · (5.9) ★ Thăng Thiên ×(1+25%×bậc), ∞ ải vô tận theo số ải */
-  const solo=!bw.royale&&!(bw.cfg&&bw.cfg.p2p)&&!(bw.cfg&&bw.cfg.classic), NL=BW_LEVELS.length; let first=false, rec=false;
+  const solo=!bw.royale&&!(bw.cfg&&bw.cfg.p2p)&&!(bw.cfg&&bw.cfg.classic)&&!CH6, NL=BW_LEVELS.length; let first=false, rec=false;
   save.xu=(save.xu||0)+xu; if(win&&solo&&EN){ const cp=save.camp||(save.camp={best:{}}); cp.endless=Math.max(cp.endless|0,EN); }
   else if(win&&solo){ first=(save.bwMax||1)<lv+1; save.bwMax=Math.max(save.bwMax||1,lv+1); const cp=save.camp||(save.camp={best:{}}); cp.best=cp.best||{}; const t=Math.round(bw.time); if(!cp.best[lv]||t<cp.best[lv]){ rec=!!cp.best[lv]; cp.best[lv]=t; } } Save.set(save); refreshXu();
   if(CQ&&win){ const cq=save.conq||(save.conq={civ:bw.cfg.civ,diff:bw.cfg.diff,stage:0}); cq.stage=Math.max(cq.stage|0,CQ.i+1); cq.civ=bw.cfg.civ; cq.diff=bw.cfg.diff; const bt=cq.best||(cq.best={}); const t=Math.round(bw.time); if(!bt[CQ.id]||t<bt[CQ.id]) bt[CQ.id]=t; Save.set(save); }
   const CH= CQ&&win&&CQ.id==='great'? chronRecord(bw) : null;   /* 📜 Sử ký + ★ mở bậc Thăng Thiên kế */
-  $('rStage').innerHTML= EN? (win? `∞ ENDLESS ${EN} CLEARED!<span class="unl">Next: Endless ${EN+1} — ${BW.endlessMuts(EN+1).map(m=>BW_MUT[m].icon+' '+BW_MUT[m].name).join(' · ')}</span>` : `∞ Endless ${EN} — not cleared<span class="rec">🏅 Best: ${(save.camp&&save.camp.endless|0)>BW_LEVELS.length? 'Endless '+save.camp.endless : 'none yet'}</span>`) : CQ? (win? (CQn? `🏆 ${CQ.id==='tribe'? 'THE TRIBES ARE UNITED!' : 'THE CIVIL WAR IS WON!'}<span class="unl">Next: ${CQn.icon} ${CQn.name} — ${CQn.n[0]===CQn.n[1]? 'all '+CQn.n[0] : CQn.n[0]+'–'+CQn.n[1]} ${CQn.unit}, ${(CQn.start[0]*CQn.dk).toLocaleString('en-US')}–${(CQn.start[1]*CQn.dk).toLocaleString('en-US')} troops each</span>` : (bw.asc? `👑 ★${bw.asc} ASCENSION CLEARED!` : '👑 CONQUEST COMPLETE — THE WORLD IS UNITED!')+`<span class="unl">${CH&&CH.lines.length? CH.lines.join(' · ') : 'Tribes, regions and nations — all under one banner.'}</span>`) : `${CQ.icon} ${CQ.name} — not won yet<span class="rec">Tip: take farms early, keep your capital guarded, strike rivals while they fight each other</span>`) : !solo? '' : win? (lv>=NL? `👑 STAGE ${lv} CLEARED — CAMPAIGN COMPLETE!<span class="unl">You have beaten all ${NL} bosses. Replay any stage for a better time.</span>` : `✔ STAGE ${lv} / ${NL} CLEARED`+(first? `<span class="unl">🔓 Stage ${lv+1} unlocked: ${BW_LEVELS[lv].name}</span>` : '')+(rec? '<span class="rec">⏱️ New best time!</span>' : '')) : `Stage ${lv} / ${NL} — not cleared yet<span class="rec">Tip: upgrade in the Armory, guard your farms, strike where the boss is thin</span>`;
-  $('rStats').innerHTML=`<div>⏱️ Time: <b>${fmt(bw.time)}</b></div><div>🤝 Defected to you: <b>${bwN(bw.stats.eat)}</b> troops</div><div>⚔️ Battles won: <b>${bw.stats.win}</b></div><div>💥 Armies routed: <b>${bw.stats.lose}</b></div><div>👥 Peak strength: <b>${bwN(bw.stats.peak)}</b></div><div>🪙 Coins earned: <b>+${xu}</b>${bw.stats.coins? ` <span style="opacity:.8">(+${bw.stats.coins} paid during play)</span>` : ''}</div>`;
+  const meta= !(bw.cfg&&(bw.cfg.p2p||bw.cfg.tut));   /* 📅🏆🎖️ (6.0) thử thách · thống kê trọn đời · kinh nghiệm tướng · thành tựu */
+  const CR= meta? chalAfter(bw,win) : null; if(meta) ltAfter(bw,win,xu); const GL= meta? genAward(bw,win) : []; const AG= meta? achCheck(true) : [];
+  const extra=[...(CR? CR.lines : []), ...GL, ...AG.map(a=>`🏆 ${a.name} +${a.xu} coins${a.title? ' · title “'+a.title+'”' : ''}`)]; refreshXu();
+  $('rStage').innerHTML= CH6? `${CR&&CR.ok? '🎯 CHALLENGE COMPLETE!' : '🎯 '+(CH6==='w'? 'Weekly' : 'Daily')+' challenge'}<span class="${CR&&CR.ok? 'unl' : 'rec'}">${CR? CR.lines[0] : ''}</span>` : EN? (win? `∞ ENDLESS ${EN} CLEARED!<span class="unl">Next: Endless ${EN+1} — ${BW.endlessMuts(EN+1).map(m=>BW_MUT[m].icon+' '+BW_MUT[m].name).join(' · ')}</span>` : `∞ Endless ${EN} — not cleared<span class="rec">🏅 Best: ${(save.camp&&save.camp.endless|0)>BW_LEVELS.length? 'Endless '+save.camp.endless : 'none yet'}</span>`) : CQ? (win? (CQn? `🏆 ${CQ.id==='tribe'? 'THE TRIBES ARE UNITED!' : 'THE CIVIL WAR IS WON!'}<span class="unl">Next: ${CQn.icon} ${CQn.name} — ${CQn.n[0]===CQn.n[1]? 'all '+CQn.n[0] : CQn.n[0]+'–'+CQn.n[1]} ${CQn.unit}, ${(CQn.start[0]*CQn.dk).toLocaleString('en-US')}–${(CQn.start[1]*CQn.dk).toLocaleString('en-US')} troops each</span>` : (bw.asc? `👑 ★${bw.asc} ASCENSION CLEARED!` : '👑 CONQUEST COMPLETE — THE WORLD IS UNITED!')+`<span class="unl">${CH&&CH.lines.length? CH.lines.join(' · ') : 'Tribes, regions and nations — all under one banner.'}</span>`) : `${CQ.icon} ${CQ.name} — not won yet<span class="rec">Tip: take farms early, keep your capital guarded, strike rivals while they fight each other</span>`) : !solo? '' : win? (lv>=NL? `👑 STAGE ${lv} CLEARED — CAMPAIGN COMPLETE!<span class="unl">You have beaten all ${NL} bosses. Replay any stage for a better time.</span>` : `✔ STAGE ${lv} / ${NL} CLEARED`+(first? `<span class="unl">🔓 Stage ${lv+1} unlocked: ${BW_LEVELS[lv].name}</span>` : '')+(rec? '<span class="rec">⏱️ New best time!</span>' : '')) : `Stage ${lv} / ${NL} — not cleared yet<span class="rec">Tip: upgrade in the Armory, guard your farms, strike where the boss is thin</span>`;
+  $('rStats').innerHTML=`<div>⏱️ Time: <b>${fmt(bw.time)}</b></div><div>🤝 Defected to you: <b>${bwN(bw.stats.eat)}</b> troops</div><div>⚔️ Battles won: <b>${bw.stats.win}</b></div><div>💥 Armies routed: <b>${bw.stats.lose}</b></div><div>👥 Peak strength: <b>${bwN(bw.stats.peak)}</b></div><div>🪙 Coins earned: <b>+${xu}</b>${bw.stats.coins? ` <span style="opacity:.8">(+${bw.stats.coins} paid during play)</span>` : ''}</div>`+extra.filter((l,i)=>!(CH6&&i===0)).map(l=>`<div class="rx">${l}</div>`).join('')+((save.ach&&save.ach.title)? `<div class="rx">🏅 ${save.ach.title}</div>` : '');
   $('rXu').innerHTML='';
   const solo1v1=!bw.royale&&!(bw.cfg&&bw.cfg.p2p);
-  const next= (solo1v1 && win && (lv<BW_LEVELS.length||EN>0)) || !!(CQ&&win&&CQn);
+  const next= !CH6 && ((solo1v1 && win && (lv<BW_LEVELS.length||EN>0)) || !!(CQ&&win&&CQn));
   $('bNext').classList.toggle('hidden',!next);
   if(next) $('bNext').textContent= CQ? `${CQn.icon} Begin the ${CQn.name} ▶` : EN? `∞ Endless ${EN+1} ▶` : `Next: Stage ${lv+1} ▶`;
   $('bNext').onclick= CQ? ()=>{ $('result').classList.add('hidden'); startConq(CQn.id); } : EN? ()=>{ $('result').classList.add('hidden'); startEndless(EN+1,bw.cfg.civ); } : ()=>{ $('result').classList.add('hidden'); G.bwCfg={civ:bw.cfg.civ}; startBigWar(Math.min(lv+1,BW_LEVELS.length)); };
   $('bAgain').classList.toggle('hidden',!!(bw.cfg&&bw.cfg.p2p)); // P2P: muốn đấu lại thì hai máy kết nối lại
-  $('bAgain').textContent= CQ? (win? '🗺️ Conquest map' : `↻ Retry the ${CQ.name}`) : bw.royale? '🌏 New Warlords game' : '↻ Play again';
-  $('bAgain').onclick= CQ? ()=>{ $('result').classList.add('hidden'); if(win){ stopBigWar(false); G.world=null; Conquest.open(); } else startConq(CQ.id); } : ()=>{ $('result').classList.add('hidden'); if(bw.royale){ G.bwCfg={royale:36, seed: 61+((Math.random()*999)|0), civ:bw.cfg.civ, diff:bw.cfg.diff, bio:1}; startBigWar(5); } else bwRestart(); };
+  $('bAgain').textContent= CH6? '↻ Retry challenge' : CQ? (win? '🗺️ Conquest map' : `↻ Retry the ${CQ.name}`) : bw.royale? '🌏 New Warlords game' : '↻ Play again';
+  $('bAgain').onclick= CH6? ()=>{ $('result').classList.add('hidden'); bwRestart(); } : CQ? ()=>{ $('result').classList.add('hidden'); if(win){ stopBigWar(false); G.world=null; Conquest.open(); } else startConq(CQ.id); } : ()=>{ $('result').classList.add('hidden'); if(bw.royale){ G.bwCfg={royale:36, seed: 61+((Math.random()*999)|0), civ:bw.cfg.civ, diff:bw.cfg.diff, bio:1}; startBigWar(5); } else bwRestart(); };
   $('bRMenu').onclick=()=>{ stopBigWar(false); G.world=null; showScreen('menu'); setupMenus(); };
   if(win){ audio.win(); } $('result').classList.remove('hidden'); $('bwbar').classList.add('hidden');
 }
@@ -3345,7 +3401,7 @@ function goFullscreen(){
       return; }catch(e){} }
   if(isIOS&&!standalone){ toast('📲 iPhone/iPad: tap Safari\'s Share button → "Add to Home Screen" to play full-screen like an app!',4); }
 }
-function toast(msg,sec){ let t=document.getElementById('ltmToast');
+function toast(msg,sec){ if(msg&&typeof msg==='object') msg=msg.text||''; let t=document.getElementById('ltmToast');   /* nhận cả dạng {text,kind} */
   if(!t){ t=document.createElement('div'); t.id='ltmToast';
     t.style.cssText='position:fixed;left:50%;bottom:14%;transform:translateX(-50%);background:rgba(25,15,45,0.95);color:#ffe9c9;padding:12px 18px;border-radius:14px;font:800 15px "Baloo 2",system-ui;z-index:99;max-width:86vw;text-align:center;border:2px solid #ffd54a;pointer-events:none';
     document.body.appendChild(t); }
@@ -3697,6 +3753,7 @@ class BigWar{
     const cv=this.civOf(n.owner); if(cv&&cv.def) d*=cv.def;
     if(this.up) d*=this.upMul('armor',n.owner);   /* ⚒️ Lò rèn: Fortify */
     if(this._foeDef&&n.owner!==this.localFid&&n.owner!==2) d*=this._foeDef;   /* ★/∞ cứ điểm đối thủ vững hơn */
+    if(n.owner===this.localFid&&this.genK&&this.genK.warden) d*=1+this.genK.warden;   /* 🎖️ tướng Thủ thành */
     return d; }
   ambushMult(n){ // phục kích: x2 đến x10 tùy địa hình + binh chủng (nhân thêm khắc chế khi vào trận)
     const f=BW.ambushFit[n.ter]; if(!f) return 1;
@@ -3919,7 +3976,7 @@ class BigWar{
     const side=(S)=>({fid:S.fid,mul:S.mul,es:S.es.map(e=>({kind:e.kind,c0:e.c0,r:ref(e.ref)})).filter(e=>e.r)});
     const K=['time','nextAI','aiWave','nextAiScout','regenT','reinT','enFed','_bid','_rid','_rr','stormRush','camX','camY','zoom','visR','coinT'];
     const sc={}; for(const k of K) if(this[k]!==undefined) sc[k]=this[k];
-    return { v:1, savedAt:Date.now(), lv:this.lv, cfg:{royale:this.cfg.royale,conq:this.cfg.conq,asc:this.cfg.asc,endless:this.cfg.endless,mut:this.cfg.mut,diff:this.cfg.diff,bio:this.cfg.bio,seed:this.cfg.seed,map:this.cfg.map,L:this.cfg.L,civ:this.cfg.civ,civ2:this.cfg.civ2},
+    return { v:1, savedAt:Date.now(), lv:this.lv, cfg:{royale:this.cfg.royale,conq:this.cfg.conq,chal:this.cfg.chal,chalKey:this.cfg.chalKey,asc:this.cfg.asc,endless:this.cfg.endless,mut:this.cfg.mut,diff:this.cfg.diff,bio:this.cfg.bio,seed:this.cfg.seed,map:this.cfg.map,L:this.cfg.L,civ:this.cfg.civ,civ2:this.cfg.civ2},
       sc, stats:this.stats, fed:this.fed, nextWaveF:this.nextWaveF||{}, cap0:this.cap0||{}, n0:this.n0||{}, allies:[...this.allies],
       nodes:this.nodes.map(n=>Object.assign({},n)),
       armies:this.armies.map(a=>Object.assign({},a,{hunt:ref(a.hunt),mergeInto:ref(a.mergeInto),path:undefined,_pk:undefined,pi:undefined,pvT:undefined})),
@@ -4048,6 +4105,7 @@ class BigWar{
       if(mine&&b.kind==='siege') this.texts.push({x,y:y-140,s:'🏰 Siege — a long battle',col:'#ffd54a',t:0,max:2.2});
       else if(mine&&b.kind==='field'&&big>=2) this.texts.push({x,y:y-140,s:`⚡ ×${big>=10?Math.round(big):big.toFixed(1)} outnumbered — quick rout`,col:'#7dffcf',t:0,max:2.2}); }
     for(const S of [b.A,b.B]) for(const e of S.es){ if(e.kind==='army'&&e.ref.smokeT>0){ S.mul*=BW.gear.smokeMul; e.ref.smokeT=0; this.texts.push({x,y:y-110,s:'💨 Strike from the smoke ×'+BW.gear.smokeMul,col:'#ffe08a',t:0,max:2,big:1}); } }
+    { const gA=this.genK&&this.genK.vanguard; if(gA) for(const S of [b.A,b.B]) if(S.fid===this.localFid) S.mul*=1+gA; }   /* 🎖️ tướng Tiên phong: đánh mạnh hơn */
     for(const e of b.A.es) this.bLock(e,b); for(const e of b.B.es) this.bLock(e,b);
     this.battles.push(b);
     this.battleFx(x,y,ter,tot>1500);
@@ -4114,7 +4172,9 @@ class BigWar{
       // thắng trận dã chiến sát trại/cứ điểm phe mình -> tự gom quân kéo vào trại
       for(const a2 of wa){ if(a2.done||a2.count<=0) continue; const h=this.nearOwnBase(a2,650); if(h) this.marchHome(a2,h); } }
     const F=this.localFid;
-    if(winS.fid===F) this.stats.win++; else if(loseS.fid===F) this.stats.lose++;
+    if(winS.fid===F){ this.stats.win++; if(b.kind==='ambush') this.stats.amb=(this.stats.amb||0)+1;
+      const md=this.genK&&this.genK.medic; if(md&&(b.lostP||0)>0){ const live=winS.es.map(e=>e.ref).filter(r=>r&&!r.done&&r.count>0&&r.owner===F).sort((p,q)=>q.count-p.count)[0]; const back=Math.round(b.lostP*md); if(live&&back>0){ live.count+=back; b.lostP=0; this.texts.push({x:live.x,y:live.y-96,s:`💉 +${bwN(back)} healed`,col:'#ff9ed8',t:0,max:1.8,big:1}); } } }   /* 🎖️ Hoa Đà: cứu lại một phần quân đã mất trong trận thắng */
+    else if(loseS.fid===F) this.stats.lose++;
     this.noteFor(winS.fid,'🏆 Victory!',b.x,b.y,'🏆'); this.noteFor(loseS.fid,'💀 Defeat!',b.x,b.y,'💀');
     this.battleFx(b.x,b.y,b.ter,true);
   }
@@ -4450,7 +4510,7 @@ class BigWar{
   }
   // KINH ĐÔ (capOf) khác với trại đã chiếm. Mất một trại đã chiếm chỉ là mất một điểm.
   // Mất KINH ĐÔ: nếu còn trại khác thì DỜI ĐÔ về đó; chỉ khi hết trại mới mất nước (lãnh thổ quy hàng phe chiếm).
-  checkCamp(n,captor,prevOwner){
+  checkCamp(n,captor,prevOwner){ if(n.camp&&captor===this.localFid&&prevOwner!==captor&&prevOwner!==2) this.stats.caps=(this.stats.caps||0)+1;   /* 🏆 đếm kinh đô / trại đã hạ (thành tựu) */
     if(!n.camp||this.over) return;
     const F=this.localFid;
     n.home=captor;
@@ -5398,11 +5458,13 @@ const MV_PROF={F:['F','Ff','Fm','Ffm'],H:['H','Hf','Hm','Hfm'],R:['R','Rf','Rm',
 const MV_PROF_W={}; for(const b in MV_PROF) MV_PROF_W[b]=MV_PROF[b].map(k=>k+'w');           // (5.2) 🪵 ván cầu: thêm 'w' = lội sông ở đâu cũng được
 BigWar.prototype.mvProfile=function(a){ const cav=a.type==='cavalry', k= cav? 'H' : a.type==='assassin'? 'R' : 'F',   /* (5.4) đại quân không còn bị cấm rừng núi: đông quân chỉ đi chậm hơn theo quân số */
   T= a.plankT>0? MV_PROF_W : MV_PROF;
-  const cv=this.civOf? this.civOf(a.owner) : null; if(cv&&cv.pass&&!cav) return T[k][(cv.pass.indexOf('f')>=0? 1:0)+(cv.pass.indexOf('m')>=0? 2:0)];
+  const cv=this.civOf? this.civOf(a.owner) : null; let pf= cv&&cv.pass&&!cav? cv.pass : '';
+  if(!cav&&a.owner===this.localFid&&this.genK&&this.genK.guide) pf+= this.genK.guide>=3? 'fm' : 'f';   /* 🎖️ tướng Dẫn đường: rừng (cấp 3+: cả núi) không làm chậm */
+  if(pf) return T[k][(pf.indexOf('f')>=0? 1:0)+(pf.indexOf('m')>=0? 2:0)];
   return T[k][0]; };
 BigWar.prototype.mvSpeed=function(a,key){ const C=this.navCost(key), c=C[this.navCell(a.x,a.y)]; const m= c<1e9? 1/c : 0.4; // lỡ đứng trong vùng cấm: lết ra với 40% tốc độ
   const cv=this.civOf? this.civOf(a.owner) : null; let k=1; if(cv){ if(cv.spd&&!(cv.spdType&&cv.spdType!==a.type)) k*=cv.spd; if(cv.road&&this.nav.flag[this.navCell(a.x,a.y)]===4) k*=cv.road; }
-  if(a.teaT>0) k*=BW.gear.teaMul; if(this.up) k*=this.upMul('speed',a.owner);   /* 🍵 trà gừng · ⚒️ lò rèn (Speed) */
+  if(a.teaT>0) k*=BW.gear.teaMul; if(this.up) k*=this.upMul('speed',a.owner); if(a.owner===this.localFid&&this.genK&&this.genK.rider) k*=1+this.genK.rider;   /* 🎖️ tướng Khinh kỵ */   /* 🍵 trà gừng · ⚒️ lò rèn (Speed) */
   return BW.speed*m*(BW.typeSpeed[a.type]||1)*k*BW.sizeSpd(a.count); };   // đại quân đi chậm hơn (src/09d_supply.js)
 
 // ---- A*: trả {pts:[[x,y]...] (không gồm điểm xuất phát), ok (tới đúng đích?), cost (quãng đường quy đổi theo thời gian)} ----
@@ -6558,16 +6620,165 @@ BW.endlessArmy=function(n){ return Math.round(BW.BOSS_ARMY[BW.BOSS_ARMY.length-1
 BigWar.prototype.applyMods=function(){ const cf=this.cfg||{}; if(cf.p2p) return;
   const m={foeStart:1,neu:1,vis:1,foeGrow:1,ai:1,foeDef:1,myGrow:1};
   if(cf.asc>0&&this.conq){ const a=BW.ascMods(cf.asc); for(const k in m) m[k]*=a[k]; this.asc=cf.asc|0; this._coinK=BW.ascCoinK(cf.asc); }
-  if(cf.endless>0&&Array.isArray(cf.mut)){ this.endless=cf.endless|0; for(const id of cf.mut){ const u=BW_MUT[id]; if(u) for(const k in m) if(u[k]) m[k]*=u[k]; } }
-  if(!this.asc&&!this.endless) return;
+  if((cf.endless>0||cf.chal)&&Array.isArray(cf.mut)){ if(cf.endless>0) this.endless=cf.endless|0; if(cf.chal) this.chal=cf.chal; for(const id of cf.mut){ const u=BW_MUT[id]; if(u) for(const k in m) if(u[k]) m[k]*=u[k]; } }   /* (6.0) thử thách ngày/tuần dùng chung bộ luật đặc biệt */
+  if(!this.asc&&!this.endless&&!this.chal) return;
   const F=this.localFid;
   for(const n of this.nodes){ if(n.owner===2) n.count=Math.round(n.count*m.neu); else if(n.owner!==F) n.count=Math.round(n.count*m.foeStart); }
   this.visR=Math.round(this.visR*m.vis); this.D.grow*=m.foeGrow; this.L.ai=Math.max(1.2,this.L.ai*m.ai); this.nextAI=Math.min(this.nextAI,this.L.ai*0.9);
   this.L.grow*=m.myGrow; this._foeDef=m.foeDef; this._mods=m; this._visT=0; if(this._updateVision) this._updateVision(); };
 // dòng mô tả luật đang áp (băng giới thiệu, thẻ ải)
-BW.modLines=function(cfg){ if(!cfg) return []; if(cfg.asc>0) return BW_ASC.slice(0,cfg.asc).map((a,i)=>`★${i+1} ${a.txt}`); if(cfg.endless>0) return (cfg.mut||[]).map(id=>BW_MUT[id]? `${BW_MUT[id].icon} ${BW_MUT[id].name}: ${BW_MUT[id].txt}` : ''); return []; };
+BW.modLines=function(cfg){ if(!cfg) return []; if(cfg.chal) return (cfg.mut||[]).map(id=>BW_MUT[id]? `${BW_MUT[id].icon} ${BW_MUT[id].name}: ${BW_MUT[id].txt}` : ''); if(cfg.asc>0) return BW_ASC.slice(0,cfg.asc).map((a,i)=>`★${i+1} ${a.txt}`); if(cfg.endless>0) return (cfg.mut||[]).map(id=>BW_MUT[id]? `${BW_MUT[id].icon} ${BW_MUT[id].name}: ${BW_MUT[id].txt}` : ''); return []; };
 BW.ascStars=0;   /* số ★ cao nhất đã qua — lá cờ Thăng Thiên ở trại vẽ theo số này (gán từ dữ liệu lưu) */
 if(typeof setupMenus==='function'){ try{ setupMenus(); }catch(e){} }   /* dựng lại menu khi bảng ★/∞ đã nạp */
+
+// ---- 09m_generals.js
+// ============ 🎖️ (6.0) TƯỚNG LĨNH — chiêu mộ bằng xu, lên cấp qua các trận, mang 1–2 tướng vào trận ============
+// Mỗi tướng một tài năng (bị động, luôn có hiệu lực cho phe ta). Cấp 1–5: hiệu lực tăng theo cấp. Kinh nghiệm: thắng +3, thua +1.
+// Không áp dụng ở P2P (hai người phải ngang nhau) và trận hướng dẫn.
+const BW_GENERALS=[
+  {id:'vanguard', name:'Lü Bu the Vanguard',    icon:'⚔️', cost:250, w:5, col:'#ef4444', skill:'Attack',   desc:(v)=>`Your troops hit ${pct(v)} harder`,                 val:(l)=>0.05+0.02*(l-1)},
+  {id:'warden',   name:'Iron Warden Kanetsugu', icon:'🛡️', cost:220, w:3, col:'#64748b', skill:'Defence',  desc:(v)=>`Your strongholds defend ${pct(v)} better`,           val:(l)=>0.08+0.03*(l-1)},
+  {id:'rider',    name:'Subutai the Swift',     icon:'🐎', cost:200, w:2, col:'#f59e0b', skill:'March',    desc:(v)=>`Your armies march ${pct(v)} faster`,                 val:(l)=>0.06+0.02*(l-1)},
+  {id:'ranger',   name:'Hawkeye Ranger',        icon:'🏹', cost:180, w:1, col:'#22c55e', skill:'Sight',    desc:(v)=>`You see ${pct(v)} further through the fog`,          val:(l)=>0.15+0.05*(l-1)},
+  {id:'guide',    name:'Woodland Guide Aranya',  icon:'🌲', cost:240, w:0, col:'#15803d', skill:'Pathfinder', desc:(v,l)=>`Your foot troops cross ${l>=3? 'forests and mountains' : 'forests'} at full speed`+(l>=3? '' : ' (mountains too from level 3)'), val:(l)=>l},
+  {id:'medic',    name:'Hua Tuo the Healer',    icon:'💉', cost:260, w:4, col:'#ec4899', skill:'Field medic', desc:(v)=>`After each battle you win, ${pct(v)} of the troops you lost there return`, val:(l)=>0.10+0.04*(l-1)},
+  {id:'recruiter',name:'Recruiter Ma Yuan',     icon:'📣', cost:230, w:3, col:'#8b5cf6', skill:'Recruiting', desc:(v)=>`Your camps and farms raise troops ${pct(v)} faster`, val:(l)=>0.08+0.03*(l-1)},
+  {id:'treasurer',name:'Treasurer Croesus',     icon:'💰', cost:300, w:2, col:'#eab308', skill:'Treasury', desc:(v)=>`You earn ${pct(v)} more Meme Coins`,                val:(l)=>0.15+0.05*(l-1)},
+];
+function pct(v){ return '+'+Math.round(v*100)+'%'; }
+const BW_GEN_BY={}; for(const g of BW_GENERALS) BW_GEN_BY[g.id]=g;
+BW.genXP=[0,5,12,22,35];   /* kinh nghiệm cần để lên cấp 2,3,4,5 */
+BW.genSlot2=400;           /* mở ô tướng thứ 2 */
+BW.genLevel=function(xp){ let l=1; for(let i=1;i<BW.genXP.length;i++) if((xp|0)>=BW.genXP[i]) l=i+1; return l; };
+// gắn tướng vào ván: list = [{id,lv}]
+BigWar.prototype.genSetup=function(list){ this.gens=[]; this.genK={}; if(!list||(this.cfg&&(this.cfg.p2p||this.cfg.tut))) return;
+  for(const g of list){ const D=BW_GEN_BY[g.id]; if(D&&this.gens.length<2&&!this.gens.some(x=>x.id===g.id)){ this.gens.push({id:g.id,lv:Math.max(1,Math.min(5,g.lv|0))}); this.genK[g.id]=D.val(Math.max(1,Math.min(5,g.lv|0))); } }
+  const K=this.genK; if(K.ranger){ this.visR=Math.round(this.visR*(1+K.ranger)); this._visT=0; if(this._updateVision) this._updateVision(); }
+  if(K.recruiter) this.L.grow*=1+K.recruiter;
+  if(K.treasurer) this._coinK=(this._coinK||1)*(1+K.treasurer);
+  if(this.gens.length){ const c=this.nodes.find(n=>n.owner===this.localFid&&n.camp)||this.nodes[0]; this.note('🎖️ '+this.gens.map(x=>BW_GEN_BY[x.id].icon+' '+BW_GEN_BY[x.id].name+' (Lv '+x.lv+')').join(' · ')+' ride with you',c.x,c.y,'🎖️'); } };
+BigWar.prototype.gen=function(id){ return this.genK? this.genK[id]||0 : 0; };
+
+// ---- 09n_meta.js
+// ============ 📅🏆 (6.0) THỬ THÁCH NGÀY / TUẦN · THÀNH TỰU & DANH HIỆU ============
+// • Thử thách NGÀY: một trận 1v1 cố định theo ngày (cùng bản đồ, cùng nước, cùng luật đặc biệt), mục tiêu: thắng trong giới hạn thời gian.
+//   Đạt lần đầu trong ngày: +15 xu, chuỗi ngày liên tiếp +5 xu/ngày (tối đa +25). Không cần mạng: sinh từ ngày tháng trên máy.
+// • Thử thách TUẦN: một trận Bộ lạc cố định theo tuần với 2 luật đặc biệt, mục tiêu: thống nhất trong 20 phút. Đạt lần đầu trong tuần: +60 xu.
+//   Trận thử thách không tự lưu (thoát là bỏ) — để không đè ván chiến dịch / chinh phạt đang lưu.
+// • THÀNH TỰU: 40 mục, mỗi mục thưởng xu; một số mục mở DANH HIỆU hiện ở màn chính và màn kết quả.
+BW.chal={ dayXu:15, streakXu:5, streakMax:25, weekXu:60, dayLim:12*60, weekLim:20*60 };
+function chalDayKey(d){ d=d||new Date(); return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate(); }
+function chalWeekKey(d){ d=d||new Date(); const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())); const day=t.getUTCDay()||7; t.setUTCDate(t.getUTCDate()+4-day); const y0=new Date(Date.UTC(t.getUTCFullYear(),0,1)); return t.getUTCFullYear()*100+Math.ceil(((t-y0)/86400000+1)/7); }
+// cấu hình trận thử thách (cố định theo khoá ngày/tuần)
+BW.chalCfg=function(kind,key){ const R=mulberry32(key*2654435761%4294967291+(kind==='w'?77:13)), pick=(a)=>a[(R()*a.length)|0];
+  const civ=pick(BW_CIVS).id, mutN= kind==='w'? 2 : 1, ids=BW_MUT_IDS.slice(), mut=[]; for(let i=0;i<mutN;i++) mut.push(ids.splice((R()*ids.length)|0,1)[0]);
+  if(kind==='d'){ const lv=3+((R()*6)|0); return {kind,key,lv,lim:BW.chal.dayLim,cfg:{civ,chal:'d',chalKey:key,mut,map:(lv-1)*3+((R()*3)|0),seed:1000+(key%997)}}; }
+  const n=9+((R()*4)|0), S=BW_CONQ.tribe; return {kind,key,lv:5,lim:BW.chal.weekLim,cfg:{royale:n-1,conq:'tribe',chal:'w',chalKey:key,mut,civ,diff:1,bio:1,seed:5000+(key%9973),L:{camp:S.camp}}}; };
+function chalState(){ const c=save.chal||(save.chal={d:{},w:{},streak:0,last:0,done:0,wdone:0}); if(!c.d) c.d={}; if(!c.w) c.w={}; return c; }
+// ngày liền trước của một khoá ngày
+function chalPrevDay(key){ const y=(key/10000)|0, m=((key/100)|0)%100, d=key%100; const t=new Date(y,m-1,d); t.setDate(t.getDate()-1); return chalDayKey(t); }
+
+// ---------- THÀNH TỰU ----------
+// test(s): s = dữ liệu lưu; trả true khi đạt. lt = thống kê trọn đời (cập nhật sau mỗi trận).
+const BW_ACH=[
+  // ⚔️ Chiến dịch 1v1
+  {id:'c1',  cat:'Campaign', icon:'🗡️', name:'First Blood',        desc:'Clear Stage 1 of the campaign',          xu:10, test:(s)=>(s.bwMax||1)>=2},
+  {id:'c5',  cat:'Campaign', icon:'⚔️', name:'Halfway There',      desc:'Clear Stage 5',                          xu:20, test:(s)=>(s.bwMax||1)>=6},
+  {id:'c10', cat:'Campaign', icon:'📜', name:'Beat the War Sage',  desc:'Clear Stage 10 — defeat Sun Tzu',        xu:50, title:'War Sage', test:(s)=>(s.bwMax||1)>=11},
+  {id:'e15', cat:'Campaign', icon:'♾️', name:'Into the Endless',   desc:'Clear Endless Stage 15',                 xu:40, test:(s)=>(s.camp&&s.camp.endless|0)>=15},
+  {id:'e20', cat:'Campaign', icon:'🌀', name:'Endless One',        desc:'Clear Endless Stage 20',                 xu:60, title:'Endless One', test:(s)=>(s.camp&&s.camp.endless|0)>=20},
+  {id:'e30', cat:'Campaign', icon:'🌌', name:'Beyond the Horizon', desc:'Clear Endless Stage 30',                 xu:100, test:(s)=>(s.camp&&s.camp.endless|0)>=30},
+  {id:'q1',  cat:'Conquest', icon:'🪓', name:'Chieftain',          desc:'Unite the tribes (win Tribal Wars)',     xu:15, test:(s)=>(s.lt&&s.lt.q1|0)>0||(s.conq&&s.conq.stage|0)>=1},
+  {id:'q2',  cat:'Conquest', icon:'👑', name:'Kingmaker',          desc:'Win the Civil War',                      xu:25, test:(s)=>(s.lt&&s.lt.q2|0)>0||(s.conq&&s.conq.stage|0)>=2},
+  {id:'q3',  cat:'Conquest', icon:'🌏', name:'World Conqueror',    desc:'Win the Great War',                      xu:60, title:'Conqueror', test:(s)=>!!s.chronDone||(s.conq&&s.conq.stage|0)>=3},
+  {id:'a3',  cat:'Conquest', icon:'⭐', name:'Rising Star',        desc:'Clear the ★3 Ascension',                 xu:40, test:(s)=>(s.ascMax|0)>=3},
+  {id:'a5',  cat:'Conquest', icon:'🌟', name:'Five Stars',         desc:'Clear the ★5 Ascension',                 xu:60, test:(s)=>(s.ascMax|0)>=5},
+  {id:'a10', cat:'Conquest', icon:'💫', name:'Ascended',           desc:'Clear the ★10 Ascension',                xu:150, title:'Ascended', test:(s)=>(s.ascMax|0)>=10},
+  {id:'h5',  cat:'Conquest', icon:'📖', name:'Historian',          desc:'5 nations in the Chronicle',             xu:30, test:(s)=>Object.keys(s.chron||{}).length>=5},
+  {id:'h22', cat:'Conquest', icon:'📚', name:'Half the World',     desc:'22 nations in the Chronicle',            xu:80, test:(s)=>Object.keys(s.chron||{}).length>=22},
+  {id:'h44', cat:'Conquest', icon:'🏛️', name:'Emperor of All',     desc:'All 44 nations in the Chronicle',        xu:200, title:'Emperor of All', test:(s)=>Object.keys(s.chron||{}).length>=44},
+  // 🗡️ Chiến trận (trọn đời)
+  {id:'w100',  cat:'Battle', icon:'🥉', name:'Seasoned',           desc:'Win 100 battles',                        xu:20, test:(s)=>(s.lt&&s.lt.bw|0)>=100},
+  {id:'w1000', cat:'Battle', icon:'🥈', name:'Veteran',            desc:'Win 1,000 battles',                      xu:60, test:(s)=>(s.lt&&s.lt.bw|0)>=1000},
+  {id:'w5000', cat:'Battle', icon:'🥇', name:'Warlord',            desc:'Win 5,000 battles',                      xu:120, title:'Warlord', test:(s)=>(s.lt&&s.lt.bw|0)>=5000},
+  {id:'amb10', cat:'Battle', icon:'🌿', name:'Hidden Blade',       desc:'Win 10 ambushes',                        xu:20, test:(s)=>(s.lt&&s.lt.amb|0)>=10},
+  {id:'amb100',cat:'Battle', icon:'🥷', name:'Shadow General',     desc:'Win 100 ambushes',                       xu:60, title:'Shadow', test:(s)=>(s.lt&&s.lt.amb|0)>=100},
+  {id:'cap10', cat:'Battle', icon:'🏰', name:'Camp Breaker',       desc:'Capture 10 enemy camps',                 xu:20, test:(s)=>(s.lt&&s.lt.caps|0)>=10},
+  {id:'cap100',cat:'Battle', icon:'🏯', name:'Siege Master',       desc:'Capture 100 enemy camps',                xu:60, test:(s)=>(s.lt&&s.lt.caps|0)>=100},
+  {id:'def10k',cat:'Battle', icon:'🤝', name:'Persuader',          desc:'10,000 troops defect to you (lifetime)',  xu:20, test:(s)=>(s.lt&&s.lt.eat|0)>=10000},
+  {id:'def200k',cat:'Battle',icon:'🎺', name:'Banner of Many',     desc:'200,000 troops defect to you (lifetime)', xu:60, test:(s)=>(s.lt&&s.lt.eat|0)>=200000},
+  {id:'quick', cat:'Battle', icon:'⚡', name:'Lightning War',      desc:'Win a 1v1 stage in under 6 minutes',     xu:30, title:'Lightning', test:(s)=>(s.lt&&s.lt.quick|0)>0},
+  {id:'g20k',  cat:'Battle', icon:'🐘', name:'Grand Army',         desc:'Reach 20,000 troops in one battle',      xu:30, test:(s)=>(s.lt&&s.lt.peak|0)>=20000},
+  // 📅 Thử thách
+  {id:'dly1',  cat:'Challenges', icon:'📅', name:'Daily Duty',     desc:'Complete a daily challenge',             xu:10, test:(s)=>(s.chal&&s.chal.done|0)>=1},
+  {id:'dly7',  cat:'Challenges', icon:'🗓️', name:'Week of Duty',   desc:'Complete 7 daily challenges',            xu:30, test:(s)=>(s.chal&&s.chal.done|0)>=7},
+  {id:'dly30', cat:'Challenges', icon:'📆', name:'Ever-Ready',     desc:'Complete 30 daily challenges',           xu:80, title:'Ever-Ready', test:(s)=>(s.chal&&s.chal.done|0)>=30},
+  {id:'str7',  cat:'Challenges', icon:'🔥', name:'On Fire',        desc:'7-day daily challenge streak',           xu:50, test:(s)=>(s.chal&&s.chal.best|0)>=7},
+  {id:'wk1',   cat:'Challenges', icon:'🏕️', name:'Weekend Warrior',desc:'Complete a weekly challenge',            xu:20, test:(s)=>(s.chal&&s.chal.wdone|0)>=1},
+  {id:'wk5',   cat:'Challenges', icon:'🏆', name:'Seasoned Raider', desc:'Complete 5 weekly challenges',          xu:60, test:(s)=>(s.chal&&s.chal.wdone|0)>=5},
+  // 🎖️ Tướng lĩnh
+  {id:'gen1',  cat:'Generals', icon:'🎖️', name:'First Officer',    desc:'Recruit your first general',             xu:10, test:(s)=>Object.keys((s.gen&&s.gen.own)||{}).length>=1},
+  {id:'gen8',  cat:'Generals', icon:'🏅', name:'Lord of Heroes',   desc:'Recruit all 8 generals',                 xu:80, title:'Lord of Heroes', test:(s)=>Object.keys((s.gen&&s.gen.own)||{}).length>=BW_GENERALS.length},
+  {id:'genL5', cat:'Generals', icon:'⭐', name:'Legendary General',desc:'Raise a general to level 5',             xu:50, test:(s)=>Object.values((s.gen&&s.gen.own)||{}).some(x=>BW.genLevel(x)>=5)},
+  {id:'slot2', cat:'Generals', icon:'👥', name:'Twin Banners',     desc:'Open the second general slot',           xu:20, test:(s)=>!!(s.gen&&s.gen.slot2)},
+  // 🪙 Kho
+  {id:'dec5',  cat:'Armory', icon:'🏮', name:'Decorator',          desc:'Own 5 camp decorations',                 xu:20, test:(s)=>Object.keys((s.decor&&s.decor.own)||{}).length>=5},
+  {id:'dec15', cat:'Armory', icon:'🎆', name:'Festival Camp',      desc:'Own 15 camp decorations',                xu:50, test:(s)=>Object.keys((s.decor&&s.decor.own)||{}).length>=15},
+  {id:'forge5',cat:'Armory', icon:'⚒️', name:'Master Smith',       desc:'Max out one Forge upgrade',              xu:30, test:(s)=>Object.values(s.up||{}).some(v=>(v|0)>=5)},
+  {id:'xu1k',  cat:'Armory', icon:'🪙', name:'Treasure Keeper',    desc:'Earn 1,000 coins in total',              xu:30, test:(s)=>(s.lt&&s.lt.xu|0)>=1000},
+];
+const BW_ACH_BY={}; for(const a of BW_ACH) BW_ACH_BY[a.id]=a;
+// soát thành tựu mới đạt: cộng xu, báo bằng toast (trừ khi quiet); trả danh sách vừa đạt
+function achCheck(quiet){ const A=save.ach||(save.ach={done:{},title:null}); if(!A.done) A.done={}; const got=[];
+  for(const a of BW_ACH){ if(A.done[a.id]) continue; let ok=false; try{ ok=!!a.test(save); }catch(e){} if(ok){ A.done[a.id]=Date.now(); got.push(a); save.xu=(save.xu||0)+a.xu; if(a.title&&!A.title) A.title=a.title; } }
+  if(got.length){ Save.set(save); refreshXu(); titleSync(); if(!quiet) got.slice(0,3).forEach((a,i)=>setTimeout(()=>toast({text:`🏆 ${a.name} — +${a.xu} coins${a.title? ' · title “'+a.title+'”' : ''}`,kind:'good'},3.2),i*700)); }
+  return got; }
+function titleSync(){ const A=save.ach||{}, el=$('menuTitle'), bd=$('achBadge'); if(bd) bd.textContent=Object.keys(A.done||{}).length+'/'+BW_ACH.length; if(el){ el.textContent= A.title? '🏅 '+A.title : ''; el.style.display= A.title? '' : 'none'; } }
+// thống kê trọn đời sau mỗi trận (P2P và hướng dẫn không tính)
+function ltAfter(bw,win,xu){ const L=save.lt||(save.lt={}); const st=bw.stats||{};
+  L.games=(L.games|0)+1; if(win) L.wins=(L.wins|0)+1; L.bw=(L.bw|0)+(st.win|0); L.amb=(L.amb|0)+(st.amb|0); L.caps=(L.caps|0)+(st.caps|0); L.eat=(L.eat|0)+Math.round(st.eat||0);
+  L.peak=Math.max(L.peak|0, +bwN(st.peak||0)); L.xu=(L.xu|0)+(xu|0)+(st.coins|0);
+  if(win&&!bw.royale&&!bw.endless&&!(bw.cfg&&bw.cfg.chal)&&bw.time<360) L.quick=(L.quick|0)+1;
+  if(win&&bw.conq==='tribe'&&!(bw.cfg&&bw.cfg.chal)) L.q1=(L.q1|0)+1; if(win&&bw.conq==='civil') L.q2=(L.q2|0)+1; }
+// kết quả trận thử thách: trả {ok, lines}
+function chalAfter(bw,win){ const cf=bw.cfg||{}; if(!cf.chal) return null; const C=chalState(), kind=cf.chal, key=cf.chalKey, lim= kind==='w'? BW.chal.weekLim : BW.chal.dayLim, t=Math.round(bw.time), ok= win&&t<=lim, lines=[];
+  const slot= kind==='w'? C.w : C.d; if(slot.key!==key){ slot.key=key; slot.best=0; slot.done=0; }
+  if(ok){ if(!slot.best||t<slot.best) slot.best=t;
+    if(!slot.done){ slot.done=1; let xu= kind==='w'? BW.chal.weekXu : BW.chal.dayXu;
+      if(kind==='d'){ C.streak= C.last===chalPrevDay(key)? (C.streak|0)+1 : 1; C.last=key; C.done=(C.done|0)+1; C.best=Math.max(C.best|0,C.streak); const sb=Math.min(BW.chal.streakMax,BW.chal.streakXu*(C.streak-1)); xu+=sb; lines.push(`📅 Daily challenge complete! +${xu} coins`+(C.streak>1? ` (🔥 ${C.streak}-day streak +${sb})` : '')); }
+      else { C.wdone=(C.wdone|0)+1; lines.push(`🏕️ Weekly challenge complete! +${xu} coins`); }
+      save.xu=(save.xu||0)+xu; }
+    else lines.push(`✔ Challenge already done — best time ${fmt(slot.best)}`); }
+  else lines.push(win? `⏱️ Too slow: ${fmt(t)} — the goal is ${fmt(lim)}` : `${kind==='w'? '🏕️ Weekly' : '📅 Daily'} challenge failed — try again!`);
+  Save.set(save); return {ok,lines}; }
+
+// ---------- MÀN THỬ THÁCH ----------
+const Chal={
+  open(){ this.render(); $('chalScr').classList.remove('hidden'); $('chalBack').onclick=()=>{ audio.click(); $('chalScr').classList.add('hidden'); $('bossPick').classList.remove('hidden'); setupMenus(); }; },
+  render(){ const C=chalState(), dk=chalDayKey(), wk=chalWeekKey(), D=BW.chalCfg('d',dk), W=BW.chalCfg('w',wk), box=$('chalList'); box.innerHTML='';
+    const streakNow= (C.last===dk||C.last===chalPrevDay(dk))? (C.streak|0) : 0;
+    $('chalProg').innerHTML=`<span>🔥 Streak ${streakNow} · ✔ ${C.done|0} daily · ${C.wdone|0} weekly</span>`;
+    for(const X of [D,W]){ const slot= X.kind==='w'? C.w : C.d, done= slot.key===X.key&&slot.done, best= slot.key===X.key? slot.best : 0, cv=BW_CIV[X.cfg.civ], b=document.createElement('button'); b.className='stg '+(done? 'cleared' : 'cur'); b.dataset.chal=X.kind;
+      const muts=X.cfg.mut.map(m=>BW_MUT[m].icon+' '+BW_MUT[m].name).join(' · '), what= X.kind==='w'? `🪓 Tribal map · ${X.cfg.royale+1} tribes` : `⚔️ 1v1 vs a Stage ${X.lv} boss`;
+      const rew= X.kind==='w'? `+${BW.chal.weekXu}` : `+${BW.chal.dayXu}`+(streakNow? ` (+${Math.min(BW.chal.streakMax,BW.chal.streakXu*streakNow)} streak)` : '');
+      b.innerHTML=`<i class="no">${X.kind==='w'? '🏕️' : '📅'}</i><span class="nm"><b>${X.kind==='w'? 'Weekly' : 'Daily'} challenge</b><small>${what} · play as ${cv? cv.icon+' '+cv.name : ''}</small><small>${muts} · 🎯 win within ${fmt(X.lim)} · 🪙 ${rew}</small></span><em>${done? '✔ Done'+(best? '<br>⏱️ '+fmt(best) : '') : '▶ PLAY'}</em>`;
+      b.onclick=()=>{ audio.click(); this.play(X); }; box.appendChild(b); } },
+  play(X){ $('chalScr').classList.add('hidden'); G.bwCfg=Object.assign({},X.cfg,{mut:X.cfg.mut.slice()}); startBigWar(X.lv); },
+};
+// ---------- MÀN THÀNH TỰU ----------
+const Ach={
+  open(){ achCheck(true); this.render(); $('achScr').classList.remove('hidden'); $('achBack').onclick=()=>{ audio.click(); $('achScr').classList.add('hidden'); showScreen('menu'); setupMenus(); }; },
+  render(){ const A=save.ach||(save.ach={done:{},title:null}), n=Object.keys(A.done||{}).length; $('achProg').innerHTML=`<span>${n}/${BW_ACH.length} unlocked</span>`;
+    const tl=$('achTitles'), titles=BW_ACH.filter(a=>a.title&&A.done[a.id]).map(a=>a.title);
+    tl.innerHTML= titles.length? 'Title: '+['',...titles].map(t=>`<button class="btn${(A.title||'')===t?' on':''}" data-title="${t}">${t||'None'}</button>`).join('') : '<span style="opacity:.75">Unlock achievements marked 🏅 to earn a title shown on your menu.</span>';
+    tl.querySelectorAll('[data-title]').forEach(b=>b.onclick=()=>{ audio.click(); A.title=b.dataset.title||null; Save.set(save); titleSync(); this.render(); });
+    const g=$('achGrid'); g.innerHTML=''; let cat='';
+    for(const a of BW_ACH){ if(a.cat!==cat){ cat=a.cat; const h=document.createElement('div'); h.className='agroup'; h.textContent=cat; g.appendChild(h); }
+      const d=document.createElement('div'), ok=!!A.done[a.id]; d.className='ach '+(ok? 'on' : 'off'); d.dataset.ach=a.id;
+      d.innerHTML=`<i class="em">${a.icon}</i><span><b>${a.name}</b><small>${a.desc}</small><small class="rw">${ok? '✔ ' : ''}🪙 +${a.xu}${a.title? ' · 🏅 '+a.title : ''}</small></span>`; g.appendChild(d); } },
+};
+if(typeof setupMenus==='function'){ try{ setupMenus(); }catch(e){} }   /* dựng lại menu khi phần thử thách / thành tựu đã nạp */
+try{ titleSync(); setTimeout(()=>{ try{ if(!G.bw) achCheck(false); }catch(e){} },1500); }catch(e){}   /* người chơi cũ: thành tựu đã đạt được trao luôn (có báo) */
 
 // ---- 10_p2p.js
 // ============ 📶 P2P 2 NGƯỜI — WebRTC, chủ phòng cầm trịch (host-authoritative) ============

@@ -164,11 +164,13 @@ const MV_PROF={F:['F','Ff','Fm','Ffm'],H:['H','Hf','Hm','Hfm'],R:['R','Rf','Rm',
 const MV_PROF_W={}; for(const b in MV_PROF) MV_PROF_W[b]=MV_PROF[b].map(k=>k+'w');           // (5.2) 🪵 ván cầu: thêm 'w' = lội sông ở đâu cũng được
 BigWar.prototype.mvProfile=function(a){ const cav=a.type==='cavalry', k= cav? 'H' : a.type==='assassin'? 'R' : 'F',   /* (5.4) đại quân không còn bị cấm rừng núi: đông quân chỉ đi chậm hơn theo quân số */
   T= a.plankT>0? MV_PROF_W : MV_PROF;
-  const cv=this.civOf? this.civOf(a.owner) : null; if(cv&&cv.pass&&!cav) return T[k][(cv.pass.indexOf('f')>=0? 1:0)+(cv.pass.indexOf('m')>=0? 2:0)];
+  const cv=this.civOf? this.civOf(a.owner) : null; let pf= cv&&cv.pass&&!cav? cv.pass : '';
+  if(!cav&&a.owner===this.localFid&&this.genK&&this.genK.guide) pf+= this.genK.guide>=3? 'fm' : 'f';   /* 🎖️ tướng Dẫn đường: rừng (cấp 3+: cả núi) không làm chậm */
+  if(pf) return T[k][(pf.indexOf('f')>=0? 1:0)+(pf.indexOf('m')>=0? 2:0)];
   return T[k][0]; };
 BigWar.prototype.mvSpeed=function(a,key){ const C=this.navCost(key), c=C[this.navCell(a.x,a.y)]; const m= c<1e9? 1/c : 0.4; // lỡ đứng trong vùng cấm: lết ra với 40% tốc độ
   const cv=this.civOf? this.civOf(a.owner) : null; let k=1; if(cv){ if(cv.spd&&!(cv.spdType&&cv.spdType!==a.type)) k*=cv.spd; if(cv.road&&this.nav.flag[this.navCell(a.x,a.y)]===4) k*=cv.road; }
-  if(a.teaT>0) k*=BW.gear.teaMul; if(this.up) k*=this.upMul('speed',a.owner);   /* 🍵 trà gừng · ⚒️ lò rèn (Speed) */
+  if(a.teaT>0) k*=BW.gear.teaMul; if(this.up) k*=this.upMul('speed',a.owner); if(a.owner===this.localFid&&this.genK&&this.genK.rider) k*=1+this.genK.rider;   /* 🎖️ tướng Khinh kỵ */   /* 🍵 trà gừng · ⚒️ lò rèn (Speed) */
   return BW.speed*m*(BW.typeSpeed[a.type]||1)*k*BW.sizeSpd(a.count); };   // đại quân đi chậm hơn (src/09d_supply.js)
 
 // ---- A*: trả {pts:[[x,y]...] (không gồm điểm xuất phát), ok (tới đúng đích?), cost (quãng đường quy đổi theo thời gian)} ----

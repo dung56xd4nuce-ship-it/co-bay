@@ -5,7 +5,7 @@ const txt=(T,s)=>T.ev((s)=>{ const e=document.querySelector(s); return e? e.text
 const winAll=(T)=>T.ev(()=>{ const bw=__ltm.bw, F=bw.localFid; for(const n of bw.nodes){ if(n.camp&&n.owner!==F&&n.owner!==2){ const prev=n.owner; n.owner=F; n.count=Math.max(1,n.count); bw.checkCamp(n,F,prev); } } bw.checkVictory(); if(!bw.over){ bw.over=true; bw.result={win:true}; } return true; });
 const menu=async(T)=>{ await T.ev(()=>{ if(window.G&&G.bw) stopBigWar(false); ['result','campaign','conquest','chron','civPick','bossPick'].forEach(i=>document.getElementById(i).classList.add('hidden')); showScreen('menu'); setupMenus(); }); await T.p.waitForTimeout(200); };
 for(const [dn,dev] of [...DEVICES, PORTRAIT[1]]){ console.log(dn);
-  const T=await open(b,dev); const {p}=T; let r;
+  const T=await open(b,dev); const {p}=T; await T.ev(()=>{ save.ach={done:Object.fromEntries(BW_ACH.map(a=>[a.id,1])),title:null}; Save.set(save); });   /* (6.0) thành tựu đã mở hết: không chen xu thưởng vào phép đo */ let r;
   // ---------- ∞ ẢI VÔ TẬN ----------
   await T.ev(()=>{ save.bwMax=10; save.camp={best:{1:300,2:300,3:300,4:300,5:300,6:300,7:300,8:300,9:300}}; Save.set(save); setupMenus(); });
   await T.tapEl('#bBW'); await p.waitForTimeout(250); await T.tapEl('#bBoss1v1'); await p.waitForTimeout(400);

@@ -4,7 +4,7 @@ const b=await launch();
 const box=(T)=>T.ev(()=>{ const bw=__ltm.bw, r=bw._statBox; if(!r) return null; const R=bw.hudRects(), hits=[]; for(const k in R){ if(k==='bảng thống kê quân') continue; const q=R[k]; if(q.x<r.x+r.w&&q.x+q.w>r.x&&q.y<r.y+r.h&&q.y+q.h>r.y) hits.push(k); }
   return {r, inside:r.x>=0&&r.y>=0&&r.x+r.w<=bw.lastVw+0.5&&r.y+r.h<=bw.lastVh+0.5, hits, n:bw._st? bw._st.h.length : 0, every:bw._st&&bw._st.every, my:bwN(bw.myPower())}; });
 for(const [dn,dev] of [...DEVICES, ...PORTRAIT]){ console.log(dn);
-  const T=await open(b,dev); const {p}=T;
+  const T=await open(b,dev); const {p}=T; await T.ev(()=>{ save.ach={done:Object.fromEntries(BW_ACH.map(a=>[a.id,1])),title:null}; Save.set(save); });   /* (6.0) thành tựu đã mở hết: không chen xu thưởng vào phép đo */
   // 1) Đánh Boss 1v1
   await T.startBattle({seed:3},1); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.lastVw>0); await T.ev(()=>__ltm.bw.skipIntro&&__ltm.bw.skipIntro());
   await p.waitForTimeout(400); let s=await box(T);

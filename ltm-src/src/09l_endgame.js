@@ -40,13 +40,13 @@ BW.endlessArmy=function(n){ return Math.round(BW.BOSS_ARMY[BW.BOSS_ARMY.length-1
 BigWar.prototype.applyMods=function(){ const cf=this.cfg||{}; if(cf.p2p) return;
   const m={foeStart:1,neu:1,vis:1,foeGrow:1,ai:1,foeDef:1,myGrow:1};
   if(cf.asc>0&&this.conq){ const a=BW.ascMods(cf.asc); for(const k in m) m[k]*=a[k]; this.asc=cf.asc|0; this._coinK=BW.ascCoinK(cf.asc); }
-  if(cf.endless>0&&Array.isArray(cf.mut)){ this.endless=cf.endless|0; for(const id of cf.mut){ const u=BW_MUT[id]; if(u) for(const k in m) if(u[k]) m[k]*=u[k]; } }
-  if(!this.asc&&!this.endless) return;
+  if((cf.endless>0||cf.chal)&&Array.isArray(cf.mut)){ if(cf.endless>0) this.endless=cf.endless|0; if(cf.chal) this.chal=cf.chal; for(const id of cf.mut){ const u=BW_MUT[id]; if(u) for(const k in m) if(u[k]) m[k]*=u[k]; } }   /* (6.0) thử thách ngày/tuần dùng chung bộ luật đặc biệt */
+  if(!this.asc&&!this.endless&&!this.chal) return;
   const F=this.localFid;
   for(const n of this.nodes){ if(n.owner===2) n.count=Math.round(n.count*m.neu); else if(n.owner!==F) n.count=Math.round(n.count*m.foeStart); }
   this.visR=Math.round(this.visR*m.vis); this.D.grow*=m.foeGrow; this.L.ai=Math.max(1.2,this.L.ai*m.ai); this.nextAI=Math.min(this.nextAI,this.L.ai*0.9);
   this.L.grow*=m.myGrow; this._foeDef=m.foeDef; this._mods=m; this._visT=0; if(this._updateVision) this._updateVision(); };
 // dòng mô tả luật đang áp (băng giới thiệu, thẻ ải)
-BW.modLines=function(cfg){ if(!cfg) return []; if(cfg.asc>0) return BW_ASC.slice(0,cfg.asc).map((a,i)=>`★${i+1} ${a.txt}`); if(cfg.endless>0) return (cfg.mut||[]).map(id=>BW_MUT[id]? `${BW_MUT[id].icon} ${BW_MUT[id].name}: ${BW_MUT[id].txt}` : ''); return []; };
+BW.modLines=function(cfg){ if(!cfg) return []; if(cfg.chal) return (cfg.mut||[]).map(id=>BW_MUT[id]? `${BW_MUT[id].icon} ${BW_MUT[id].name}: ${BW_MUT[id].txt}` : ''); if(cfg.asc>0) return BW_ASC.slice(0,cfg.asc).map((a,i)=>`★${i+1} ${a.txt}`); if(cfg.endless>0) return (cfg.mut||[]).map(id=>BW_MUT[id]? `${BW_MUT[id].icon} ${BW_MUT[id].name}: ${BW_MUT[id].txt}` : ''); return []; };
 BW.ascStars=0;   /* số ★ cao nhất đã qua — lá cờ Thăng Thiên ở trại vẽ theo số này (gán từ dữ liệu lưu) */
 if(typeof setupMenus==='function'){ try{ setupMenus(); }catch(e){} }   /* dựng lại menu khi bảng ★/∞ đã nạp */

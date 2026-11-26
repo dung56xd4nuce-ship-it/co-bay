@@ -343,6 +343,7 @@ class BigWar{
     const cv=this.civOf(n.owner); if(cv&&cv.def) d*=cv.def;
     if(this.up) d*=this.upMul('armor',n.owner);   /* ⚒️ Lò rèn: Fortify */
     if(this._foeDef&&n.owner!==this.localFid&&n.owner!==2) d*=this._foeDef;   /* ★/∞ cứ điểm đối thủ vững hơn */
+    if(n.owner===this.localFid&&this.genK&&this.genK.warden) d*=1+this.genK.warden;   /* 🎖️ tướng Thủ thành */
     return d; }
   ambushMult(n){ // phục kích: x2 đến x10 tùy địa hình + binh chủng (nhân thêm khắc chế khi vào trận)
     const f=BW.ambushFit[n.ter]; if(!f) return 1;
@@ -565,7 +566,7 @@ class BigWar{
     const side=(S)=>({fid:S.fid,mul:S.mul,es:S.es.map(e=>({kind:e.kind,c0:e.c0,r:ref(e.ref)})).filter(e=>e.r)});
     const K=['time','nextAI','aiWave','nextAiScout','regenT','reinT','enFed','_bid','_rid','_rr','stormRush','camX','camY','zoom','visR','coinT'];
     const sc={}; for(const k of K) if(this[k]!==undefined) sc[k]=this[k];
-    return { v:1, savedAt:Date.now(), lv:this.lv, cfg:{royale:this.cfg.royale,conq:this.cfg.conq,asc:this.cfg.asc,endless:this.cfg.endless,mut:this.cfg.mut,diff:this.cfg.diff,bio:this.cfg.bio,seed:this.cfg.seed,map:this.cfg.map,L:this.cfg.L,civ:this.cfg.civ,civ2:this.cfg.civ2},
+    return { v:1, savedAt:Date.now(), lv:this.lv, cfg:{royale:this.cfg.royale,conq:this.cfg.conq,chal:this.cfg.chal,chalKey:this.cfg.chalKey,asc:this.cfg.asc,endless:this.cfg.endless,mut:this.cfg.mut,diff:this.cfg.diff,bio:this.cfg.bio,seed:this.cfg.seed,map:this.cfg.map,L:this.cfg.L,civ:this.cfg.civ,civ2:this.cfg.civ2},
       sc, stats:this.stats, fed:this.fed, nextWaveF:this.nextWaveF||{}, cap0:this.cap0||{}, n0:this.n0||{}, allies:[...this.allies],
       nodes:this.nodes.map(n=>Object.assign({},n)),
       armies:this.armies.map(a=>Object.assign({},a,{hunt:ref(a.hunt),mergeInto:ref(a.mergeInto),path:undefined,_pk:undefined,pi:undefined,pvT:undefined})),
@@ -694,6 +695,7 @@ class BigWar{
       if(mine&&b.kind==='siege') this.texts.push({x,y:y-140,s:'🏰 Siege — a long battle',col:'#ffd54a',t:0,max:2.2});
       else if(mine&&b.kind==='field'&&big>=2) this.texts.push({x,y:y-140,s:`⚡ ×${big>=10?Math.round(big):big.toFixed(1)} outnumbered — quick rout`,col:'#7dffcf',t:0,max:2.2}); }
     for(const S of [b.A,b.B]) for(const e of S.es){ if(e.kind==='army'&&e.ref.smokeT>0){ S.mul*=BW.gear.smokeMul; e.ref.smokeT=0; this.texts.push({x,y:y-110,s:'💨 Strike from the smoke ×'+BW.gear.smokeMul,col:'#ffe08a',t:0,max:2,big:1}); } }
+    { const gA=this.genK&&this.genK.vanguard; if(gA) for(const S of [b.A,b.B]) if(S.fid===this.localFid) S.mul*=1+gA; }   /* 🎖️ tướng Tiên phong: đánh mạnh hơn */
     for(const e of b.A.es) this.bLock(e,b); for(const e of b.B.es) this.bLock(e,b);
     this.battles.push(b);
     this.battleFx(x,y,ter,tot>1500);
@@ -760,7 +762,9 @@ class BigWar{
       // thắng trận dã chiến sát trại/cứ điểm phe mình -> tự gom quân kéo vào trại
       for(const a2 of wa){ if(a2.done||a2.count<=0) continue; const h=this.nearOwnBase(a2,650); if(h) this.marchHome(a2,h); } }
     const F=this.localFid;
-    if(winS.fid===F) this.stats.win++; else if(loseS.fid===F) this.stats.lose++;
+    if(winS.fid===F){ this.stats.win++; if(b.kind==='ambush') this.stats.amb=(this.stats.amb||0)+1;
+      const md=this.genK&&this.genK.medic; if(md&&(b.lostP||0)>0){ const live=winS.es.map(e=>e.ref).filter(r=>r&&!r.done&&r.count>0&&r.owner===F).sort((p,q)=>q.count-p.count)[0]; const back=Math.round(b.lostP*md); if(live&&back>0){ live.count+=back; b.lostP=0; this.texts.push({x:live.x,y:live.y-96,s:`💉 +${bwN(back)} healed`,col:'#ff9ed8',t:0,max:1.8,big:1}); } } }   /* 🎖️ Hoa Đà: cứu lại một phần quân đã mất trong trận thắng */
+    else if(loseS.fid===F) this.stats.lose++;
     this.noteFor(winS.fid,'🏆 Victory!',b.x,b.y,'🏆'); this.noteFor(loseS.fid,'💀 Defeat!',b.x,b.y,'💀');
     this.battleFx(b.x,b.y,b.ter,true);
   }
@@ -1096,7 +1100,7 @@ class BigWar{
   }
   // KINH ĐÔ (capOf) khác với trại đã chiếm. Mất một trại đã chiếm chỉ là mất một điểm.
   // Mất KINH ĐÔ: nếu còn trại khác thì DỜI ĐÔ về đó; chỉ khi hết trại mới mất nước (lãnh thổ quy hàng phe chiếm).
-  checkCamp(n,captor,prevOwner){
+  checkCamp(n,captor,prevOwner){ if(n.camp&&captor===this.localFid&&prevOwner!==captor&&prevOwner!==2) this.stats.caps=(this.stats.caps||0)+1;   /* 🏆 đếm kinh đô / trại đã hạ (thành tựu) */
     if(!n.camp||this.over) return;
     const F=this.localFid;
     n.home=captor;

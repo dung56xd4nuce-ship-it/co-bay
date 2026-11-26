@@ -17,6 +17,11 @@ const SCREENS=[
   ['hộp hỏi lại', ()=>{ pause(false); ask('Start a NEW Warlords game?','Your saved game (31 nations left, 128 min played) will be erased when the new game starts.','🌏 New game',()=>{}); }, '#ask'],
   ['kết quả thắng', ()=>{ document.getElementById('ask').classList.add('hidden'); G.paused=false; const bw=__ltm.bw; bw.over=true; bw.result={win:true}; bw.stats={eat:12345,win:57,lose:23,peak:45678}; showBwResult(); }, '#result'],
   ['kết quả thua (Quần Hùng)', ()=>{ document.getElementById('result').classList.add('hidden'); G.bwCfg={royale:36,seed:5,civ:'poland'}; startBigWar(5); const bw=__ltm.bw; bw.intro=null; bw.over=true; bw.result={win:false}; showBwResult(); }, '#result'],
+  ['tướng lĩnh (đủ 8, 2 ô)', ()=>{ ['result','gear','forge'].forEach(i=>document.getElementById(i).classList.add('hidden')); save.xu=9999; save.gen={own:{vanguard:40,medic:7,ranger:0,guide:13},on:['vanguard','medic'],slot2:1}; showScreen('gens'); renderGens(); }, '#gens'],
+  ['thử thách ngày/tuần', ()=>{ document.getElementById('gens').classList.add('hidden'); Chal.open(); }, '#chalScr'],
+  ['thành tựu (có danh hiệu)', ()=>{ document.getElementById('chalScr').classList.add('hidden'); save.ach={done:{c1:1,c10:1,q3:1,w5000:1},title:'War Sage'}; Ach.open(); }, '#achScr'],
+  ['sử ký 44 nước', ()=>{ document.getElementById('achScr').classList.add('hidden'); save.chron={rome:{asc:3,t:4000},japan:{asc:0}}; Chronicle.open(); }, '#chron'],
+  ['chinh phạt (có ★)', ()=>{ document.getElementById('chron').classList.add('hidden'); save.conq={civ:'rome',diff:1,stage:3,best:{tribe:300}}; save.chronDone=1; save.ascMax=2; Conquest.open(); }, '#conquest'],
 ];
 const b=await launch(); let combos=0; const agg={};
 const jobs=[]; for(const [w,h] of VP) for(const ins of INS){ if(h>w&&ins[0]==='tai thỏ trái') continue; if(w>h&&ins[0]==='thanh trạng thái') continue; jobs.push([w,h,ins]); }
