@@ -1,7 +1,7 @@
 // Kiểm chứng các tình huống mục 11 ở mức luật
 import fs from 'fs';
 // lõi Đại Chiến = 09_bigwar + các phần nối dài (địa hình/đường đi, văn minh)
-const BWSRC=['09_bigwar.js','09a_terrain.js','09c_civ.js','09d_supply.js','09e_gear.js','09f_brain.js','09g_mix.js','09h_decor.js'].filter(f=>fs.existsSync('src/'+f)).map(f=>fs.readFileSync('src/'+f,'utf8')).join('\n');
+const BWSRC=['09_bigwar.js','09a_terrain.js','09c_civ.js','09d_supply.js','09e_gear.js','09f_brain.js','09g_mix.js','09h_decor.js','09o_supply2.js'].filter(f=>fs.existsSync('src/'+f)).map(f=>fs.readFileSync('src/'+f,'utf8')).join('\n');
 const src = ['01_config.js','02_map.js','03_sim.js','04_ai.js'].map(f=>fs.readFileSync('src/'+f,'utf8')).join('\n');
 const M = new Function(src+'\nreturn {World, levelConfig, miniConfig, T, RULES, UNIT, NEUTRAL, PASSABLE};')();
 const {World, levelConfig, miniConfig, T, RULES, NEUTRAL, PASSABLE, UNIT}=M;
@@ -952,20 +952,50 @@ console.log(`\n${pass} đạt, ${fail} chưa đạt`);
   const quiet=(bw)=>{ bw.nextAI=1e9; bw.nextAiScout=1e9; bw.nextWaveF={1:1e9}; bw._updateVision(); bw.armies.length=0; return bw; };
   const mk=(cfg,lv)=>quiet(new BigWar(lv||2,Object.assign({autoMenu:false,map:3},cfg||{})));
   // kho giả: đếm số món còn lại như phần lưu của người chơi
-  const pack=(bw,ids,inv)=>{ const I=Object.assign({bun:5,tea:5,plank:5,smoke:5,scarecrow:5,compass:5,bandage:5},inv||{}); bw.gearSetup(ids,{stock:(id)=>I[id]||0,spend:(id)=>{ I[id]--; }}); return I; };
+  const pack=(bw,ids,inv)=>{ const I=Object.assign({bun:5,tea:5,plank:5,smoke:5,scarecrow:5,compass:5,bandage:5,horn:5,sandbag:5,drum:5,banner:5,caltrops:5},inv||{}); bw.gearSetup(ids,{slots:(inv&&inv._slots)||undefined,stock:(id)=>I[id]||0,spend:(id)=>{ I[id]--; }}); return I; };
   const army=(bw,o)=>{ const c=bw.nodes.find(n=>n.camp&&n.owner===0), a=Object.assign({owner:0,type:'spear',count:900,x:c.x+260,y:c.y+120,to:-1,trail:0,camped:true,food:100},o||{}); if(a.tx==null){ a.tx=a.x; a.ty=a.y; } bw.armies.push(a); return a; };
   const run=(bw,sec,dt=1/20)=>{ for(let t=0;t<sec;t+=dt) bw.update(dt); };
   const slot=(bw,id)=>bw.gear.findIndex(g=>g.id===id);
 
   // ----- bảng món: đủ 7 món, giá và mô tả rõ ràng, mỗi món đúng một ảnh vật phẩm -----
-  ok(BW_GEAR.length===7&&new Set(BW_GEAR.map(g=>g.id)).size===7&&BW_GEAR.every(g=>g.cost>=20&&g.cost<=80&&g.desc.length>20&&g.name&&['army','node','none','unit'].includes(g.need)),
-    `🎒 Có 7 món quân nhu, giá ${Math.min(...BW_GEAR.map(g=>g.cost))}–${Math.max(...BW_GEAR.map(g=>g.cost))} xu, món nào cũng có tên và mô tả`);
-  { const art=fs.readFileSync('src/05a_art.js','utf8'); ok(BW_GEAR.every(g=>art.includes("'item:"+g.id+"'")), '🎒 Mỗi món quân nhu dùng đúng một ảnh vật phẩm có sẵn trong bộ art (7/7)'); }
+  ok(BW_GEAR.length===12&&new Set(BW_GEAR.map(g=>g.id)).size===12&&BW_GEAR.every(g=>g.cost>=20&&g.cost<=80&&g.desc.length>20&&g.name&&['army','node','none','unit'].includes(g.need)),
+    `🎒 Có 12 món quân nhu (7 cũ + 5 mới ở 6.1), giá ${Math.min(...BW_GEAR.map(g=>g.cost))}–${Math.max(...BW_GEAR.map(g=>g.cost))} xu, món nào cũng có tên và mô tả`);
+  { const art=fs.readFileSync('src/05a_art.js','utf8'); ok(BW_GEAR.slice(0,7).every(g=>art.includes("'item:"+g.id+"'")), '🎒 7 món cũ dùng đúng ảnh vật phẩm có sẵn trong bộ art (7/7)');
+    const s2=fs.readFileSync('src/09o_supply2.js','utf8'); ok(BW_GEAR.slice(7).every(g=>new RegExp(g.id+":\\[").test(s2)), '🎒 5 món mới có ảnh huy hiệu vẽ bằng mã (màu riêng từng món)'); }
   // ----- mang tối đa 3 món, bỏ món lạ và món trùng; P2P không có quân nhu -----
   { const bw=mk(); pack(bw,['bun','bun','khong-co','tea','plank','smoke']); ok(bw.gear.map(g=>g.id).join()==='bun,tea,plank', `🎒 Mang tối đa ${G.slots} món, bỏ món trùng và món lạ (đang mang: ${bw.gear.map(g=>g.id).join(', ')})`);
     const p2=new BigWar(1,{autoMenu:false,p2p:'host',up:{speed:5,power:5,armor:5,stamina:5,aura:5,weapon:5}}); pack(p2,['bun','tea']);
     ok(p2.gear.length===0&&p2.up===null&&p2.upMul('atk',0)===1&&p2.upMul('speed',0)===1, '📶 Trận 2 người (P2P): không quân nhu, không Lò rèn — hai bên ngang nhau'); }
 
+  // ----- (6.1) ô túi: 3 → 4 → 5, không vượt 5 -----
+  ok(BW.gearSlotsFor(0)===3&&BW.gearSlotsFor(1)===4&&BW.gearSlotsFor(2)===5&&BW.gearSlotsFor(9)===5&&G.slotCost.join()==='150,300', '🎒 Túi 3 ô; mua thêm ô 4 (150 xu) và ô 5 (300 xu), tối đa 5');
+  { const bw=mk(); pack(bw,['bun','tea','plank','smoke','horn','drum'],{_slots:5}); ok(bw.gear.map(g=>g.id).join()==='bun,tea,plank,smoke,horn', `🎒 Túi 5 ô mang đúng 5 món (${bw.gear.map(g=>g.id).join(', ')})`); }
+  // ----- 📯 tù và: trận kế tiếp ×1.3 -----
+  { const fight=(horn)=>{ const bw=mk(); pack(bw,['horn']); const a=army(bw,{count:1000}), e=army(bw,{owner:1,count:1000,x:a.x+30}); if(horn){ bw.selA=a; bw.gearUse(0); } return {bw,a,e}; };
+    const {bw,a}=fight(true); ok(a.hornT===G.hornT, `📯 Tù và: đạo quân được ${a.hornT}s hiệu lực`);
+    const S={es:[{kind:'army',ref:a}],mul:1}; a.btl=7; bw.hornMul(S,null,0,0); const m1=S.mul; bw.hornMul(S,null,0,0);
+    ok(Math.abs(m1-G.hornMul)<1e-9&&Math.abs(S.mul-G.hornMul)<1e-9, `📯 Vào trận: phe ta ×${m1.toFixed(2)}, cùng một trận không nhân hai lần`);
+    a.btl=8; const S2={es:[{kind:'army',ref:a},{kind:'army',ref:{count:1000}}],mul:1}; bw.hornMul(S2,null,0,0); ok(Math.abs(S2.mul-1.15)<1e-9, `📯 Đánh chung với quân khác: tăng theo phần quân của đạo có tù và (×${S2.mul.toFixed(2)})`);
+    run(bw,G.hornT+1); ok(!(a.hornT>0), `📯 Hết ${G.hornT}s thì hết hiệu lực`); }
+  // ----- 🧱 bao cát: thủ ×1.5 trong 60s -----
+  { const bw=mk(), I=pack(bw,['sandbag']), c=bw.nodes.find(n=>n.camp&&n.owner===0), d0=bw.defMul(c); bw.sel=c; const r=bw.gearUse(0);
+    ok(r.ok&&Math.abs(bw.defMul(c)/d0-G.bagMul)<1e-9&&I.sandbag===4, `🧱 Bao cát: sức thủ cứ điểm ×${(bw.defMul(c)/d0).toFixed(2)}, kho còn ${I.sandbag}`);
+    run(bw,G.bagT+1); ok(Math.abs(bw.defMul(c)/d0-1)<1e-9, `🧱 Hết ${G.bagT}s thì trở lại bình thường`); }
+  // ----- 🥁 trống trận: sinh quân ×2 -----
+  { const grow=(drum)=>{ const bw=mk(); pack(bw,['drum']); const c=bw.nodes.find(n=>n.camp&&n.owner===0); c.count=100; if(drum){ bw.sel=c; bw.gearUse(0); } run(bw,30); return c.count-100; };
+    const g0=grow(false), g1=grow(true); ok(g1>g0*1.7, `🥁 Trống trận: đại bản doanh 30s sinh ${g0} → ${g1} quân`); }
+  // ----- 🚩 cờ chiêu binh: +20% (tối thiểu 30) -----
+  { const bw=mk(), I=pack(bw,['banner']), c=bw.nodes.find(n=>n.camp&&n.owner===0); c.count=1000; bw.sel=c; let r=bw.gearUse(0);
+    ok(r.ok&&c.count===1200&&I.banner===4, `🚩 Cờ chiêu binh: cứ điểm 1000 → ${c.count}`);
+    const bw2=mk(); pack(bw2,['banner']); const c2=bw2.nodes.find(n=>n.camp&&n.owner===0); c2.count=40; bw2.sel=c2; bw2.gearUse(0); ok(c2.count===70, `🚩 Cứ điểm ít quân vẫn được ít nhất ${G.bannerMin} (40 → ${c2.count})`);
+    const bw3=mk(), I3=pack(bw3,['banner']); bw3.sel=bw3.nodes.find(n=>n.owner===1); r=bw3.gearUse(0); ok(!r.ok&&r.why==='target'&&I3.banner===5, '🚩 Không dùng được lên cứ điểm địch, không mất món'); }
+  // ----- 📌 chông sắt: quân địch quanh giữa màn hình chậm một nửa -----
+  { const bw=mk(), I=pack(bw,['caltrops']); bw.camX=0; bw.camY=0; bw.lastVw=0; bw.lastVh=0; bw.scale=1;
+    const e=army(bw,{owner:1,x:300,y:300}), far=army(bw,{owner:1,x:300+G.calR+400,y:300}), mine=army(bw,{x:200,y:200});
+    const ke=bw.mvProfile(e), v0=bw.mvSpeed(e,ke), vf0=bw.mvSpeed(far,ke), vm0=bw.mvSpeed(mine,bw.mvProfile(mine)); const r=bw.gearUse(0);
+    ok(r.ok&&Math.abs(bw.mvSpeed(e,ke)/v0-G.calMul)<1e-9&&Math.abs(bw.mvSpeed(far,ke)/vf0-1)<1e-9&&Math.abs(bw.mvSpeed(mine,bw.mvProfile(mine))/vm0-1)<1e-9&&I.caltrops===4,
+      '📌 Chông sắt: địch trong vùng đi ×0.5; địch ngoài vùng và quân ta không bị ảnh hưởng');
+    run(bw,G.calT+1); ok(!(bw.calZ&&bw.calZ.length)&&Math.abs(bw.mvSpeed(e,ke)/v0-1)<1e-9, `📌 Hết ${G.calT}s thì gỡ vùng chông`); }
   // ----- 🥟 bánh bao -----
   { const bw=mk(), I=pack(bw,['bun','tea','bandage']), a=army(bw,{food:22}); bw.selA=a;
     const r=bw.gearUse(slot(bw,'bun'));

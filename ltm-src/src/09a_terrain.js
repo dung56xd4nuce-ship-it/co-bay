@@ -170,7 +170,7 @@ BigWar.prototype.mvProfile=function(a){ const cav=a.type==='cavalry', k= cav? 'H
   return T[k][0]; };
 BigWar.prototype.mvSpeed=function(a,key){ const C=this.navCost(key), c=C[this.navCell(a.x,a.y)]; const m= c<1e9? 1/c : 0.4; // lỡ đứng trong vùng cấm: lết ra với 40% tốc độ
   const cv=this.civOf? this.civOf(a.owner) : null; let k=1; if(cv){ if(cv.spd&&!(cv.spdType&&cv.spdType!==a.type)) k*=cv.spd; if(cv.road&&this.nav.flag[this.navCell(a.x,a.y)]===4) k*=cv.road; }
-  if(a.teaT>0) k*=BW.gear.teaMul; if(this.up) k*=this.upMul('speed',a.owner); if(a.owner===this.localFid&&this.genK&&this.genK.rider) k*=1+this.genK.rider;   /* 🎖️ tướng Khinh kỵ */   /* 🍵 trà gừng · ⚒️ lò rèn (Speed) */
+  if(a.teaT>0) k*=BW.gear.teaMul; if(this.calZ&&this.calZ.length) k*=this.calMul(a); if(this.up) k*=this.upMul('speed',a.owner); if(a.owner===this.localFid&&this.genK&&this.genK.rider) k*=1+this.genK.rider;   /* 🎖️ tướng Khinh kỵ */   /* 🍵 trà gừng · ⚒️ lò rèn (Speed) */
   return BW.speed*m*(BW.typeSpeed[a.type]||1)*k*BW.sizeSpd(a.count); };   // đại quân đi chậm hơn (src/09d_supply.js)
 
 // ---- A*: trả {pts:[[x,y]...] (không gồm điểm xuất phát), ok (tới đúng đích?), cost (quãng đường quy đổi theo thời gian)} ----

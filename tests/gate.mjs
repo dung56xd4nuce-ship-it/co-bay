@@ -36,6 +36,7 @@ const LIST=[
   ['thống kê quân số góc dưới + xu còn 15% (như người chơi)','gate_stat.mjs','exit',600],
   ['sau phá đảo: ∞ ải vô tận · ★ Thăng Thiên · 📜 Sử ký (như người chơi)','gate_endgame.mjs','exit',700],
   ['tướng lĩnh · thử thách ngày/tuần · thành tựu (như người chơi)','gate_meta.mjs','exit',700],
+  ['5 món quân nhu mới · túi 5 ô (như người chơi)','gate_supply2.mjs','exit',500],
   ['bộ art được dùng hết','gate_art.mjs','exit',300],
   ['nâng cấp từ v4.2 (ván lưu cũ)','gate_upgrade.mjs','exit',300],
   ['chạm ngẫu nhiên (khỉ)','gate_monkey.mjs','exit',600],

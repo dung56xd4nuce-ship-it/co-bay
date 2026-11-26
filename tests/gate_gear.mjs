@@ -9,9 +9,10 @@ async function swipe(T,x0,y0,x1,y1){ const {cdp,p}=T; await cdp.send('Input.disp
   for(let i=1;i<=10;i++){ await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x0+(x1-x0)*i/10,y:y0+(y1-y0)*i/10,id:1}]}); await p.waitForTimeout(18); }
   for(let i=0;i<4;i++){ await p.waitForTimeout(45); await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x1,y:y1+(i%2? 0.5 : 0),id:1}]}); }
   await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]}); await p.waitForTimeout(60); }
-async function still(T,sel){ let last=null, same=0; for(let i=0;i<30;i++){ const y=await T.ev((sel)=>{ const e=document.querySelector(sel); return e? Math.round(e.getBoundingClientRect().top*2)/2 : null; },sel); if(y===last){ if(++same>=2) return; } else same=0; last=y; await T.p.waitForTimeout(90); } }
+async function still(T,sel){ let last=null, same=0; for(let i=0;i<30;i++){ const y=await T.ev((sel)=>{ const e=document.querySelector(sel); return e? Math.round(e.getBoundingClientRect().top*10)/10 : null; },sel); if(y===last){ if(++same>=3) return; } else same=0; last=y; await T.p.waitForTimeout(90); } }
 async function reveal(T,sel){ for(let i=0;i<12;i++){ await still(T,sel); const r=await T.ev((sel)=>{ const e=document.querySelector(sel); if(!e) return null; const q=e.getBoundingClientRect(), cx=q.left+q.width/2, cy=q.top+q.height/2, top=document.elementFromPoint(cx,cy);
-      return {ok:q.top>4&&q.bottom<innerHeight-4&&!!top&&(top===e||e.contains(top)),cy,h:innerHeight,w:innerWidth}; },sel);
+      let sp=e.parentElement; while(sp&&!/(auto|scroll)/.test(getComputedStyle(sp).overflowY)) sp=sp.parentElement; const vb=sp? sp.getBoundingClientRect() : {top:0,bottom:innerHeight};   /* phải nằm TRỌN trong khung cuộn, không chỉ trong cửa sổ */
+      return {ok:q.top>Math.max(4,vb.top+2)&&q.bottom<Math.min(innerHeight-4,vb.bottom-2)&&!!top&&(top===e||e.contains(top)),cy,h:innerHeight,w:innerWidth}; },sel);
     if(!r) return false; if(r.ok) return true; const up=r.cy>r.h*0.5; await swipe(T,r.w*0.2,up? r.h*0.66 : r.h*0.36,r.w*0.2,up? r.h*0.34 : r.h*0.68); } return false; }
 const tapSel=async(T,sel)=>{ if(!(await reveal(T,sel))) return {ok:false,why:'vuốt mãi không tới'}; return T.tapEl(sel); };
 const inv=(T)=>T.ev(()=>{ const s=JSON.parse(localStorage.getItem('ltm_save')||'{}'); return {xu:s.xu||0,inv:s.inv||{},pack:s.pack||[],up:s.up||{},shown:[...document.querySelectorAll('.xu')].map(e=>+e.textContent)}; });
@@ -23,8 +24,8 @@ for(const [dn,dev,tall] of [...DEVICES.map(d=>[...d,false]),[PORTRAIT[1][0],PORT
   const T=await open(b,dev); const {p}=T; let r, s;
   // ---------- KHO: chưa có xu ----------
   r=await T.tapEl('#bGear'); ok(r.ok,'menu: chạm được nút 🪙 Armory '+(r.why||'')); ok(await T.vis('#gear'),'mở màn Supplies');
-  s=await T.ev(()=>({cards:[...document.querySelectorAll('#gearList .fcard')].map(c=>({id:c.dataset.gear,img:!!(c.querySelector('.fi img')&&c.querySelector('.fi img').naturalWidth>0),buyOff:c.querySelector('[data-buy]').disabled,packOff:c.querySelector('[data-pack]').disabled})),pack:document.getElementById('gearPack').textContent}));
-  ok(s.cards.length===7&&s.cards.every(c=>c.img),`đủ 7 món, món nào cũng hiện ảnh vật phẩm (${s.cards.filter(c=>c.img).length}/7)`);
+  s=await T.ev(()=>({cards:[...document.querySelectorAll('#gearList .fcard[data-gear]:not([data-gear="slot"])')].map(c=>({id:c.dataset.gear,img:!!(c.querySelector('.fi img')&&c.querySelector('.fi img').naturalWidth>0),buyOff:c.querySelector('[data-buy]').disabled,packOff:c.querySelector('[data-pack]').disabled})),pack:document.getElementById('gearPack').textContent}));
+  ok(s.cards.length===12&&s.cards.every(c=>c.img),`đủ 12 món, món nào cũng hiện ảnh vật phẩm (${s.cards.filter(c=>c.img).length}/12)`);
   ok(s.cards.every(c=>c.buyOff&&c.packOff)&&/0\/3/.test(s.pack),'chưa có xu: nút mua và nút xếp đều khoá, "Packed: 0/3"');
   // ---------- có 400 xu (như vừa thắng vài trận): mua bằng chạm thật ----------
   await T.ev(()=>{ save.xu=400; Save.set(save); renderGear(); });

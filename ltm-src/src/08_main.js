@@ -396,7 +396,13 @@ function tutFinish(){ const bw=G.bw, skipped=!!(bw&&bw.tut&&bw.tut.skipped), fir
   $('tdText').innerHTML= skipped? 'You can replay it any time from <b>📖 How to play</b>.' : (first? `You earned <b>🪙 ${BW_TUT_XU} coins</b>. ` : '')+'Now take on the 10-stage campaign — each boss is smarter than the last.';
   $('tutDone').classList.remove('hidden'); const t0=performance.now(), ghost=()=>performance.now()-t0<500;   /* cú chạm 'Got it' trên màn trận còn sinh một 'click' rơi đúng vào nút của thẻ này: bỏ qua 0,5 s đầu */
   $('tdGo').onclick=()=>{ if(ghost()) return; audio.click(); $('tutDone').classList.add('hidden'); Campaign.open(); }; $('tdMenu').onclick=()=>{ if(ghost()) return; audio.click(); $('tutDone').classList.add('hidden'); $('menu').classList.remove('hidden'); setupMenus(); }; }
-function renderGear(){ refreshXu(); const inv=save.inv, pack=save.pack, list=$('gearList'), MAX=BW.gear.slots; list.innerHTML='';
+function renderGear(){ refreshXu(); const inv=save.inv, pack=save.pack, list=$('gearList'), MAX=BW.gearSlotsFor(save.gearSlots); list.innerHTML='';
+  { const nb=save.gearSlots|0, cost=BW.gear.slotCost[nb], d=document.createElement('div'); d.className='fcard'; d.dataset.gear='slot';
+    d.innerHTML=`<div class="fi">${artIcon('ui:bag','🎒')}</div><div class="fb"><div class="fn">Bigger pack<span class="own">${MAX}/${BW.gear.maxSlots} slots</span></div><div class="fd">${cost? `Carry ${MAX+1} kinds of supplies into battle instead of ${MAX}.` : 'Your pack is as big as it gets.'}</div></div>`;
+    const col=document.createElement('div'); col.className='gbtns'; const b=document.createElement('button'); b.className='btn'; b.dataset.buy='slot';
+    if(cost){ b.innerHTML=`${artIcon('ui:coin','🪙')} ${cost}`; b.disabled=(save.xu||0)<cost; b.onclick=()=>{ if((save.xu||0)<cost) return; save.xu-=cost; save.gearSlots=nb+1; Save.set(save); audio.init(); audio.fanfare&&audio.fanfare(); toast(`🎒 Pack now holds ${BW.gearSlotsFor(save.gearSlots)} kinds`); renderGear(); }; }
+    else { b.textContent='Max'; b.disabled=true; }
+    col.appendChild(b); d.appendChild(col); list.appendChild(d); }
   for(let i=pack.length-1;i>=0;i--){ if(!BW_GEAR_BY[pack[i]]) pack.splice(i,1); }
   $('gearPack').textContent=`Packed: ${pack.length}/${MAX}.`;
   for(const D of BW_GEAR){ const have=inv[D.id]||0, on=pack.includes(D.id);
@@ -482,7 +488,7 @@ function startBigWar(lv){
   G.lastBwCfg=Object.assign({},G.bwCfg||{}); G.bw=new BigWar(lv, G.bwCfg||{}); G.bw.autoMenu=false;
   G.bw.decor=decorOn;   /* 🏮 đồ trang trí trại (chỉ là hình, máy nào vẽ theo máy đó) */
   G.bw.genSetup(genPack());   /* 🎖️ tướng mang theo */
-  G.bw.gearSetup(G.bw.conq==='tribe'? [] : save.pack.filter(id=>(save.inv[id]||0)>0), {stock:(id)=>save.inv[id]||0, spend:(id)=>{ save.inv[id]=Math.max(0,(save.inv[id]||0)-1); Save.set(save); }});   // 🎒 quân nhu mang theo (P2P: gearSetup tự bỏ qua)
+  G.bw.gearSetup(G.bw.conq==='tribe'? [] : save.pack.filter(id=>(save.inv[id]||0)>0), {slots:BW.gearSlotsFor(save.gearSlots), stock:(id)=>save.inv[id]||0, spend:(id)=>{ save.inv[id]=Math.max(0,(save.inv[id]||0)-1); Save.set(save); }});   // 🎒 quân nhu mang theo (P2P: gearSetup tự bỏ qua)
   G.bw.onCoin=(n)=>{ if(G.bw&&G.bw.cfg.tut) return;   /* trận hướng dẫn không phát xu lẻ: chỉ thưởng 50 xu khi học xong */ save.xu=(save.xu||0)+n; Save.set(save); refreshXu(); if(!saveDue) saveDue=performance.now(); };   /* 🪙 xu theo mốc ở Quần Hùng: xu vào túi ngay, và ván được lưu ngay sau đó (không thể thoát game để "hạ lại" cùng một nước lấy xu lần nữa) */
   G.bw.lv=lv; G.world=null; G.paused=false; G.resultShown=false; G.sel.clear(); G.bwCfg=null;
   document.body.classList.remove('mini');

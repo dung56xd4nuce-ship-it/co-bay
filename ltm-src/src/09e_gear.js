@@ -15,7 +15,7 @@ const BW_GEAR=[
   {id:'bandage',  name:'Patch Kit',     emoji:'🩹', cost:45, need:'unit', desc:'Bring back 30% of the troops you lost nearby in the last 60s.'},
 ];
 const BW_GEAR_BY={}; for(const g of BW_GEAR) BW_GEAR_BY[g.id]=g;
-BW.gear={slots:3, cdSolo:150, cdRoyale:240, teaT:30, teaMul:1.5, plankT:60, smokeT:30, smokeMul:1.5, scareT:60, scareMul:3, compassR:1600, compassT:30, bandFrac:0.3, bandWindow:60, bandR:520};
+BW.gear={slots:3, maxSlots:5, slotCost:[150,300], hornT:45, hornMul:1.3, bagT:60, bagMul:1.5, drumT:60, drumMul:2, bannerK:0.2, bannerMin:30, calT:30, calR:1200, calMul:0.5, cdSolo:150, cdRoyale:240, teaT:30, teaMul:1.5, plankT:60, smokeT:30, smokeMul:1.5, scareT:60, scareMul:3, compassR:1600, compassT:30, bandFrac:0.3, bandWindow:60, bandR:520};
 // LÒ RÈN: mỗi bậc cộng bao nhiêu (5 bậc mỗi hạng mục). Tổng sát thương tối đa = (1+7,5%)×(1+7,5%) ≈ +15,6%.
 BW.forge={speed:0.02, power:0.015, armor:0.03, stamina:0.05, aura:0.03, weapon:0.015};
 BW.coinsFor={camp:coinK(15), capital:coinK(20), nation:coinK(40), every:600, survive:coinK(15)};   /* (5.8) còn ~15%: 2 · 3 · 6 · 2 */
@@ -27,7 +27,7 @@ BigWar.prototype.upMul=function(kind,owner){ const u=this.up; if(!u||owner!==thi
 
 // ---------- quân nhu ----------
 BigWar.prototype.gearSetup=function(pack,api){ this.gear=[]; this.gearApi=api||null; this.gearOpen=false; if(this.cfg&&this.cfg.p2p) return;
-  for(const id of (pack||[])){ if(BW_GEAR_BY[id]&&this.gear.length<BW.gear.slots&&!this.gear.some(g=>g.id===id)) this.gear.push({id,cd:0}); } };
+  const mx=(api&&api.slots)||BW.gear.slots; for(const id of (pack||[])){ if(BW_GEAR_BY[id]&&this.gear.length<mx&&!this.gear.some(g=>g.id===id)) this.gear.push({id,cd:0}); } };
 BigWar.prototype.gearStock=function(id){ return this.gearApi&&this.gearApi.stock? (this.gearApi.stock(id)||0) : 0; };
 // đối tượng sẽ nhận món này, theo lựa chọn hiện tại của người chơi (true = món không cần đối tượng)
 BigWar.prototype.gearPick=function(g){ const F=this.localFid, need=BW_GEAR_BY[g.id].need; if(need==='none') return true;
@@ -57,7 +57,7 @@ BigWar.prototype.gearUse=function(i){ const g=this.gear&&this.gear[i]; if(!g||th
         (this.tempVis=this.tempVis||[]).push({x:cx,y:cy,r:G.compassR,t:G.compassT}); this._visT=0; say(`🧭 ${n} strongholds revealed · 30s`,cx,cy); break; }
     case 'bandage': { const back=this.gearHeal(t); if(back<1){ this.note('🩹 No troops were lost near there in the last 60s',t.x,t.y,'🩹'); this.gearOpen=false; return {ok:false,why:'nothing'}; }
         say(`🩹 +${back} troops back on their feet`,t.x,t.y-84); this.addFx(t.x+52,t.y-18,'unit:medic',104,2.2); break; }
-    default: return {ok:false,why:'none'}; }
+    default: { const r=this.gearUse2? this.gearUse2(g,t,say,cx,cy) : {ok:false,why:'none'}; if(!r.ok){ this.gearOpen=false; return r; } } }
   g.cd= this.royale? G.cdRoyale : G.cdSolo; if(this.gearApi&&this.gearApi.spend) this.gearApi.spend(g.id); this.gearOpen=false; this._gearLive=true;   /* có hiệu lực đang chạy: gearTick phải đếm giờ */
   if(typeof audio!=='undefined'&&audio.pickup) audio.pickup();
   return {ok:true,id:g.id}; };
@@ -66,11 +66,13 @@ BigWar.prototype.gearTick=function(dt){ const GR=this.gear; if(GR) for(let i=0;i
   if(this._gearLive||this.tempVis&&this.tempVis.length){ let live=false; const A=this.armies, N=this.nodes;
     for(let i=0;i<A.length;i++){ const a=A[i]; if(a.teaT>0){ a.teaT-=dt; live=true; } if(a.smokeT>0){ a.smokeT-=dt; live=true; }
       if(a.plankT>0){ a.plankT-=dt; live=true; if(!(a.plankT>0)){ a.plankT=0; a._pk=null; if(a.owner===this.localFid) this.texts.push({x:a.x,y:a.y-70,s:'🪵 Planks spent',col:'#ffd9a8',t:0,max:1.4}); } } }
-    for(let i=0;i<N.length;i++){ if(N[i].scareT>0){ N[i].scareT-=dt; live=true; } }
+    for(let i=0;i<N.length;i++){ const n=N[i]; if(n.scareT>0){ n.scareT-=dt; live=true; } if(n.bagT>0){ n.bagT-=dt; live=true; } if(n.drumT>0){ n.drumT-=dt; live=true; } }
+    for(let i=0;i<A.length;i++){ if(A[i].hornT>0){ A[i].hornT-=dt; live=true; } }
+    const CZ=this.calZ; if(CZ&&CZ.length){ for(const z of CZ) z.t-=dt; this.calZ=CZ.filter(z=>z.t>0); live=live||this.calZ.length>0; }
     const TV=this.tempVis; if(TV&&TV.length){ for(const v of TV) v.t-=dt; if(TV.some(v=>!(v.t>0))){ this.tempVis=TV.filter(v=>v.t>0); this._visT=0; } live=live||this.tempVis.length>0; }
     this._gearLive=live; } };
 // vẽ huy hiệu hiệu lực bên cạnh đạo quân / cứ điểm (ảnh vật phẩm + số giây còn lại)
-BigWar.prototype.drawGearMarks=function(c,u,tm,isNode){ const marks=[]; if(u.teaT>0) marks.push(['tea','🍵',u.teaT]); if(u.plankT>0) marks.push(['plank','🪵',u.plankT]); if(u.smokeT>0) marks.push(['smoke','💨',u.smokeT]); if(u.scareT>0) marks.push(['scarecrow','👒',u.scareT]);
+BigWar.prototype.drawGearMarks=function(c,u,tm,isNode){ const marks=[]; if(u.teaT>0) marks.push(['tea','🍵',u.teaT]); if(u.plankT>0) marks.push(['plank','🪵',u.plankT]); if(u.smokeT>0) marks.push(['smoke','💨',u.smokeT]); if(u.scareT>0) marks.push(['scarecrow','👒',u.scareT]); if(u.hornT>0) marks.push(['horn','📯',u.hornT]); if(u.bagT>0) marks.push(['sandbag','🧱',u.bagT]); if(u.drumT>0) marks.push(['drum','🥁',u.drumT]);
   const n=marks.length; if(!n) return; const k=Math.max(1,0.62/(this.scale||1)), s=30*k, kk=Math.min(k,1.6);
   // đạo quân: xếp hàng ngang PHÍA TRÊN bảng quân số (không che số quân, không che vạch lương); cứ điểm: một huy hiệu bên phải (trại lớn thì nằm cạnh lều, dưới dòng tên)
   for(let i=0;i<n;i++){ const m=marks[i], im=ArtImages['item:'+m[0]]; let x, y;
@@ -99,7 +101,7 @@ BigWar.prototype.drawGearHud=function(c,L,tm){ this._gearBtn=null; this._gearMen
   rows.push([-1,'✖ Close','','',true,null]);
   const side=L.X1-8-(bx+bs+8), above=side<210, mwMax= above? L.X1-L.X0-20 : side; let fs=15, tw=0;
   for(;fs>=12;fs--){ tw=0; for(const r of rows){ c.font=`800 ${fs}px ${FONT}`; let w=c.measureText(r[1]).width+(r[3]? c.measureText(r[3]).width+16 : 0); c.font=`700 11px ${FONT}`; w=Math.max(w,c.measureText(r[2]).width); tw=Math.max(tw,w); } if(tw+62<=mwMax) break; } fs=Math.max(12,fs);
-  const mw=Math.max(180,Math.min(mwMax,Math.ceil(tw)+62)), ihBig=46, ihSm=36, yTop=(L.bar&&!above&&bx+bs+8<L.bar.x+L.bar.w+6)? L.bar.y+L.bar.h+6 : L.Y0+8;
+  const mw=Math.max(180,Math.min(mwMax,Math.ceil(tw)+62)), ihBig= rows.length*46+36>L.Y1-L.Y0-24? 40 : 46, ihSm= ihBig<46? 32 : 36, yTop=(L.bar&&!above&&bx+bs+8<L.bar.x+L.bar.w+6)? L.bar.y+L.bar.h+6 : L.Y0+8;
   let mh=10; for(const r of rows) mh+= r[0]===-1? ihSm : ihBig;
   const mx= above? L.X0+10 : bx+bs+8, my2= above? Math.max(yTop,by-8-mh) : Math.max(yTop,Math.min(L.Y1-mh-8,by+bs-mh));
   this._gearMenu={x:mx,y:my2,w:mw,h:mh};

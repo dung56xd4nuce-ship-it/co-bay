@@ -344,6 +344,7 @@ class BigWar{
     if(this.up) d*=this.upMul('armor',n.owner);   /* ⚒️ Lò rèn: Fortify */
     if(this._foeDef&&n.owner!==this.localFid&&n.owner!==2) d*=this._foeDef;   /* ★/∞ cứ điểm đối thủ vững hơn */
     if(n.owner===this.localFid&&this.genK&&this.genK.warden) d*=1+this.genK.warden;   /* 🎖️ tướng Thủ thành */
+    if(n.bagT>0) d*=BW.gear.bagMul;   /* 🧱 bao cát (6.1) */
     return d; }
   ambushMult(n){ // phục kích: x2 đến x10 tùy địa hình + binh chủng (nhân thêm khắc chế khi vào trận)
     const f=BW.ambushFit[n.ter]; if(!f) return 1;
@@ -695,7 +696,8 @@ class BigWar{
       if(mine&&b.kind==='siege') this.texts.push({x,y:y-140,s:'🏰 Siege — a long battle',col:'#ffd54a',t:0,max:2.2});
       else if(mine&&b.kind==='field'&&big>=2) this.texts.push({x,y:y-140,s:`⚡ ×${big>=10?Math.round(big):big.toFixed(1)} outnumbered — quick rout`,col:'#7dffcf',t:0,max:2.2}); }
     for(const S of [b.A,b.B]) for(const e of S.es){ if(e.kind==='army'&&e.ref.smokeT>0){ S.mul*=BW.gear.smokeMul; e.ref.smokeT=0; this.texts.push({x,y:y-110,s:'💨 Strike from the smoke ×'+BW.gear.smokeMul,col:'#ffe08a',t:0,max:2,big:1}); } }
-    { const gA=this.genK&&this.genK.vanguard; if(gA) for(const S of [b.A,b.B]) if(S.fid===this.localFid) S.mul*=1+gA; }   /* 🎖️ tướng Tiên phong: đánh mạnh hơn */
+    { const gA=this.genK&&this.genK.vanguard; if(gA) for(const S of [b.A,b.B]) if(S.fid===this.localFid) S.mul*=1+gA; }
+    if(this.hornMul) for(const S of [b.A,b.B]) this.hornMul(S,null,x,y);   /* 📯 tù và (6.1) */   /* 🎖️ tướng Tiên phong: đánh mạnh hơn */
     for(const e of b.A.es) this.bLock(e,b); for(const e of b.B.es) this.bLock(e,b);
     this.battles.push(b);
     this.battleFx(x,y,ter,tot>1500);
@@ -709,6 +711,7 @@ class BigWar{
     if(!S){ return false; } S.es.push(e); this.bLock(e,b); if(S===b.A&&b.A0) b.A0+=Math.max(0,e.ref.count); else if(S===b.B&&b.B0) b.B0+=Math.max(0,e.ref.count);   /* viện binh nhập trận: nhịp tính theo cả quân mới tới */
     if(e.kind==='army'&&e.ref.smokeT>0){ const tot=this.bSideSum(S), sh= tot>0? Math.max(0,e.ref.count)/tot : 1; S.mul*=1+(BW.gear.smokeMul-1)*sh; e.ref.smokeT=0;   /* 💨 đạo quân trong khói nhập trận: cú đánh bất ngờ tính theo phần quân của nó trong phe */
       this.texts.push({x:b.x,y:b.y-110,s:'💨 Strike from the smoke!',col:'#ffe08a',t:0,max:2,big:1}); }
+    if(this.hornMul) this.hornMul(S,e,b.x,b.y);   /* 📯 tù và (6.1) */
     return true; }
   bDom(S){ let best=null,bc=-1; for(const e of S.es){ if(e.ref.count>bc){ bc=e.ref.count; best=e.ref.type; } } return best||'spear'; }
   battleOf(id){ return this.battles.find(b=>b.id===id&&!b.done); }
@@ -986,7 +989,7 @@ class BigWar{
         const ci=this.capInfo[n.owner]; const capFull= ci&&ci.full;
         const cvG=this.civOf(n.owner), grow=(n.owner===F? this.L.grow : this.L.enGrow*this.D.grow)*(cvG&&cvG.grow? cvG.grow : 1);
         const slow=Math.max(0.15,1-n.count/(n.cap||900)); // 3) càng đầy càng hồi chậm
-        const base= capFull? 0 : n.eco==='farm'? Math.round(grow*slow) : n.eco==='granary'? 0 : Math.round(grow*0.45*slow);
+        const dr=n.drumT>0? BW.gear.drumMul : 1, base= capFull? 0 : n.eco==='farm'? Math.round(grow*slow*dr) : n.eco==='granary'? 0 : Math.round(grow*0.45*slow*dr);   /* 🥁 trống trận (6.1) */
         if(base&&n.count<(n.cap||900)){ n.count=Math.min(n.cap||900, n.count+base);
           if(n.owner===F) this.texts.push({x:n.x+40,y:n.y-40,s:'+'+bwN(base),col:n.eco==='farm'?'#ffd54a':'#93c5fd',t:0,max:0.9}); }
         // sản xuất LƯƠNG
@@ -1020,7 +1023,7 @@ class BigWar{
       for(const n of this.nodes){ if(!n.camp||n.sieged||n.btl) continue;
         const ci2=this.capInfo[n.owner]; if(ci2&&ci2.full){ n.food=Math.min(600,(n.food||0)+(n.owner===F?20:12)); continue; }
         const campCap=Math.round(this.L.camp*(this.royale?0.7:1.6)), slow2=Math.max(0.15,1-n.count/campCap);
-        const gm=((this.civOf(n.owner)||{}).grow||1)*(this.up? this.upMul('aura',n.owner) : 1);   /* ⚒️ Lò rèn: Recruiting */
+        const gm=((this.civOf(n.owner)||{}).grow||1)*(this.up? this.upMul('aura',n.owner) : 1)*(n.drumT>0? BW.gear.drumMul : 1);   /* ⚒️ Lò rèn: Recruiting */
         if(n.owner===F){ n.count+=Math.round((24+6*(typeof this.lv==='number'?this.lv:1))*slow2*gm); if(n.type==='general') n.type=this.civType(n.owner); n.food=Math.min(600,(n.food||0)+20); }
         else if(n.owner!==2){ n.count=Math.min(campCap, n.count+Math.round((this.royale?7:14)*this.L.aiPow*this.D.grow*slow2*gm)); n.food=Math.min(400,(n.food||0)+12); } }
     }
@@ -1340,11 +1343,12 @@ class BigWar{
     // node
     // (5.1) cứ điểm đứng yên: sắp thứ tự trên-dưới MỘT lần, và chỉ vẽ những cứ điểm nằm trong khung nhìn (trước đây vẽ cả 387 cứ điểm mỗi khung hình)
     let ns=this._nsY; if(!ns||this._nsSrc!==this.nodes||ns.length!==this.nodes.length){ ns=this._nsY=[...this.nodes].sort((a,b)=>a.y-b.y); this._nsSrc=this.nodes; }
-    let nDrawn=0; for(let i=0;i<ns.length;i++){ const n=ns[i]; if(n.x<cull.x0||n.x>cull.x1||n.y<cull.y0-40||n.y>cull.y1) continue; this.drawNode(c,n,tm); if(n.scareT>0) this.drawGearMarks(c,n,tm,true); nDrawn++; } this._nDrawn=nDrawn;   /* vòng lặp đánh số: không sinh rác bộ nhớ như for…of */
+    let nDrawn=0; for(let i=0;i<ns.length;i++){ const n=ns[i]; if(n.x<cull.x0||n.x>cull.x1||n.y<cull.y0-40||n.y>cull.y1) continue; this.drawNode(c,n,tm); if(n.scareT>0||n.bagT>0||n.drumT>0) this.drawGearMarks(c,n,tm,true); nDrawn++; } this._nDrawn=nDrawn;   /* vòng lặp đánh số: không sinh rác bộ nhớ như for…of */
     // đạo quân đang đi (quân địch trong sương thì không thấy)
+    if(this.calZ&&this.calZ.length) this.drawCalZ(c,tm);   /* 📌 chông sắt (6.1) */
     for(const cv of this.convoys){ if(!inView(cv.x,cv.y)) continue; if(cv.owner!==this.localFid&&!this.visAt(cv.x,cv.y)) continue; this.drawConvoy(c,cv,tm); }   // 🐂 đội vận lương
     for(const a of this.armies){ if(!inView(a.x,a.y)) continue; if(a.owner!==this.localFid&&!this.visAt(a.x,a.y)) continue;
-      const gearOn=a.teaT>0||a.plankT>0||a.smokeT>0;   /* 🎒 quân nhu đang có hiệu lực: bè gỗ khi lội sông, màn khói, huy hiệu đếm giây */
+      const gearOn=a.teaT>0||a.plankT>0||a.smokeT>0||a.hornT>0;   /* 🎒 quân nhu đang có hiệu lực: bè gỗ khi lội sông, màn khói, huy hiệu đếm giây */
       if(gearOn){ if(a.plankT>0&&this.terAt(a.x,a.y)==='river'&&!this.nearBridge(a.x,a.y)){ const dk=ArtImages['tile:bridge']; if(dk) c.drawImage(dk,a.x-46,a.y-8,92,44); else { c.fillStyle='#a8763c'; c.fillRect(a.x-44,a.y-6,88,38); } }
         if(a.smokeT>0){ const sm=ArtImages['fx:smokebig']; if(sm){ c.globalAlpha=0.6; c.drawImage(sm,a.x-84,a.y-86,168,140); c.globalAlpha=1; } } }
       this.drawArmy(c,a,tm); if(gearOn) this.drawGearMarks(c,a,tm,false); }

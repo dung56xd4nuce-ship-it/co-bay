@@ -148,7 +148,7 @@ BW.militia={ village:0.34, fort:0.24, citadel:0.3, post:0.16, cap:{village:900, 
 BigWar.prototype.militiaTick=function(){ const F=this.localFid, M=BW.militia;
   for(const n of this.nodes){ if(n.owner===2||n.camp||n.eco||n.sieged||n.btl) continue; const ci=this.capInfo&&this.capInfo[n.owner]; if(ci&&ci.full) continue;
     const kind=n.struct||'post', cap=M.cap[kind]||500; if(n.count>=cap) continue;
-    const grow=(n.owner===F? this.L.grow : this.L.enGrow*this.D.grow)*(M[kind]||0.16)*Math.max(0.2,1-n.count/cap), k=Math.max(1,Math.round(grow));
+    const grow=(n.owner===F? this.L.grow : this.L.enGrow*this.D.grow)*(M[kind]||0.16)*Math.max(0.2,1-n.count/cap)*(n.drumT>0? BW.gear.drumMul : 1), k=Math.max(1,Math.round(grow));
     const before=n.count; n.count=Math.min(cap,n.count+k); this.mixAdd(n,'militia',n.count-before,before);
     if(n.owner===F&&this.visNow&&this.visNow(n)) this.texts.push({x:n.x+40,y:n.y-40,s:'+'+bwN(n.count-before)+' 🔨',col:'#d6c3a0',t:0,max:0.9}); } };
 if(typeof setupMenus==='function'){ try{ setupMenus(); }catch(e){} }   /* dựng lại menu khi bảng Chinh phạt đã nạp (nút CONQUEST) */
