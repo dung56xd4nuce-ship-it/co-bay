@@ -30,6 +30,7 @@ const BW_DECOR=[
   {id:'treasure', name:'Treasure Hoard',    emoji:'💰', cost:230, img:'decor:treasure', desc:'A golden chest overflowing with coins and gems.'},
   {id:'phoenix',  name:'Golden Phoenix',    emoji:'🦅', cost:300, img:'decor:phoenix',  desc:'A golden phoenix statue on a tall stone pillar.'},
   {id:'pagoda',   name:'Grand Pagoda',      emoji:'🏯', cost:360, img:'decor:pagoda',   desc:'A towering three-roofed pagoda behind your camp — the grandest of all.'},
+  {id:'ascflag',  name:'Ascension Banner',  emoji:'★', cost:0, earn:'asc', desc:'Earned, not bought: win the Great War to unlock ★ Ascension. Shows your highest ★ — bronze, silver, gold, then rainbow at ★10.'},
   {id:'dragonstatue',name:'Jade Dragon Statue', emoji:'🐲', cost:320, img:'decor:dragonstatue', desc:'A coiled jade dragon on a stone plinth — the pride of your camp.'},
 ];
 /* chỗ đặt các món ảnh quanh lều: [dx, dy(đáy ảnh), rộng, lật đôi?]; dy<0 vẽ sau lều, dy>0 vẽ trước lều */
@@ -42,6 +43,11 @@ BW.drawDecor=function(c,x,y,ids,t,layer){ if(!ids||!ids.length) return; const ha
       for(const [dx0,dy,w,flip] of sl){ if((dy<0? 0 : 1)!==L) continue; const W0=(typeof BW!=='undefined'&&BW.W)||1e9, dx= x+dx0-w*0.4<20? Math.abs(dx0)+150 : x+dx0+w*0.4>W0-20? -(Math.abs(dx0)+150) : dx0;   /* trại sát mép bản đồ: món bị tràn ra ngoài thì dời sang phía trong */ const h=w*(im.height/im.width), bob= id==='luckycat'? Math.sin(t*3)*2 : 0; c.save(); c.translate(x+dx,y+dy+bob); if(flip) c.scale(-1,1);
         c.fillStyle='rgba(0,0,0,0.18)'; c.beginPath(); c.ellipse(0,-2,w*0.42,w*0.12,0,0,7); c.fill(); c.drawImage(im,-w/2,-h,w,h); c.restore(); } } };
   if(layer===0){
+    if(has('ascflag')){ const n=Math.max(1,BW.ascStars|0), px=x-58, top=y-238, tier= n>=10? 3 : n>=7? 2 : n>=4? 1 : 0, cols=[['#c9863f','#8a5524'],['#d8dde6','#8d96a8'],['#ffd54a','#c98a12'],['#ff6bd6','#6b8cff']][tier];   /* 🚩 (5.9) cờ Thăng Thiên: số ★ cao nhất, màu theo bậc */
+      c.strokeStyle='#4a3216'; c.lineWidth=7; c.beginPath(); c.moveTo(px,y+18); c.lineTo(px,top); c.stroke(); c.fillStyle=cols[0]; c.beginPath(); c.arc(px,top-5,8,0,7); c.fill();
+      const fw=84, fh=58, wv=(u)=>S(t*3+u*4)*6*u; let g=c.createLinearGradient(px-fw,top,px,top+fh); if(tier===3){ g.addColorStop(0,'#ff6bd6'); g.addColorStop(0.5,'#ffd54a'); g.addColorStop(1,'#4dd0ff'); } else { g.addColorStop(0,cols[0]); g.addColorStop(1,cols[1]); }
+      c.fillStyle=g; c.beginPath(); c.moveTo(px,top+4); for(let i=0;i<=10;i++){ const u=i/10; c.lineTo(px-u*fw,top+4+wv(u)); } c.lineTo(px-fw+10,top+4+fh/2+wv(1)); for(let i=10;i>=0;i--){ const u=i/10; c.lineTo(px-u*fw,top+4+fh+wv(u)); } c.closePath(); c.fill(); c.strokeStyle='rgba(40,20,10,0.7)'; c.lineWidth=3; c.stroke();
+      c.font='900 24px "Baloo 2",system-ui'; c.textAlign='center'; c.textBaseline='middle'; c.lineWidth=5; c.strokeStyle='#2a1a12'; c.fillStyle='#fff'; const tx=px-fw*0.48, ty=top+4+fh/2+wv(0.48); c.strokeText('★'+n,tx,ty); c.fillText('★'+n,tx,ty); c.textBaseline='alphabetic'; }
     if(has('rainbow')){ const cols=['#ff5b5b','#ffa94d','#ffe066','#69db7c','#4dabf7','#9775fa']; c.globalAlpha=0.55+0.15*S(t*1.5); for(let i=0;i<cols.length;i++){ c.strokeStyle=cols[i]; c.lineWidth=9; c.beginPath(); c.arc(x,y+60,250-i*9,Math.PI*1.03,Math.PI*1.97); c.stroke(); } c.globalAlpha=1; }
     imgs(0);
     if(has('bunting')){ const cols=['#ff5b5b','#ffd23b','#4dabf7','#69db7c','#ff9ee0','#ffa94d']; for(const [x0,x1,yy] of [[-170,0,-118],[0,170,-118]]){ const ax=x+x0, bx=x+x1, ay=y+yy; c.strokeStyle='#5a3a1e'; c.lineWidth=3; c.beginPath(); c.moveTo(ax,ay); c.quadraticCurveTo((ax+bx)/2,ay+34,bx,ay); c.stroke();

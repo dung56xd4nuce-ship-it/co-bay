@@ -280,6 +280,7 @@ class BigWar{
     for(const n of this.nodes) if(n.owner!==0) n.known=null;
     this._updateVision();
     if(D.me!==1) for(const n of this.nodes) if(n.owner===0) n.count=Math.round(n.count*D.me);   /* Quần Hùng Dễ/Khó: quân khởi điểm của ta nhiều/ít hơn */
+    if(this.applyMods) this.applyMods();   /* (5.9) ★ Thăng Thiên / ∞ ải vô tận: luật bất lợi (src/09l_endgame.js) */
     { const me=this.civOf(0), en=this.civOf(1); this.note(this.conq? `${me.icon} ${this.natName(0)} — ${BW_CONQ[this.conq].name}: ${this.cfg.royale} rival ${BW_CONQ[this.conq].unit} on “${this.mapName}”` : this.royale? `${me.icon} ${me.name} rises — ${this.cfg.royale} rival nations on the map “${this.mapName}”` : `${me.icon} ${me.name} vs ${en.icon} ${en.name} — ${this.mapName}`,this.nodes[0].x,this.nodes[0].y,me.icon); }
   }
   // (5.1) TÁCH CỨ ĐIỂM CHỒNG NHAU: cứ điểm bị dồn ra mép bản đồ (hoặc bị đẩy khỏi sông) có khi nằm đè lên nhau — có cặp trùng hẳn một chỗ,
@@ -341,6 +342,7 @@ class BigWar{
     if(n.struct){ d*=BW.structDef[n.struct]||1; const c2=BW.cls(n.type); if(!n.camp&&n.type!=='general'&&(c2==='inf'||c2==='rng')) d*=1.2; } // (đại bản doanh không hưởng thêm — đã là thành trì)
     const cv=this.civOf(n.owner); if(cv&&cv.def) d*=cv.def;
     if(this.up) d*=this.upMul('armor',n.owner);   /* ⚒️ Lò rèn: Fortify */
+    if(this._foeDef&&n.owner!==this.localFid&&n.owner!==2) d*=this._foeDef;   /* ★/∞ cứ điểm đối thủ vững hơn */
     return d; }
   ambushMult(n){ // phục kích: x2 đến x10 tùy địa hình + binh chủng (nhân thêm khắc chế khi vào trận)
     const f=BW.ambushFit[n.ter]; if(!f) return 1;
@@ -563,7 +565,7 @@ class BigWar{
     const side=(S)=>({fid:S.fid,mul:S.mul,es:S.es.map(e=>({kind:e.kind,c0:e.c0,r:ref(e.ref)})).filter(e=>e.r)});
     const K=['time','nextAI','aiWave','nextAiScout','regenT','reinT','enFed','_bid','_rid','_rr','stormRush','camX','camY','zoom','visR','coinT'];
     const sc={}; for(const k of K) if(this[k]!==undefined) sc[k]=this[k];
-    return { v:1, savedAt:Date.now(), lv:this.lv, cfg:{royale:this.cfg.royale,conq:this.cfg.conq,diff:this.cfg.diff,bio:this.cfg.bio,seed:this.cfg.seed,map:this.cfg.map,L:this.cfg.L,civ:this.cfg.civ,civ2:this.cfg.civ2},
+    return { v:1, savedAt:Date.now(), lv:this.lv, cfg:{royale:this.cfg.royale,conq:this.cfg.conq,asc:this.cfg.asc,endless:this.cfg.endless,mut:this.cfg.mut,diff:this.cfg.diff,bio:this.cfg.bio,seed:this.cfg.seed,map:this.cfg.map,L:this.cfg.L,civ:this.cfg.civ,civ2:this.cfg.civ2},
       sc, stats:this.stats, fed:this.fed, nextWaveF:this.nextWaveF||{}, cap0:this.cap0||{}, n0:this.n0||{}, allies:[...this.allies],
       nodes:this.nodes.map(n=>Object.assign({},n)),
       armies:this.armies.map(a=>Object.assign({},a,{hunt:ref(a.hunt),mergeInto:ref(a.mergeInto),path:undefined,_pk:undefined,pi:undefined,pvT:undefined})),
@@ -1696,7 +1698,7 @@ class BigWar{
       for(const a of this.armies) if(this.isFoe(a.owner,F)&&this.visAt(a.x,a.y)) en+=a.count;
       const cap=this.supplyCap(F), t1=`⚔️${bwN(my)}/${bwN(cap)}`, enT=(unk?'~':'')+bwN(en)+(unk?'?':'');
       let nNat=0; if(this.royale){ const seen=this._natSeen||(this._natSeen=new Uint8Array(256)); seen.fill(0); for(const n of this.nodes){ if(n.camp&&n.owner!==2&&n.owner>=0&&n.owner<256&&!seen[n.owner]){ seen[n.owner]=1; nNat++; } } }
-      const nat=this.royale? (this.conq? `${BW_CONQ[this.conq].icon} ${nNat} ${BW_CONQ[this.conq].unit}` : `🌏 ${nNat} nations`) : (this.cfg.p2p||this.cfg.classic? `🔥 Stage ${this.lv}` : `🔥 Stage ${this.lv}/${BW_LEVELS.length}`);
+      const nat=this.royale? (this.conq? `${this.asc? '★'+this.asc+' ' : ''}${BW_CONQ[this.conq].icon} ${nNat} ${BW_CONQ[this.conq].unit}` : `🌏 ${nNat} nations`) : (this.cfg.p2p||this.cfg.classic? `🔥 Stage ${this.lv}` : this.endless? `∞ Endless ${this.endless}` : `🔥 Stage ${this.lv}/${BW_LEVELS.length}`);
       const mapN=this.mapName.length>11? this.mapName.slice(0,10)+'…' : this.mapName;
       c.font=`800 13px ${FONT}`; const room=topW-18-(c.measureText(enT).width+12);
       let t2='', fs=11; // chữ tự rút gọn theo bề rộng thanh: đủ → bỏ tên bản đồ → chỉ còn quân số

@@ -1,0 +1,95 @@
+// (5.9) GÓI SAU PHÁ ĐẢO như người chơi: ∞ ải vô tận · ★ Thăng Thiên · 📜 Sử ký 44 nước (Android / iOS ngang + iOS dọc)
+import { launch, open, ok, finish, DEVICES, PORTRAIT } from './lib.mjs';
+const b=await launch();
+const txt=(T,s)=>T.ev((s)=>{ const e=document.querySelector(s); return e? e.textContent : null; },s);
+const winAll=(T)=>T.ev(()=>{ const bw=__ltm.bw, F=bw.localFid; for(const n of bw.nodes){ if(n.camp&&n.owner!==F&&n.owner!==2){ const prev=n.owner; n.owner=F; n.count=Math.max(1,n.count); bw.checkCamp(n,F,prev); } } bw.checkVictory(); if(!bw.over){ bw.over=true; bw.result={win:true}; } return true; });
+const menu=async(T)=>{ await T.ev(()=>{ if(window.G&&G.bw) stopBigWar(false); ['result','campaign','conquest','chron','civPick','bossPick'].forEach(i=>document.getElementById(i).classList.add('hidden')); showScreen('menu'); setupMenus(); }); await T.p.waitForTimeout(200); };
+for(const [dn,dev] of [...DEVICES, PORTRAIT[1]]){ console.log(dn);
+  const T=await open(b,dev); const {p}=T; let r;
+  // ---------- ∞ ẢI VÔ TẬN ----------
+  await T.ev(()=>{ save.bwMax=10; save.camp={best:{1:300,2:300,3:300,4:300,5:300,6:300,7:300,8:300,9:300}}; Save.set(save); setupMenus(); });
+  await T.tapEl('#bBW'); await p.waitForTimeout(250); await T.tapEl('#bBoss1v1'); await p.waitForTimeout(400);
+  ok(await T.ev(()=>!document.querySelector('#campList .endless')),'chưa phá ải 10: chưa có thẻ ∞ ải vô tận');
+  await menu(T); await T.ev(()=>{ save.bwMax=11; save.camp.best[10]=400; Save.set(save); setupMenus(); });
+  await T.tapEl('#bBW'); await p.waitForTimeout(250); await T.tapEl('#bBoss1v1'); await p.waitForTimeout(400);
+  const card=await T.ev(()=>{ const e=document.querySelector('#campList .endless'); if(!e) return null; e.scrollIntoView({block:'nearest'}); return {n:+e.dataset.endless,t:e.textContent}; });
+  ok(card&&card.n===11&&/Endless 11/.test(card.t)&&await T.ev(()=>BW.endlessMuts(11).every(m=>document.querySelector('#campList .endless').textContent.includes(BW_MUT[m].name))),'phá ải 10: hiện thẻ "∞ Endless 11" kèm luật đặc biệt');
+  r=await T.tapEl('#campList .endless'); await p.waitForTimeout(400);
+  ok(r.ok&&await T.visible('#civPick')&&/Endless 11/.test(await txt(T,'#civStage'))&&/Endless 11/.test(await txt(T,'#civGo')),'chạm thẻ → chọn nước, ghi rõ "∞ Endless 11"');
+  await T.tapEl('#civGo'); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.lastVw>0,null,{timeout:15000}); await p.waitForTimeout(500);
+  let s=await T.ev(()=>{ const bw=__ltm.bw, B=BW_LEVELS[BW_LEVELS.length-1]; return {en:bw.endless,lv:bw.lv,enMin:bw.L.enMin,base:B.enMin*BW.FORCE[9],mut:bw.cfg.mut,intro:document.getElementById('siTop').textContent,top:(bw._hudTop&&bw._hudTop.t2)||''}; });
+  ok(s.en===11&&s.lv===10&&s.enMin>s.base,`ải 11: boss mạnh hơn ải 10 (quân tối thiểu ${s.enMin} > ${s.base})`);
+  ok(/ENDLESS · STAGE 11/.test(s.intro),'băng giới thiệu: "∞ ENDLESS · STAGE 11" + luật đặc biệt');
+  // luật đặc biệt có hiệu lực: dựng thử các ải có từng luật
+  const mt=await T.ev(()=>{ const out={}; for(let n=11;n<60&&Object.keys(out).length<BW_MUT_IDS.length;n++){ for(const m of BW.endlessMuts(n)) if(!out[m]) out[m]=n; } const res={};
+      for(const m in out){ const c=BW.endlessCfg(out[m],'rome'); c.mut=[m]; const bw=new BigWar(10,c), c0=Object.assign({},BW.endlessCfg(out[m],'rome'),{mut:[]}), b0=new BigWar(10,c0);
+        const sum=(w,o)=>w.nodes.filter(n=>o==='foe'? n.owner===1 : n.owner===2).reduce((a,n)=>a+n.count,0);
+        res[m]={vis:bw.visR/b0.visR, grow:bw.D.grow/b0.D.grow, def:(bw._foeDef||1), foe:sum(bw,'foe')/sum(b0,'foe'), neu:sum(bw,'neu')/sum(b0,'neu'), my:bw.L.grow/b0.L.grow, ai:bw.L.ai/b0.L.ai}; } return res; });
+  const near=(a,b2)=>Math.abs(a-b2)<0.03;
+  ok(near(mt.fog.vis,0.65)&&near(mt.rich.grow,1.3)&&near(mt.walls.def,1.3)&&near(mt.swarm.foe,1.25)&&near(mt.thin.my,0.8)&&mt.blitz.ai<0.75&&near(mt.wild.neu,1.4),'đủ 7 luật đặc biệt và mỗi luật thật sự có hiệu lực (sương mù, boss giàu, tường đá, bầy đàn, quân mỏng, chớp nhoáng, đất hoang)');
+  ok(await T.ev(()=>BW.endlessMuts(14).length===1&&BW.endlessMuts(15).length===2&&JSON.stringify(BW.endlessMuts(21))===JSON.stringify(BW.endlessMuts(21))),'ải 11–14 một luật, từ ải 15 hai luật; cùng số ải luôn cùng luật');
+  // lưu giữa trận → mở lại → CONTINUE ∞
+  await T.ev(()=>{ __ltm.bw.time=95; __ltm.royaleSave(); }); await p.reload(); await p.waitForFunction(()=>window.__ltm&&document.getElementById('menu')); await p.waitForTimeout(300);
+  await T.tapEl('#bBW'); await p.waitForTimeout(250);
+  ok(/CONTINUE ∞ ENDLESS 11/.test(await txt(T,'#bSoloContinue')),'thoát giữa trận: nút "▶ CONTINUE ∞ ENDLESS 11"');
+  await T.tapEl('#bSoloContinue'); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.lastVw>0,null,{timeout:15000}); await p.waitForTimeout(300);
+  ok(await T.ev(()=>__ltm.bw.endless===11&&__ltm.bw.time>=90&&__ltm.bw.L.enMin>BW_LEVELS[9].enMin*BW.FORCE[9]),'đánh tiếp đúng ải ∞ 11 (giữ luật + sức boss)');
+  const x0=await T.ev(()=>save.xu); await winAll(T); await T.vis('#result');
+  ok(/ENDLESS 11 CLEARED/.test(await txt(T,'#rStage'))&&/Endless 12/.test(await txt(T,'#bNext')),'thắng: "∞ ENDLESS 11 CLEARED!" + nút "∞ Endless 12 ▶"');
+  ok(await T.ev((x0)=>save.camp.endless===11&&save.xu>x0,x0),'ghi kỷ lục ải vô tận 11, có xu thưởng');
+  await T.tapEl('#bNext'); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.endless===12&&__ltm.bw.lastVw>0,null,{timeout:15000});
+  ok(await T.ev(()=>__ltm.bw.L.enMin>BW.endlessCfg(11,'rome').L.enMin*BW.FORCE[9]),'ải 12 mạnh hơn ải 11');
+  await T.ev(()=>{ __ltm.bw.over=true; __ltm.bw.result={win:false}; }); await T.vis('#result');
+  ok(/Endless 12 — not cleared/.test(await txt(T,'#rStage'))&&/Endless 11/.test(await txt(T,'#rStage')),'thua: báo chưa qua, hiện kỷ lục "Best: Endless 11"');
+  await menu(T); await T.tapEl('#bBW'); await p.waitForTimeout(250); await T.tapEl('#bBoss1v1'); await p.waitForTimeout(400);
+  ok(await T.ev(()=>{ const e=document.querySelector('#campList .endless'); return e&&e.dataset.endless==='12'&&/best: Endless 11/.test(e.textContent)&&/∞ 11/.test(document.getElementById('campProg').textContent); }),'màn chiến dịch: thẻ chuyển sang Endless 12, ghi kỷ lục ∞ 11');
+  await menu(T);
+  // ---------- 📜 SỬ KÝ + ★ THĂNG THIÊN ----------
+  await T.ev(()=>{ save.conq={civ:'rome',diff:1,stage:2,best:{},asc:0}; delete save.chron; delete save.chronDone; save.ascMax=0; Save.set(save); setupMenus(); });
+  await T.tapEl('#bBW'); await p.waitForTimeout(250); await T.tapEl('#bBossRoyale'); await p.waitForTimeout(400);
+  ok(await T.visible('#conquest')&&await T.ev(()=>!document.querySelector('#conquest .stg.asc')),'chưa thắng Đại chiến: chưa có ★ Thăng Thiên');
+  ok(/Chronicle 0\/44/.test(await txt(T,'#conqChron')),'nút "📜 Chronicle 0/44"');
+  await T.ev(()=>{ document.getElementById('conquest').classList.add('hidden'); startConq('great'); }); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.conq==='great'&&__ltm.bw.lastVw>0,null,{timeout:20000});
+  const x1=await T.ev(()=>save.xu); await winAll(T); await T.vis('#result');
+  s=await T.ev(()=>({st:document.getElementById('rStage').textContent, xu:save.xu, ch:Object.keys(save.chron||{}), am:save.ascMax|0}));
+  ok(/New in the Chronicle/.test(s.st)&&/\+40 coins/.test(s.st)&&s.ch.length===1&&s.ch[0]==='rome','thắng Đại chiến: Rome vào Sử ký, báo "+40 coins"');
+  ok(/★1 Ascension unlocked/.test(s.st),'mở khoá "★1 Ascension"');
+  ok(s.xu-x1>=40,`xu tăng ≥40 (+${s.xu-x1})`);
+  await T.tapEl('#bAgain'); await p.waitForTimeout(500);
+  const ac=await T.ev(()=>{ const e=document.querySelector('#conquest .stg.asc'); return e? {n:e.dataset.asc,t:e.textContent,first:e===document.querySelector('#conqList').firstElementChild} : null; });
+  ok(await T.visible('#conquest')&&ac&&ac.n==='1'&&/Rivals start with \+15% troops/.test(ac.t)&&/×1.25/.test(ac.t)&&ac.first,'màn Chinh phạt: thẻ "★1 Ascension" đứng đầu, ghi luật mới + xu ×1,25');
+  r=await T.tapEl('#conqChron'); await p.waitForTimeout(400);
+  ok(r.ok&&await T.visible('#chron')&&/1\/44 nations united/.test(await txt(T,'#chronProg'))&&await T.ev(()=>!!document.querySelector('#chronGrid .civ.on[data-civ="rome"]')&&document.querySelectorAll('#chronGrid .civ.off').length===BW_CIVS.length-1),'Sử ký: 1/44, Rome sáng, 43 nước còn mờ');
+  ok(/10 nations → \+100 coins/.test(await txt(T,'#chronHint')),'Sử ký ghi mốc kế: 10 nước → +100 xu');
+  const fit=await T.ev(()=>{ const c=document.querySelector('#chron .campcard').getBoundingClientRect(); return c.top>=-1&&c.bottom<=innerHeight+1; }); ok(fit,'màn Sử ký gọn trong màn hình');
+  await T.tapEl('#chronBack'); await p.waitForTimeout(300); ok(await T.visible('#conquest'),'Back từ Sử ký về màn Chinh phạt');
+  r=await T.tapEl('#conquest .stg.asc'); await p.waitForTimeout(400);
+  ok(r.ok&&await T.visible('#civPick')&&/★1 Ascension/.test(await txt(T,'#civStage'))&&await T.ev(()=>/👑/.test(document.querySelector('#civGrid .civ[data-civ="rome"]').textContent)),'chạm ★1 → chọn nước (Rome có dấu 👑 đã thống nhất)');
+  await T.ev(()=>CivPick.pick('japan')); await T.tapEl('#civGo'); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.conq==='tribe'&&__ltm.bw.lastVw>0,null,{timeout:15000}); await p.waitForTimeout(400);
+  s=await T.ev(()=>({asc:__ltm.bw.asc,k:__ltm.bw._coinK,m:__ltm.bw._mods&&__ltm.bw._mods.foeStart,intro:document.getElementById('siTop').textContent,cq:save.conq}));
+  ok(s.asc===1&&s.k===1.25&&Math.abs(s.m-1.15)<1e-9&&/★1 ASCENSION/.test(s.intro)&&s.cq.asc===1&&s.cq.civ==='japan','★1: Bộ lạc mới với Japan, đối thủ +15% quân, xu ×1,25, băng giới thiệu ghi ★1');
+  ok(await T.ev(()=>{ const c=new BigWar(5,Object.assign({},__ltm.bw.cfg,{asc:0})), a=__ltm.bw, sum=(w)=>w.nodes.filter(n=>n.owner!==0&&n.owner!==2).reduce((s,n)=>s+n.count,0); return sum(a)>sum(c)*1.1; }),'cùng bản đồ: ★1 đối thủ đông hơn bản thường');
+  const cn=await T.ev(()=>{ const bw=__ltm.bw, x0=save.xu, v=bw.nodes.find(n=>n.camp&&n.owner!==0&&n.owner!==2); const prev=v.owner; v.owner=0; bw.checkCamp(v,0,prev); return save.xu-x0; });
+  ok(cn===Math.round(6*1.25),`xu giữa trận ★1: diệt một phe +${cn} (6×1,25)`);
+  ok(/★1/.test(await T.ev(()=>(__ltm.bw._hudTop&&__ltm.bw._hudTop.t2)||'')),'thanh trên cùng ghi ★1');
+  // thắng Đại chiến ở ★1 → mở ★2, cờ Thăng Thiên ở trại
+  await T.ev(()=>{ save.conq.stage=2; Save.set(save); startConq('great'); }); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.conq==='great'&&__ltm.bw.asc===1&&__ltm.bw.lastVw>0,null,{timeout:20000});
+  await winAll(T); await T.vis('#result');
+  s=await T.ev(()=>({st:document.getElementById('rStage').textContent, am:save.ascMax, ch:Object.keys(save.chron).length, dec:decorState()}));
+  ok(/★1 ASCENSION CLEARED/.test(s.st)&&/★2 Ascension unlocked/.test(s.st)&&s.am===1&&s.ch===2,'thắng ★1: "★1 ASCENSION CLEARED" + mở ★2, Japan vào Sử ký (2/44)');
+  ok(s.dec.own.ascflag&&s.dec.on.includes('ascflag'),'cờ Thăng Thiên tự có trong đồ trang trí và đang bật');
+  await T.ev(()=>{ G.bwCfg={royale:9,conq:'tribe',seed:5,civ:'rome',diff:1,bio:1,L:{camp:3000}}; startBigWar(5); G.bw.decor=decorState().on.slice(); G.bw.skipIntro&&G.bw.skipIntro(); });
+  await p.waitForTimeout(500); await T.ev(()=>{ const bw=__ltm.bw, c=bw.nodes[0]; bw.zoomAt(1,bw.lastVw/2,bw.lastVh/2); bw.camX=c.x-bw.lastVw/bw.scale/2; bw.camY=c.y-bw.lastVh/bw.scale/2; });
+  await T.hookDraw(); await p.waitForTimeout(400);
+  ok((await T.drawn('^★1$')).length>0,'lá cờ "★1" cắm ở trại của ta trên bản đồ');
+  await menu(T); await T.ev(()=>{ G.forgeFrom='menu'; renderDecor(); showScreen('decor'); }); await p.waitForTimeout(300);
+  ok(await T.ev(()=>{ const e=document.querySelector('#decList .fcard[data-decor="ascflag"]'); return !!e&&/owned/.test(e.textContent); }),'cửa hàng trang trí: "Ascension Banner" đã sở hữu (không bán)');
+  // mốc Sử ký: đủ 10 nước → +100
+  await menu(T); await T.ev(()=>{ const ids=BW_CIVS.map(c=>c.id).filter(i=>i!=='persia'); save.chron={}; for(const i of ids.slice(0,9)) save.chron[i]={asc:0}; save.conq={civ:'persia',diff:1,stage:2,best:{},asc:0}; Save.set(save); startConq('great'); });
+  await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.conq==='great'&&__ltm.bw.lastVw>0,null,{timeout:20000});
+  const x2=await T.ev(()=>save.xu); await winAll(T); await T.vis('#result');
+  s=await T.ev(()=>({st:document.getElementById('rStage').textContent, xu:save.xu}));
+  ok(/10 nations united! \+100 coins/.test(s.st)&&s.xu-x2>=140,`mốc 10 nước: +40 +100 xu (+${s.xu-x2})`);
+  ok(T.errs.length===0,'không lỗi JS'+(T.errs.length? ': '+T.errs.slice(0,3).join(' | ') : ''));
+  await T.ctx.close(); }
+await finish('Sau phá đảo: ∞ ải vô tận · ★ Thăng Thiên · 📜 Sử ký',b);

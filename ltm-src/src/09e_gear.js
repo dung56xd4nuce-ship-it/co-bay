@@ -81,7 +81,7 @@ BigWar.prototype.drawGearMarks=function(c,u,tm,isNode){ const marks=[]; if(u.tea
     c.font=`900 ${Math.round(13*k)}px "Baloo 2",system-ui`; c.textAlign='center'; c.lineWidth=3.5*k; c.strokeStyle='#2a1a12'; c.fillStyle='#ffe9c9'; const t=Math.ceil(m[2])+'s'; c.strokeText(t,x,y+s*0.62+12*k); c.fillText(t,x,y+s*0.62+12*k); } };
 
 // ---------- xu theo mốc (Quần Hùng) ----------
-BigWar.prototype.coin=function(n,why,x,y){ if(!this.royale||(this.cfg&&this.cfg.p2p)||!(n>0)) return; this.stats.coins=(this.stats.coins||0)+n;
+BigWar.prototype.coin=function(n,why,x,y){ if(!this.royale||(this.cfg&&this.cfg.p2p)||!(n>0)) return; if(this._coinK) n=Math.round(n*this._coinK); this.stats.coins=(this.stats.coins||0)+n;
   if(this.onCoin) this.onCoin(n,why); this.note(`🪙 +${n} coins — ${why}`,x,y,'🪙'); };
 
 // ---------- HUD: nút 🎒 cạnh nút 📣 + bảng chọn món ----------

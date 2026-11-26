@@ -1267,12 +1267,12 @@ console.log(`\n${pass} đạt, ${fail} chưa đạt`);
 
 // ===== (5.6) ĐỒ TRANG TRÍ TRẠI MỞ RỘNG =====
 { const ids=BW_DECOR.map(d=>d.id), img=BW_DECOR.filter(d=>d.img), code=BW_DECOR.filter(d=>!d.img);
-  ok(BW_DECOR.length===29&&new Set(ids).size===29&&code.length===12&&img.length===17, `🏮 29 món trang trí (12 vẽ bằng mã + 17 ảnh do ChatGPT vẽ), không trùng mã`);
+  const earn=BW_DECOR.filter(d=>d.earn); ok(BW_DECOR.length===30&&new Set(ids).size===30&&code.length===13&&img.length===17&&earn.length===1&&earn[0].id==='ascflag', `🏮 30 món trang trí (12 bán vẽ bằng mã + 17 ảnh ChatGPT + 1 cờ ★ Thăng Thiên không bán), không trùng mã`);
   ok(img.every(d=>BW.DECOR_SLOT[d.id]&&BW.DECOR_SLOT[d.id].length>=1), '🏮 mọi món ảnh đều có chỗ đặt quanh lều');
-  ok(BW_DECOR.every(d=>d.cost>=50&&d.cost<=360)&&BW_DECOR.reduce((s,d)=>s+d.cost,0)>=4500, `🏮 giá 50–360 xu, cả bộ ${BW_DECOR.reduce((s,d)=>s+d.cost,0)} xu — đủ chỗ tiêu xu lâu dài`);
+  ok(BW_DECOR.filter(d=>!d.earn).every(d=>d.cost>=50&&d.cost<=360)&&BW_DECOR.reduce((s,d)=>s+d.cost,0)>=4500, `🏮 giá 50–360 xu, cả bộ ${BW_DECOR.reduce((s,d)=>s+d.cost,0)} xu — đủ chỗ tiêu xu lâu dài`);
   ok(BW.decorAvail(BW_DECOR_BY.bunting)&&!BW.decorAvail(BW_DECOR_BY.pagoda), '🏮 món ảnh chỉ bán khi ảnh đã nạp (máy thử không có ảnh: chùa chưa bán, cờ dây vẫn bán)');
   // vẽ đủ mọi món không lỗi, cả khi trại sát mép bản đồ
-  const calls={n:0}; const fake=new Proxy({},{get:(t,k)=> k==='measureText'? ()=>({width:10}) : ()=>{ calls.n++; }, set:()=>true});
+  const calls={n:0}; const fake=new Proxy({},{get:(t,k)=> k==='measureText'? ()=>({width:10}) : /Gradient$/.test(k)? ()=>({addColorStop(){ calls.n++; }}) : ()=>{ calls.n++; }, set:()=>true});
   let err=null; try{ for(const x of [10,3000,BW.W-10]) for(const L of [0,1]) BW.drawDecor(fake,x,700,ids,12.3,L); }catch(e){ err=e; }
-  ok(!err&&calls.n>500, '🏮 vẽ cùng lúc cả 29 món (giữa bản đồ và sát hai mép) không lỗi'+(err?': '+err.message:'')); }
+  ok(!err&&calls.n>500, '🏮 vẽ cùng lúc cả 30 món (giữa bản đồ và sát hai mép) không lỗi'+(err?': '+err.message:'')); }
 }

@@ -272,10 +272,10 @@ function setupMenus(){
   try{ const cq=save.conq, st=cq? Math.min(3,cq.stage|0) : 0; $('bBossRoyale').innerHTML= !cq? '🌏 CONQUEST — Tribes → Civil War → Great War<br><small>Choose a nation and unite the world (auto-save)</small>' : st>=3? '🌏 CONQUEST<br><small>👑 The world is yours — start a new conquest</small>' : `🌏 CONQUEST<br><small>${BW_CIV[cq.civ]? BW_CIV[cq.civ].icon+' '+BW_CIV[cq.civ].name+' · ' : ''}Stage ${st+1}/3: ${BW_CONQ[BW_CONQ_ORDER[st]].name}</small>`; }catch(e){}   /* bảng Chinh phạt nạp sau (src/09j): dựng lại menu ở cuối tệp đó */
   const refreshContinue=()=>{ const sv=royaleLoadInfo(), bc=$('bBossContinue');
     if(bc){ if(sv){ const d=new Date(sv.savedAt), nat=new Set(sv.nodes.filter(n=>n.camp&&n.owner!==2).map(n=>n.owner)).size, mm=Math.floor((sv.sc.time||0)/60);
-        let cq=null; try{ cq=BW_CONQ[sv.cfg.conq]; }catch(e){} bc.style.display=''; bc.innerHTML=`▶ CONTINUE ${cq? 'CONQUEST' : 'WARLORDS'}<br><small>${cq? cq.icon+' '+cq.name+' · ' : ''}${DIFF_N[sv.cfg.diff==null?1:sv.cfg.diff]} · ${nat} ${cq? cq.unit : 'nations'} · played ${mm} min · saved ${d.toLocaleString('en-US',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'short'})}</small>`;
+        let cq=null; try{ cq=BW_CONQ[sv.cfg.conq]; }catch(e){} bc.style.display=''; bc.innerHTML=`▶ CONTINUE ${cq? 'CONQUEST' : 'WARLORDS'}<br><small>${cq? cq.icon+' '+cq.name+' · '+(sv.cfg.asc? '★'+sv.cfg.asc+' · ' : '') : ''}${DIFF_N[sv.cfg.diff==null?1:sv.cfg.diff]} · ${nat} ${cq? cq.unit : 'nations'} · played ${mm} min · saved ${d.toLocaleString('en-US',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'short'})}</small>`;
         bc.onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); royaleResume(); }; }
       else bc.style.display='none'; }
-    const ss=soloLoadInfo(), sc=$('bSoloContinue'); if(sc){ if(ss){ sc.style.display=''; sc.innerHTML=`▶ CONTINUE STAGE ${ss.lv}<br><small>${stageName(ss.lv)} · played ${Math.floor((ss.sc.time||0)/60)} min</small>`; sc.onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); soloResume(); }; } else sc.style.display='none'; } }; refreshContinue();
+    const ss=soloLoadInfo(), sc=$('bSoloContinue'); if(sc){ if(ss){ sc.style.display=''; sc.innerHTML= ss.cfg&&ss.cfg.endless? `▶ CONTINUE ∞ ENDLESS ${ss.cfg.endless}<br><small>${(()=>{ try{ return (ss.cfg.mut||[]).map(m=>BW_MUT[m]? BW_MUT[m].icon+' '+BW_MUT[m].name : '').join(' · '); }catch(e){ return ''; } })()} · played ${Math.floor((ss.sc.time||0)/60)} min</small>` : `▶ CONTINUE STAGE ${ss.lv}<br><small>${stageName(ss.lv)} · played ${Math.floor((ss.sc.time||0)/60)} min</small>`; sc.onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); soloResume(); }; } else sc.style.display='none'; } }; refreshContinue();
   $('bBossClose').onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); };
   $('bP2P').onclick=()=>{ audio.init(); P2P.open(); };
   $('bFull').onclick=()=>{ audio.init(); audio.click(); goFullscreen(); };
@@ -343,12 +343,13 @@ function renderForge(){
 // ---------- 🎒 Quân nhu: mua bằng xu, chọn tối đa 3 món mang vào trận ----------
 function openGear(){ renderGear(); showScreen('gear'); }
 // 🏮 (5.5) TRANG TRÍ TRẠI: mua một lần bằng xu, bật/tắt tuỳ thích; bản xem trước vẽ đúng như trong trận
-function decorState(){ const d=save.decor||(save.decor={own:{},on:[]}); if(!d.own) d.own={}; if(!Array.isArray(d.on)) d.on=[]; d.on=d.on.filter(id=>d.own[id]&&BW_DECOR_BY[id]&&BW.decorAvail(BW_DECOR_BY[id])); return d; }
+function decorState(){ const d=save.decor||(save.decor={own:{},on:[]}); if(!d.own) d.own={}; if(!Array.isArray(d.on)) d.on=[]; BW.ascStars=save.ascMax|0; if(BW.ascStars>0&&!d.own.ascflag){ d.own.ascflag=1; d.on.push('ascflag'); }   /* 🚩 (5.9) cờ Thăng Thiên: tự có khi qua ★ đầu tiên */ d.on=d.on.filter(id=>d.own[id]&&BW_DECOR_BY[id]&&BW.decorAvail(BW_DECOR_BY[id])); return d; }
 function renderDecor(){ refreshXu(); const D=decorState(), list=$('decList'); list.innerHTML=''; $('decOn').textContent=`On: ${D.on.length}/${BW_DECOR.filter(BW.decorAvail).length}.`;
   for(const it of BW_DECOR.filter(BW.decorAvail).slice().sort((a,b)=>a.cost-b.cost)){ const own=!!D.own[it.id], on=D.on.includes(it.id), d=document.createElement('div'); d.className='fcard'+(on?' on':''); d.dataset.decor=it.id;
     d.innerHTML=`<div class="fi">${it.img&&ArtUrls[it.img]? `<img src="${ArtUrls[it.img]}" alt="" style="width:100%;height:100%;object-fit:contain">` : it.emoji}</div><div class="fb"><div class="fn">${it.name}${own? '<span class="own">owned</span>' : ''}</div><div class="fd">${it.desc}</div></div>`;
     const b=document.createElement('button'); b.className='btn'; b.dataset.dec=it.id;
-    if(!own){ b.innerHTML=`${artIcon('ui:coin','🪙')} ${it.cost}`; b.disabled=(save.xu||0)<it.cost; b.onclick=()=>{ if((save.xu||0)<it.cost) return; save.xu-=it.cost; D.own[it.id]=1; D.on.push(it.id); Save.set(save); audio.coin&&audio.coin(); renderDecor(); }; }
+    if(!own&&it.earn){ b.innerHTML='🔒 ★1'; b.disabled=true; }   /* không bán: thắng Đại chiến để mở ★ Thăng Thiên */
+    else if(!own){ b.innerHTML=`${artIcon('ui:coin','🪙')} ${it.cost}`; b.disabled=(save.xu||0)<it.cost; b.onclick=()=>{ if((save.xu||0)<it.cost) return; save.xu-=it.cost; D.own[it.id]=1; D.on.push(it.id); Save.set(save); audio.coin&&audio.coin(); renderDecor(); }; }
     else { b.textContent= on? '✔ On' : 'Off'; if(on) b.style.background='linear-gradient(#c8f7c5,#4ade80)'; b.onclick=()=>{ audio.click(); const i=D.on.indexOf(it.id); if(i>=0) D.on.splice(i,1); else D.on.push(it.id); Save.set(save); renderDecor(); }; }
     d.appendChild(b); d.onmouseenter=()=>{ G.decHover=it.id; }; d.onmouseleave=()=>{ G.decHover=null; }; d.addEventListener('touchstart',()=>{ G.decHover=it.id; clearTimeout(G._dhT); G._dhT=setTimeout(()=>{ G.decHover=null; },2500); },{passive:true}); list.appendChild(d); }
   if(!G._decLoop){ G._decLoop=true; const tick=()=>{ if($('decor').classList.contains('hidden')){ G._decLoop=false; return; } drawDecorPreview(); requestAnimationFrame(tick); }; requestAnimationFrame(tick); } }
@@ -423,13 +424,14 @@ const CivPick={ sel:null, reg:'all', q:'', opts:null, stage:1,
   renderGrid(){ const g=$('civGrid'); g.innerHTML=''; const L=this.list();
     if(!L.length){ g.innerHTML='<div style="grid-column:1/-1;opacity:.75;padding:10px">No civilization matches that name.</div>'; return; }
     for(const c of L){ const b=document.createElement('button'); b.className='civ'+(c.id===this.sel?' on':''); b.dataset.civ=c.id;
-      b.innerHTML=`<i class="em" style="background:${c.color}">${c.icon}</i><span><b>${c.name}</b><small>${UNIT[c.sig].emoji} ${bwTypeName(c.sig,1)}</small></span>`;
+      b.innerHTML=`<i class="em" style="background:${c.color}">${c.icon}</i><span><b>${c.name}${save.chron&&save.chron[c.id]? ' 👑' : ''}</b><small>${UNIT[c.sig].emoji} ${bwTypeName(c.sig,1)}</small></span>`;   /* 👑 đã thống nhất thiên hạ (Sử ký) */
       b.onclick=()=>{ audio.click(); this.pick(c.id); }; g.appendChild(b); } },
   renderInfo(){ const c=BW_CIV[this.sel], reg=(BW_REGIONS.find(r=>r[0]===c.reg)||[])[1]||'';
     $('civInfo').innerHTML=`<h3>${c.icon} ${c.name}</h3><div class="era">${c.era} · ${reg}</div><div style="margin:3px 0">${c.blurb}</div><ul>${civPerks(c).map(t=>`<li>${t}</li>`).join('')}</ul>`
       +`<div style="margin-top:4px;opacity:.85">Starting army: ${c.roster.map(t=>UNIT[t].emoji+' '+bwTypeName(t,1)).join(' · ')}</div>`; },
   renderStage(){ const el=$('civStage');
-    if(this.opts.diff){ el.innerHTML=BW.DIFF_NAMES.map((n,i)=>`<button class="btn dif${i===this.diff?' on':''}" data-dif="${i}">${['🙂','⚔️','💀'][i]} ${n}</button>`).join(''); el.querySelectorAll('.dif').forEach(b=>b.onclick=()=>{ audio.click(); this.diff=+b.dataset.dif; this.renderStage(); }); return; }
+    if(this.opts.diff){ el.innerHTML=(this.opts.label? `<span class="stlab">${this.opts.label}</span>` : '')+BW.DIFF_NAMES.map((n,i)=>`<button class="btn dif${i===this.diff?' on':''}" data-dif="${i}">${['🙂','⚔️','💀'][i]} ${n}</button>`).join(''); el.querySelectorAll('.dif').forEach(b=>b.onclick=()=>{ audio.click(); this.diff=+b.dataset.dif; this.renderStage(); }); return; }
+    if(this.opts.label){ el.innerHTML=`<span>${this.opts.label}</span>`; return; }   /* (5.9) ∞ ải vô tận / ★ Thăng Thiên */
     if(this.opts.fixed){ el.innerHTML=`<span>Stage ${this.stage}/${BW_LEVELS.length}</span>`; return; }
     if(!this.stageMax){ el.innerHTML=''; return; }
     el.innerHTML=`<button class="btn" id="civStPrev">◀</button><span>Stage ${this.stage}/${BW_LEVELS.length}</span><button class="btn" id="civStNext">▶</button>`;
@@ -479,27 +481,35 @@ const Campaign={
     const cur=$('campList').querySelector('.stg.cur'); if(cur&&cur.scrollIntoView) cur.scrollIntoView({block:'nearest'}); },
   info(lv){ const L=BW_LEVELS[lv-1], D=BW.brain(lv,false), bio=BW_BIOMES[BW_MAPS.solo[(lv-1)*3][2]], tac=BW.TACTICS[D.iq]; return {L,D,bio,brains:'🧠'.repeat(D.iq+1),tac:tac[(lv-1)%tac.length],army:BW.BOSS_ARMY[lv-1]}; },
   render(){ const cl=campCleared(), N=BW_LEVELS.length, cur=Math.min(N,cl+1), best=(save.camp&&save.camp.best)||{};
-    $('campProg').innerHTML=`<span>${cl>=N? '👑 Complete' : 'Cleared '+cl+'/'+N}</span><span class="pips">${BW_LEVELS.map((_,i)=>`<i class="${i<cl?'on':i===cl?'cur':''}"></i>`).join('')}</span>`;
+    $('campProg').innerHTML=`<span>${cl>=N? '👑 Complete'+((save.camp&&save.camp.endless|0)>N? ' · ∞ '+(save.camp.endless|0) : '') : 'Cleared '+cl+'/'+N}</span><span class="pips">${BW_LEVELS.map((_,i)=>`<i class="${i<cl?'on':i===cl?'cur':''}"></i>`).join('')}</span>`;
     const box=$('campList'); box.innerHTML='';
     for(let lv=1;lv<=N;lv++){ const I=this.info(lv), st= lv<=cl? 'cleared' : lv===cur? 'cur' : 'lock', b=document.createElement('button'); b.className='stg '+st; b.dataset.lv=lv; b.dataset.st=st;
       b.innerHTML=`<i class="no">${lv}</i><span class="nm"><b>${I.L.name}</b><small>${I.bio.icon} ${I.bio.name} · ${I.brains} · ⚔️${(Math.round(I.army/100)/10).toFixed(1)}k</small><small>${I.tac}</small></span><em>${st==='cleared'? '✔ Cleared'+(best[lv]? '<br>⏱️ '+fmt(best[lv]) : '') : st==='cur'? '▶ PLAY' : '🔒'}</em>`;
       if(st==='lock') b.onclick=()=>{ audio.block&&audio.block(); toast({text:`🔒 Clear Stage ${lv-1} first`,kind:'bad'}); };
       else b.onclick=()=>{ audio.click(); this.pick(lv); };
-      box.appendChild(b); } },
+      box.appendChild(b); }
+    if(cl>=N){ const cp=save.camp||{}, best=cp.endless|0, n=Math.max(N,best)+1, A=BW.endlessArmy(n), b=document.createElement('button'); b.className='stg cur endless'; b.dataset.endless=n;   /* ∞ (5.9) ẢI VÔ TẬN sau ải 10 */
+      b.innerHTML=`<i class="no">∞</i><span class="nm"><b>Endless ${n}</b><small>🧠🧠🧠🧠 · ⚔️${(Math.round(A/100)/10).toFixed(1)}k · ${BW.endlessMuts(n).map(m=>BW_MUT[m].icon+' '+BW_MUT[m].name).join(' · ')}</small><small>${BW.endlessMuts(n).map(m=>BW_MUT[m].txt).join(' · ')}${best>N? ' · 🏅 best: Endless '+best : ''}</small></span><em>${soloLoadInfo()&&(soloLoadInfo().cfg||{}).endless===n? '▶ CONTINUE' : '▶ PLAY'}</em>`;
+      b.onclick=()=>{ audio.click(); const ss=soloLoadInfo(); if(ss&&ss.cfg&&ss.cfg.endless===n){ $('campaign').classList.add('hidden'); soloResume(); return; } endlessPick(n); }; box.appendChild(b); } },
   pick(lv){ const go=()=>{ $('campaign').classList.add('hidden'); CivPick.open({stageMax:lv, stage:lv, fixed:true, go:`⚔️ Start Stage ${lv}`, onPick:(id)=>{ soloClear(); G.bwCfg={civ:id}; startBigWar(lv); }, onBack:()=>Campaign.open()}); };
     const ss=soloLoadInfo(); if(ss) ask(`Start Stage ${lv} from the beginning?`,`Your battle in progress (Stage ${ss.lv}, ${Math.floor((ss.sc.time||0)/60)} min played) will be erased.`,'⚔️ Start',go); else go(); },
 };
 // 🌏 (5.7) CHINH PHẠT: 3 bản đồ nối tiếp — Bộ lạc → Nội chiến → Đại chiến; chọn nước + mức khó ở đầu, giữ nguyên tới cuối
 function startConq(id){ const S=BW_CONQ[id], cq=save.conq||{}; if(!S) return; try{ localStorage.removeItem(RSAVE); }catch(e){}
   const n=S.n[0]+((Math.random()*(S.n[1]-S.n[0]+1))|0);
-  G.bwCfg={royale:n-1, conq:id, seed:61+((Math.random()*9999)|0), civ:cq.civ||save.civ, diff:cq.diff==null? 1 : cq.diff, bio:1, L:{camp:S.camp}}; startBigWar(5); }
+  G.bwCfg={royale:n-1, conq:id, asc:cq.asc|0, seed:61+((Math.random()*9999)|0), civ:cq.civ||save.civ, diff:cq.diff==null? 1 : cq.diff, bio:1, L:{camp:S.camp}}; startBigWar(5); }
+// ∞ (5.9) ải vô tận: chọn nước rồi vào ải n (gốc ải 10, mạnh dần 7%/ải, 1–2 luật đặc biệt)
+function startEndless(n,civ){ soloClear(); G.bwCfg=BW.endlessCfg(n,civ||save.civ); startBigWar(BW_LEVELS.length); }
+function endlessPick(n){ const go=()=>{ $('campaign').classList.add('hidden'); CivPick.open({label:`∞ Endless ${n} · ${BW.endlessMuts(n).map(m=>BW_MUT[m].icon+' '+BW_MUT[m].name).join(' · ')}`, go:`∞ Start Endless ${n}`, onPick:(id)=>startEndless(n,id), onBack:()=>Campaign.open()}); };
+  const ss=soloLoadInfo(); if(ss) ask(`Start Endless ${n}?`,`Your battle in progress (${ss.cfg&&ss.cfg.endless? 'Endless '+ss.cfg.endless : 'Stage '+ss.lv}, ${Math.floor((ss.sc.time||0)/60)} min played) will be erased.`,'∞ Start',go); else go(); }
 const Conquest={
-  open(){ if(!save.conq){ this.fresh(); return; } this.render(); $('conquest').classList.remove('hidden');
+  open(){ if(!save.conq){ this.fresh(); return; } if((save.conq.stage|0)>=3&&!save.chronDone){ const ch=save.chron||(save.chron={}); if(save.conq.civ&&!ch[save.conq.civ]) ch[save.conq.civ]={asc:save.conq.asc|0}; save.chronDone=1; Save.set(save); }   /* phá đảo từ bản cũ: ghi nước đó vào Sử ký (không thưởng xu) */
+    this.render(); $('conquest').classList.remove('hidden');
     $('conqBack').onclick=()=>{ audio.click(); $('conquest').classList.add('hidden'); $('bossPick').classList.remove('hidden'); setupMenus(); };
     $('conqNew').onclick=()=>{ audio.click(); const go=()=>{ $('conquest').classList.add('hidden'); this.fresh(true); }; const sv=royaleLoadInfo(); if((save.conq.stage|0)>0||sv) ask('Start a NEW conquest?','Your current conquest'+(sv? ' and its saved game' : '')+' will be erased once the new one starts.','🆕 New conquest',go); else go(); }; },
-  fresh(back){ CivPick.open({go:'🪓 Start Tribal Wars', diff:true, onPick:(id,st,df)=>{ save.conq={civ:id,diff:df,stage:0,best:{}}; Save.set(save); startConq('tribe'); }, onBack:()=>{ if(back&&save.conq) this.open(); else $('bossPick').classList.remove('hidden'); }}); },
+  fresh(back){ CivPick.open({go:'🪓 Start Tribal Wars', diff:true, onPick:(id,st,df)=>{ save.conq={civ:id,diff:df,stage:0,best:{},asc:0}; Save.set(save); startConq('tribe'); }, onBack:()=>{ if(back&&save.conq) this.open(); else $('bossPick').classList.remove('hidden'); }}); },
   render(){ const cq=save.conq, st=Math.min(3,cq.stage|0), cv=BW_CIV[cq.civ], sv=royaleLoadInfo(), best=cq.best||{};
-    $('conqProg').innerHTML=`<span>${cv? cv.icon+' '+cv.name : ''} · ${DIFF_N[cq.diff==null?1:cq.diff]}</span><span class="pips">${BW_CONQ_ORDER.map((_,i)=>`<i class="${i<st?'on':i===st?'cur':''}"></i>`).join('')}</span>`;
+    $('conqProg').innerHTML=`<span>${cq.asc? '★'+cq.asc+' · ' : ''}${cv? cv.icon+' '+cv.name : ''} · ${DIFF_N[cq.diff==null?1:cq.diff]}</span><span class="pips">${BW_CONQ_ORDER.map((_,i)=>`<i class="${i<st?'on':i===st?'cur':''}"></i>`).join('')}</span>`;
     const box=$('conqList'); box.innerHTML='';
     BW_CONQ_ORDER.forEach((id,i)=>{ const S=BW_CONQ[id], state= i<st? 'cleared' : i===st? 'cur' : 'lock', b=document.createElement('button'), live= sv&&sv.cfg&&sv.cfg.conq===id&&state==='cur';
       b.className='stg '+state; b.dataset.conq=id; b.dataset.st=state;
@@ -508,15 +518,40 @@ const Conquest={
       if(state==='lock') b.onclick=()=>{ audio.block&&audio.block(); toast({text:`🔒 Win the ${BW_CONQ[BW_CONQ_ORDER[i-1]].name} first`,kind:'bad'}); };
       else b.onclick=()=>{ audio.click(); this.pick(id,live,state); };
       box.appendChild(b); });
-    if(st>=3){ const d=document.createElement('div'); d.className='conqdone'; d.textContent='👑 Conquest complete — the whole world is yours! Replay any stage or start a new conquest.'; box.appendChild(d); } },
+    if(st>=3){ const d=document.createElement('div'); d.className='conqdone'; d.textContent= cq.asc? `👑 ★${cq.asc} Ascension complete — the whole world is yours!` : '👑 Conquest complete — the whole world is yours! Replay any stage or start a new conquest.'; box.appendChild(d); }
+    const am=save.ascMax|0;   /* ★ (5.9) THĂNG THIÊN: mở sau khi thắng Đại chiến lần đầu */
+    if(save.chronDone||am>0||st>=3){ const nx=Math.min(BW.ASC_MAX,am+1), done=am>=BW.ASC_MAX&&(st>=3||!cq.asc), b=document.createElement('button'); b.className='stg asc'+(done? ' cleared' : ''); b.dataset.asc=nx;
+      b.innerHTML=`<i class="no">★</i><span class="nm"><b>${done? '★ All 10 Ascensions cleared' : `★${nx} Ascension`}</b><small>${done? 'You have conquered the world at every level of hardship.' : `New: ${BW_ASC[nx-1].txt}${nx>1? ' — plus all ★1–★'+(nx-1)+' rules' : ''}`}</small><small>🪙 coins ×${BW.ascCoinK(nx).toFixed(2).replace(/0$/,'')} · 🚩 banner · new run, any nation</small></span><em>${done? '👑' : '▶ ASCEND'}</em>`;
+      b.onclick=()=>{ audio.click(); if(done) return; this.ascend(nx); }; box.prepend(b); }   /* thẻ ★ lên đầu danh sách: thấy ngay không phải cuộn */
+    $('conqChron').innerHTML=`📜 Chronicle ${Object.keys(save.chron||{}).length}/${BW_CIVS.length}`; $('conqChron').onclick=()=>{ audio.click(); $('conquest').classList.add('hidden'); Chronicle.open(()=>Conquest.open()); }; },
+  ascend(n){ const go=()=>{ $('conquest').classList.add('hidden'); CivPick.open({label:`★${n} Ascension`, go:`★ Start ★${n} — Tribal Wars`, diff:true, onPick:(id,st,df)=>{ save.conq={civ:id,diff:df,stage:0,best:{},asc:n}; Save.set(save); startConq('tribe'); }, onBack:()=>Conquest.open()}); };
+    const sv=royaleLoadInfo(); if(sv||((save.conq&&save.conq.stage|0)>0&&(save.conq.stage|0)<3)) ask(`Start the ★${n} Ascension?`,'Your current conquest'+(sv? ' and its saved game' : '')+' will be replaced by a new one.','★ Ascend',go); else go(); },
   pick(id,live,state){ const go=()=>{ $('conquest').classList.add('hidden'); startConq(id); };
     if(live){ $('conquest').classList.add('hidden'); royaleResume(); return; }
     const sv=royaleLoadInfo(); if(sv){ const c=BW_CONQ[sv.cfg&&sv.cfg.conq]; ask(`Start the ${BW_CONQ[id].name}?`,`Your saved ${c? c.name : 'Warlords'} game (${Math.floor((sv.sc.time||0)/60)} min played) will be erased.`,'▶ Start',go); } else go(); },
 };
+// 📜 (5.9) SỬ KÝ: các nước đã thống nhất thiên hạ — nước mới +40 xu; mốc 10 / 22 / 44 nước +100 / +200 / +500
+const CHRON_NEW=40, CHRON_MS=[[10,100],[22,200],[44,500]];
+function chronRecord(bw){ const ch=save.chron||(save.chron={}), id=bw.cfg.civ, cv=BW_CIV[id], lines=[], was=Object.keys(ch).length, e=ch[id]; let bonus=0;
+  if(!e){ ch[id]={asc:bw.asc|0,t:Math.round(bw.time),d:Date.now()}; bonus+=CHRON_NEW; lines.push(`📜 New in the Chronicle: ${cv? cv.icon+' '+cv.name : id} (+${CHRON_NEW} coins)`);
+    const now=Object.keys(ch).length; for(const [m,c] of CHRON_MS) if(was<m&&now>=m){ bonus+=c; lines.push(`🏅 ${m} nations united! +${c} coins`); } }
+  else { if((bw.asc|0)>(e.asc|0)) e.asc=bw.asc|0; const t=Math.round(bw.time); if(!e.t||t<e.t) e.t=t; }
+  if((bw.asc|0)>=(save.ascMax|0)){ const was2=save.ascMax|0; save.ascMax=Math.max(was2,bw.asc|0); if(save.ascMax<BW.ASC_MAX&&(bw.asc|0)>=was2) lines.push(`★${save.ascMax+1} Ascension unlocked`); }
+  save.chronDone=1; if(bonus){ save.xu=(save.xu||0)+bonus; } Save.set(save); refreshXu(); BW.ascStars=save.ascMax|0; return {lines,bonus}; }
+const Chronicle={
+  open(back){ this.back=back; this.render(); $('chron').classList.remove('hidden'); $('chronBack').onclick=()=>{ audio.click(); $('chron').classList.add('hidden'); if(this.back) this.back(); }; },
+  render(){ const ch=save.chron||{}, n=Object.keys(ch).length, nx=CHRON_MS.find(([m])=>n<m);
+    $('chronProg').innerHTML=`<span>${n}/${BW_CIVS.length} nations united${save.ascMax? ' · ★'+save.ascMax : ''}</span>`;
+    $('chronHint').textContent= nx? `Win the Great War with a nation to write it into the Chronicle (+${CHRON_NEW} coins each). Next milestone: ${nx[0]} nations → +${nx[1]} coins.` : 'Every nation in the world has united the realm under your command — the Chronicle is complete!';
+    const g=$('chronGrid'); g.innerHTML='';
+    for(const c of BW_CIVS){ const e=ch[c.id], d=document.createElement('div'); d.className='civ chron'+(e? ' on' : ' off'); d.dataset.civ=c.id;
+      d.innerHTML=`<i class="em" style="background:${e? c.color : '#555'}">${c.icon}</i><span><b>${c.name}</b><small>${e? '👑 United'+(e.asc? ' · ★'+e.asc : '')+(e.t? ' · ⏱️ '+fmt(e.t) : '') : UNIT[c.sig].emoji+' not yet'}</small></span>`; g.appendChild(d); } },
+};
 // 🎬 băng giới thiệu đầu trận: đang ở ải mấy, vùng đất nào, boss khôn tới đâu
 function stageIntro(bw,resumed){ const el=$('stageIntro'); if(!el) return; if(bw.cfg.p2p||bw.cfg.classic){ el.classList.add('hidden'); return; }
-  if(bw.conq){ const d=bw.D.diff, S=BW_CONQ[bw.conq]; $('siTop').textContent=`CONQUEST ${S.i+1}/3 · ${BW.DIFF_NAMES[d].toUpperCase()}`; $('siName').textContent=S.icon+' '+S.name; $('siLand').textContent=`${bw.biome.icon} ${bw.biome.name} · ${bw.cfg.royale} rival ${S.unit}`; $('siBoss').textContent= resumed? '▶ Game resumed' : S.blurb; }
+  if(bw.conq){ const d=bw.D.diff, S=BW_CONQ[bw.conq]; $('siTop').textContent=`${bw.asc? '★'+bw.asc+' ASCENSION · ' : ''}CONQUEST ${S.i+1}/3 · ${BW.DIFF_NAMES[d].toUpperCase()}`; $('siName').textContent=S.icon+' '+S.name; $('siLand').textContent=`${bw.biome.icon} ${bw.biome.name} · ${bw.cfg.royale} rival ${S.unit}`; $('siBoss').textContent= resumed? '▶ Game resumed' : bw.asc? `★ ${BW_ASC.slice(0,bw.asc).length} hardships · newest: ${BW_ASC[bw.asc-1].txt} · coins ×${bw._coinK}` : S.blurb; }
   else if(bw.royale){ const d=bw.D.diff; $('siTop').textContent='WARLORDS · '+BW.DIFF_NAMES[d].toUpperCase(); $('siName').textContent=bw.mapName; $('siLand').textContent=`${bw.biome.icon} ${bw.biome.name} · ${bw.cfg.royale} rival nations`; $('siBoss').textContent= resumed? '▶ Game resumed' : ['🙂 Rivals grow slowly and leave you alone at first','⚔️ Rivals fight each other — and you','💀 Rivals grow fast, guard their land and gang up on you'][d]; }
+  else if(bw.endless){ $('siTop').textContent=`∞ ENDLESS · STAGE ${bw.endless}`; $('siName').textContent=`⚔️ Boss ×${(1+0.07*(bw.endless-BW_LEVELS.length)).toFixed(2)}`; $('siLand').textContent=`${bw.biome.icon} ${bw.biome.name} · “${bw.mapName}”`; $('siBoss').textContent= resumed? '▶ Battle resumed' : BW.modLines(bw.cfg).join(' · '); }
   else { const I=Campaign.info(bw.lv); $('siTop').textContent=`STAGE ${bw.lv} / ${BW_LEVELS.length}`; $('siName').textContent=I.L.name; $('siLand').textContent=`${bw.biome.icon} ${bw.biome.name} · “${bw.mapName}”`; $('siBoss').textContent= resumed? '▶ Battle resumed' : `Boss ${I.brains} · ${I.tac}`; }
   el.classList.remove('hidden'); el.style.animation='none'; void el.offsetWidth; el.style.animation=''; clearTimeout(G._siT); G._siT=setTimeout(()=>el.classList.add('hidden'),4700); }
 function royaleLoadInfo(){ try{ const sv=JSON.parse(localStorage.getItem(RSAVE)||'null'); return sv&&sv.v===1? sv : null; }catch(e){ return null; } }
@@ -536,18 +571,20 @@ function showBwResult(){
   const meC=bw.civOf(bw.localFid), enC=bw.civOf(bw.localFid===0?1:0);
   const CQ=BW_CONQ[bw.conq], CQn= CQ&&BW_CONQ[BW_CONQ_ORDER[CQ.i+1]];
   $('rSub').textContent= CQ? (win? (CQ.id==='tribe'? `Every tribe now follows ${meC.icon} ${bw.natName(0)}!` : CQ.id==='civil'? `${meC.icon} ${meC.name} is one kingdom again — every region bows to you!` : `The whole world belongs to ${meC.icon} ${meC.name}!`) : `Your last camp has fallen in the ${CQ.name}...`) : bw.royale? (win? `The whole realm belongs to ${meC.icon} ${meC.name} — every nation has fallen!` : 'Your last camp has fallen — the realm belongs to others...') : (win? `${meC.icon} ${meC.name} has defeated ${enC.icon} ${enC.name}!` : `${enC.icon} ${enC.name} has taken our last camp...`);
-  const xu=coinK(bw.stats.eat/40 + bw.stats.win*4 + (win? 30+18*lv : 8));   /* (5.8) ~15% mức cũ */
+  const EN=bw.endless|0, xu=coinK((bw.stats.eat/40 + bw.stats.win*4 + (win? 30+18*(EN||lv) : 8))*(bw._coinK||1));   /* (5.8) ~15% mức cũ · (5.9) ★ Thăng Thiên ×(1+25%×bậc), ∞ ải vô tận theo số ải */
   const solo=!bw.royale&&!(bw.cfg&&bw.cfg.p2p)&&!(bw.cfg&&bw.cfg.classic), NL=BW_LEVELS.length; let first=false, rec=false;
-  save.xu=(save.xu||0)+xu; if(win&&solo){ first=(save.bwMax||1)<lv+1; save.bwMax=Math.max(save.bwMax||1,lv+1); const cp=save.camp||(save.camp={best:{}}); cp.best=cp.best||{}; const t=Math.round(bw.time); if(!cp.best[lv]||t<cp.best[lv]){ rec=!!cp.best[lv]; cp.best[lv]=t; } } Save.set(save); refreshXu();
+  save.xu=(save.xu||0)+xu; if(win&&solo&&EN){ const cp=save.camp||(save.camp={best:{}}); cp.endless=Math.max(cp.endless|0,EN); }
+  else if(win&&solo){ first=(save.bwMax||1)<lv+1; save.bwMax=Math.max(save.bwMax||1,lv+1); const cp=save.camp||(save.camp={best:{}}); cp.best=cp.best||{}; const t=Math.round(bw.time); if(!cp.best[lv]||t<cp.best[lv]){ rec=!!cp.best[lv]; cp.best[lv]=t; } } Save.set(save); refreshXu();
   if(CQ&&win){ const cq=save.conq||(save.conq={civ:bw.cfg.civ,diff:bw.cfg.diff,stage:0}); cq.stage=Math.max(cq.stage|0,CQ.i+1); cq.civ=bw.cfg.civ; cq.diff=bw.cfg.diff; const bt=cq.best||(cq.best={}); const t=Math.round(bw.time); if(!bt[CQ.id]||t<bt[CQ.id]) bt[CQ.id]=t; Save.set(save); }
-  $('rStage').innerHTML= CQ? (win? (CQn? `🏆 ${CQ.id==='tribe'? 'THE TRIBES ARE UNITED!' : 'THE CIVIL WAR IS WON!'}<span class="unl">Next: ${CQn.icon} ${CQn.name} — ${CQn.n[0]===CQn.n[1]? 'all '+CQn.n[0] : CQn.n[0]+'–'+CQn.n[1]} ${CQn.unit}, ${(CQn.start[0]*CQn.dk).toLocaleString('en-US')}–${(CQn.start[1]*CQn.dk).toLocaleString('en-US')} troops each</span>` : '👑 CONQUEST COMPLETE — THE WORLD IS UNITED!<span class="unl">Tribes, regions and nations — all under one banner.</span>') : `${CQ.icon} ${CQ.name} — not won yet<span class="rec">Tip: take farms early, keep your capital guarded, strike rivals while they fight each other</span>`) : !solo? '' : win? (lv>=NL? `👑 STAGE ${lv} CLEARED — CAMPAIGN COMPLETE!<span class="unl">You have beaten all ${NL} bosses. Replay any stage for a better time.</span>` : `✔ STAGE ${lv} / ${NL} CLEARED`+(first? `<span class="unl">🔓 Stage ${lv+1} unlocked: ${BW_LEVELS[lv].name}</span>` : '')+(rec? '<span class="rec">⏱️ New best time!</span>' : '')) : `Stage ${lv} / ${NL} — not cleared yet<span class="rec">Tip: upgrade in the Armory, guard your farms, strike where the boss is thin</span>`;
+  const CH= CQ&&win&&CQ.id==='great'? chronRecord(bw) : null;   /* 📜 Sử ký + ★ mở bậc Thăng Thiên kế */
+  $('rStage').innerHTML= EN? (win? `∞ ENDLESS ${EN} CLEARED!<span class="unl">Next: Endless ${EN+1} — ${BW.endlessMuts(EN+1).map(m=>BW_MUT[m].icon+' '+BW_MUT[m].name).join(' · ')}</span>` : `∞ Endless ${EN} — not cleared<span class="rec">🏅 Best: ${(save.camp&&save.camp.endless|0)>BW_LEVELS.length? 'Endless '+save.camp.endless : 'none yet'}</span>`) : CQ? (win? (CQn? `🏆 ${CQ.id==='tribe'? 'THE TRIBES ARE UNITED!' : 'THE CIVIL WAR IS WON!'}<span class="unl">Next: ${CQn.icon} ${CQn.name} — ${CQn.n[0]===CQn.n[1]? 'all '+CQn.n[0] : CQn.n[0]+'–'+CQn.n[1]} ${CQn.unit}, ${(CQn.start[0]*CQn.dk).toLocaleString('en-US')}–${(CQn.start[1]*CQn.dk).toLocaleString('en-US')} troops each</span>` : (bw.asc? `👑 ★${bw.asc} ASCENSION CLEARED!` : '👑 CONQUEST COMPLETE — THE WORLD IS UNITED!')+`<span class="unl">${CH&&CH.lines.length? CH.lines.join(' · ') : 'Tribes, regions and nations — all under one banner.'}</span>`) : `${CQ.icon} ${CQ.name} — not won yet<span class="rec">Tip: take farms early, keep your capital guarded, strike rivals while they fight each other</span>`) : !solo? '' : win? (lv>=NL? `👑 STAGE ${lv} CLEARED — CAMPAIGN COMPLETE!<span class="unl">You have beaten all ${NL} bosses. Replay any stage for a better time.</span>` : `✔ STAGE ${lv} / ${NL} CLEARED`+(first? `<span class="unl">🔓 Stage ${lv+1} unlocked: ${BW_LEVELS[lv].name}</span>` : '')+(rec? '<span class="rec">⏱️ New best time!</span>' : '')) : `Stage ${lv} / ${NL} — not cleared yet<span class="rec">Tip: upgrade in the Armory, guard your farms, strike where the boss is thin</span>`;
   $('rStats').innerHTML=`<div>⏱️ Time: <b>${fmt(bw.time)}</b></div><div>🤝 Defected to you: <b>${bwN(bw.stats.eat)}</b> troops</div><div>⚔️ Battles won: <b>${bw.stats.win}</b></div><div>💥 Armies routed: <b>${bw.stats.lose}</b></div><div>👥 Peak strength: <b>${bwN(bw.stats.peak)}</b></div><div>🪙 Coins earned: <b>+${xu}</b>${bw.stats.coins? ` <span style="opacity:.8">(+${bw.stats.coins} paid during play)</span>` : ''}</div>`;
   $('rXu').innerHTML='';
   const solo1v1=!bw.royale&&!(bw.cfg&&bw.cfg.p2p);
-  const next= (solo1v1 && win && lv<BW_LEVELS.length) || !!(CQ&&win&&CQn);
+  const next= (solo1v1 && win && (lv<BW_LEVELS.length||EN>0)) || !!(CQ&&win&&CQn);
   $('bNext').classList.toggle('hidden',!next);
-  if(next) $('bNext').textContent= CQ? `${CQn.icon} Begin the ${CQn.name} ▶` : `Next: Stage ${lv+1} ▶`;
-  $('bNext').onclick= CQ? ()=>{ $('result').classList.add('hidden'); startConq(CQn.id); } : ()=>{ $('result').classList.add('hidden'); G.bwCfg={civ:bw.cfg.civ}; startBigWar(Math.min(lv+1,BW_LEVELS.length)); };
+  if(next) $('bNext').textContent= CQ? `${CQn.icon} Begin the ${CQn.name} ▶` : EN? `∞ Endless ${EN+1} ▶` : `Next: Stage ${lv+1} ▶`;
+  $('bNext').onclick= CQ? ()=>{ $('result').classList.add('hidden'); startConq(CQn.id); } : EN? ()=>{ $('result').classList.add('hidden'); startEndless(EN+1,bw.cfg.civ); } : ()=>{ $('result').classList.add('hidden'); G.bwCfg={civ:bw.cfg.civ}; startBigWar(Math.min(lv+1,BW_LEVELS.length)); };
   $('bAgain').classList.toggle('hidden',!!(bw.cfg&&bw.cfg.p2p)); // P2P: muốn đấu lại thì hai máy kết nối lại
   $('bAgain').textContent= CQ? (win? '🗺️ Conquest map' : `↻ Retry the ${CQ.name}`) : bw.royale? '🌏 New Warlords game' : '↻ Play again';
   $('bAgain').onclick= CQ? ()=>{ $('result').classList.add('hidden'); if(win){ stopBigWar(false); G.world=null; Conquest.open(); } else startConq(CQ.id); } : ()=>{ $('result').classList.add('hidden'); if(bw.royale){ G.bwCfg={royale:36, seed: 61+((Math.random()*999)|0), civ:bw.cfg.civ, diff:bw.cfg.diff, bio:1}; startBigWar(5); } else bwRestart(); };
@@ -613,7 +650,7 @@ const IS_NATIVE=!!(window.Capacitor&&window.Capacitor.isNativePlatform&&window.C
 if(IS_NATIVE){ for(const id of ['bFull','bwFull']){ const e=$(id); if(e) e.style.display='none'; } }
 // app chuyển nền / tắt màn hình: tắt nhạc ngay, quay lại thì bật tiếp
 document.addEventListener('visibilitychange',()=>{ const c=audio&&audio.ctx; if(!c) return; try{ if(document.hidden) c.suspend(); else c.resume(); }catch(e){} });
-loadArt(); setupInput(); setupMenus(); menuBg(); refreshXu(); rotSync(); setTimeout(rotSync,400); requestAnimationFrame(frame);
+loadArt(); setupInput(); try{ setupMenus(); }catch(e){} menuBg();   /* menu dựng lại ở cuối các tệp nạp sau (09j, 09l): lỗi thứ tự nạp ở đây không được làm hỏng cả game */ refreshXu(); rotSync(); setTimeout(rotSync,400); requestAnimationFrame(frame);
 
 // ===== ⛶ TOÀN MÀN HÌNH =====
 function goFullscreen(){
