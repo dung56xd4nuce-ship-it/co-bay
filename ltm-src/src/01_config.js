@@ -45,6 +45,8 @@ const RULES = {
 };
 
 // 10 binh chủng (mục 5) + tướng
+const COIN_K=0.15;   /* (5.8) mọi phần thưởng Meme Coin chỉ còn ~15% mức cũ */
+function coinK(x){ x=+x||0; return x>0? Math.max(1,Math.round(x*COIN_K)) : 0; }
 const UNIT = {
   general:  { name:'General',      hp:160, dmg:14, cd:1.00, range:1, speed:2.0, armor:0,    emoji:'👑' },
   scout:    { name:'Scout',  hp:50,  dmg:6,  cd:1.10, range:1, speed:3.2, armor:0,    emoji:'🔭' },

@@ -33,6 +33,7 @@ const LIST=[
   ['tách binh chủng · tách quân · cứu trại · hiệu lệnh bắt dính (như người chơi)','gate_mix.mjs','exit',600],
   ['hướng dẫn lần đầu (khoá thao tác) · trang trí trại · ẩn Art pack (như người chơi)','gate_tut.mjs','exit',900],
   ['chinh phạt: bộ lạc → nội chiến → đại chiến · lãnh thổ · lưu ván (như người chơi)','gate_conq.mjs','exit',600],
+  ['thống kê quân số góc dưới + xu còn 15% (như người chơi)','gate_stat.mjs','exit',600],
   ['bộ art được dùng hết','gate_art.mjs','exit',300],
   ['nâng cấp từ v4.2 (ván lưu cũ)','gate_upgrade.mjs','exit',300],
   ['chạm ngẫu nhiên (khỉ)','gate_monkey.mjs','exit',600],

@@ -118,14 +118,14 @@ for(const [dn,dev,tall] of [...DEVICES.map(d=>[...d,false]),[PORTRAIT[1][0],PORT
       v.count=10; window.__v=v; bw.arrive({owner:F,type:'cavalry',count:6000,x:v.x,y:v.y,to:v.id,food:100},v); });
     ok(await T.until(()=>window.__v.owner===__ltm.bw.localFid,null,25000),'Quần Hùng: đại quân ta hạ kinh đô một nước láng giềng');
     await p.waitForTimeout(300); s=await inv(T);
-    ok(s.xu===x0+40&&s.shown.every(v=>v===s.xu)&&await T.ev(()=>__ltm.bw.stats.coins===40),`🪙 diệt một nước: +40 xu vào túi NGAY (${x0} → ${s.xu}), không phải đợi hết ván`);
-    ok(await T.ev(()=>__ltm.bw.notes.some(n=>/\+40 coins/.test(n.text)))&&(await T.drawn(/\+40 coins/)).length>=1,'có thông báo "+40 coins — a whole nation conquered" trên màn hình');
-    ok(await T.until(()=>{ try{ const sv=JSON.parse(localStorage.getItem('ltm_royale_save_v1')||'null'); return !!sv&&sv.stats&&sv.stats.coins===40&&sv.nodes[window.__v.id].owner===__ltm.bw.localFid; }catch(e){ return false; } },null,5000),'ván Quần Hùng tự lưu ngay sau khi trả xu (thoát game đột ngột cũng không "hạ lại" nước đó để lĩnh xu lần hai được)');
+    const NX=await T.ev(()=>BW.coinsFor.nation); ok(s.xu===x0+NX&&s.shown.every(v=>v===s.xu)&&await T.ev((NX)=>__ltm.bw.stats.coins===NX,NX)&&NX===6,`🪙 diệt một nước: +${NX} xu (≈15% của 40) vào túi NGAY (${x0} → ${s.xu}), không phải đợi hết ván`);
+    ok(await T.ev(()=>__ltm.bw.notes.some(n=>/\+6 coins/.test(n.text)))&&(await T.drawn(/\+6 coins/)).length>=1,'có thông báo "+6 coins — a whole nation conquered" trên màn hình');
+    ok(await T.until(()=>{ try{ const sv=JSON.parse(localStorage.getItem('ltm_royale_save_v1')||'null'); return !!sv&&sv.stats&&sv.stats.coins===6&&sv.nodes[window.__v.id].owner===__ltm.bw.localFid; }catch(e){ return false; } },null,5000),'ván Quần Hùng tự lưu ngay sau khi trả xu (thoát game đột ngột cũng không "hạ lại" nước đó để lĩnh xu lần hai được)');
     ok(await useItem(T,'compass'),'Quần Hùng: mở 🎒 dùng La bàn'); const cd0=await T.ev(()=>__ltm.bw.gear[0].cd); ok(cd0>230,`thời gian hồi ở Quần Hùng dài hơn (${Math.round(cd0)}s)`);
     r=await T.tapEl('#bwBack'); await p.waitForTimeout(500); ok(await T.vis('#menu')&&await T.ev(()=>!!localStorage.getItem('ltm_royale_save_v1')),'🏠 về menu: ván Quần Hùng tự lưu');
     await p.reload(); await p.waitForFunction(()=>window.__ltm&&document.getElementById('menu')); await p.waitForTimeout(400);
     await T.tapEl('#bBW'); await p.waitForTimeout(200); r=await T.tapEl('#bBossContinue'); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.royale&&__ltm.bw.lastVw>0,null,{timeout:15000}).catch(()=>{});
     const rs=await T.ev(()=>{ const bw=__ltm.bw; return bw? {gear:bw.gear.map(g=>g.id+':'+Math.round(g.cd)).join(),coins:bw.stats.coins,vis:bw.tempVis.length,own:window.__v? 1 : 0} : null; }); s=await inv(T);
-    ok(r.ok&&rs&&/^compass:(2[0-3]\d|240),bun:0,tea:0$/.test(rs.gear)&&rs.coins===40&&s.inv.compass===1&&s.xu===x0+40,`tắt hẳn game rồi CONTINUE: La bàn vẫn đang hồi (${rs&&rs.gear}), kho và xu còn nguyên`); }
+    ok(r.ok&&rs&&/^compass:(2[0-3]\d|240),bun:0,tea:0$/.test(rs.gear)&&rs.coins===6&&s.inv.compass===1&&s.xu===x0+6,`tắt hẳn game rồi CONTINUE: La bàn vẫn đang hồi (${rs&&rs.gear}), kho và xu còn nguyên`); }
   ok(T.errs.length===0,'không lỗi JS'+(T.errs.length? ': '+T.errs[0] : '')); await T.ctx.close(); }
 await finish('QUÂN NHU · LÒ RÈN · XU',b);

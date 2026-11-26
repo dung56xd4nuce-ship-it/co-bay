@@ -35,8 +35,8 @@ for(const [dn,dev] of [...DEVICES, PORTRAIT[1], ['Android nhỏ ngang 640×360',
   ok(okR&&okR.in&&(await T.drawn(/To win a stage/)).length>=1,'bước cuối: tóm tắt mục tiêu + nút "Got it ▶" nằm trong màn hình');
   await T.tap(okR.x,okR.y); await p.waitForSelector('#tutDone:not(.hidden)',{timeout:5000}).catch(()=>{}); await p.waitForTimeout(300);
   const sv=await T.ev(()=>({tut:localStorage.getItem('ltm_tut'),xu:JSON.parse(localStorage.ltm_save).xu,bw:!!__ltm.bw,solo:localStorage.getItem('ltm_solo_save_v1')}));
-  if(!(sv.tut==='1'&&sv.xu===50&&!sv.bw&&!sv.solo&&await T.visible('#tutDone'))) console.log('   [chẩn đoán]',JSON.stringify(sv),await T.visible('#tutDone'),await txt('#tdText'));
-  ok(await T.visible('#tutDone')&&sv.tut==='1'&&sv.xu===50&&!sv.bw&&!sv.solo&&/50 coins/.test(await txt('#tdText')),'xong hướng dẫn: thẻ "Tutorial complete!", thưởng 50 xu, không để lại ván lưu');
+  if(!(sv.tut==='1'&&sv.xu===8&&!sv.bw&&!sv.solo&&await T.visible('#tutDone'))) console.log('   [chẩn đoán]',JSON.stringify(sv),await T.visible('#tutDone'),await txt('#tdText'));
+  ok(await T.visible('#tutDone')&&sv.tut==='1'&&sv.xu===8&&!sv.bw&&!sv.solo&&/8 coins/.test(await txt('#tdText')),'xong hướng dẫn: thẻ "Tutorial complete!", thưởng 8 xu, không để lại ván lưu');
   if(SHOT) await p.screenshot({path:`/tmp/shots/t-${tag}-done.png`});
   await p.waitForTimeout(400); await T.tapEl('#tdGo'); await p.waitForTimeout(350); ok(await T.visible('#campaign'),'nút "Start Stage 1" → màn chiến dịch');
   await T.tapEl('#campBack'); await p.waitForTimeout(250); await T.ev(()=>{ document.getElementById('bossPick').classList.add('hidden'); showScreen('menu'); }); await p.waitForTimeout(200);
@@ -45,7 +45,7 @@ for(const [dn,dev] of [...DEVICES, PORTRAIT[1], ['Android nhỏ ngang 640×360',
   await T.ev(()=>{ document.getElementById('bossPick').classList.add('hidden'); showScreen('help'); }); await p.waitForTimeout(250); await T.tapEl('#bTut'); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.tut&&__ltm.bw.lastVw>0); await p.waitForTimeout(700);
   const sk=await T.until(()=>{ const r=__ltm.bw.tut.skipR; return r? [r.x+r.w/2,r.y+r.h/2] : null; },null,3000); await T.tap(sk[0],sk[1]); await p.waitForSelector('#tutDone:not(.hidden)',{timeout:5000}).catch(()=>{});
   await p.waitForTimeout(400);
-  ok(await T.visible('#tutDone')&&/skipped/.test(await txt('#tdTitle'))&&await T.ev(()=>JSON.parse(localStorage.ltm_save).xu===50),'How to play → "Play the tutorial battle" chơi lại được; bấm Skip thoát ngay, không thưởng xu lần hai');
+  ok(await T.visible('#tutDone')&&/skipped/.test(await txt('#tdTitle'))&&await T.ev(()=>JSON.parse(localStorage.ltm_save).xu===8),'How to play → "Play the tutorial battle" chơi lại được; bấm Skip thoát ngay, không thưởng xu lần hai');
   await T.tapEl('#tdMenu'); await p.waitForTimeout(250);
   // ---- 🏮 trang trí trại
   await T.ev(()=>{ save.xu=400; Save.set(save); openGear(); }); await p.waitForTimeout(250); await T.tapEl('#bToDecor'); await p.waitForTimeout(350);

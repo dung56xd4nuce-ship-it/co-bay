@@ -38,8 +38,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp android/app/build/outputs/apk/debug/app-debug.apk LoanTheMeme-v5.7.apk
-          gh release create ltm-v5.7 --title "Loan The Meme v5.7" \
-            --notes "APK Android cài trực tiếp. Tải LoanTheMeme-v5.7.apk bên dưới → mở file → cho phép cài từ nguồn không xác định → chơi." \
+          cp android/app/build/outputs/apk/debug/app-debug.apk LoanTheMeme-v5.8.apk
+          gh release create ltm-v5.8 --title "Loan The Meme v5.8" \
+            --notes "APK Android cài trực tiếp. Tải LoanTheMeme-v5.8.apk bên dưới → mở file → cho phép cài từ nguồn không xác định → chơi." \
             --target "$GITHUB_SHA" || true
-          gh release upload ltm-v5.7 LoanTheMeme-v5.7.apk --clobber
+          gh release upload ltm-v5.8 LoanTheMeme-v5.8.apk --clobber

@@ -227,7 +227,7 @@ function showResult(){
   $('rSub').textContent= r.how==='last'? (win?'Every other faction has been eliminated!':'You have been eliminated') : r.how==='surrender'? (win?'The enemy has surrendered to you!':'Your faction has surrendered') : win? (r.how==='drum'? 'The War Drum of Chaos sounds for your faction!' : 'Time\'s up — you held the Drum the longest!') : draw? 'Factions held the Drum equally' : `${FACTIONS[r.winner].name} claimed the War Drum of Chaos`;
   $('rStats').innerHTML=`<div>⏱️ Time: <b>${fmt(r.time)}</b></div><div>🥁 Drum held: <b>${Math.floor(me.holdTotal)}s</b></div><div>➕ Recruited: <b>${me.stats.recruited}</b></div><div>🏳️ Converted: <b>${me.stats.converted}</b></div><div>⚔️ Kills: <b>${me.stats.kills}</b></div><div>🌫️ Tiles revealed: <b>${me.stats.opened}</b></div>`;
   $('bNext').classList.toggle('hidden',!win || !lvl || lvl>=40);
-  const xu=Math.round(15+me.stats.recruited+2*me.stats.kills+4*me.stats.converted+me.holdTotal/3+me.stats.opened/10+(win?40+5*(lvl||2):0)+(draw?15:0));
+  const xu=coinK(15+me.stats.recruited+2*me.stats.kills+4*me.stats.converted+me.holdTotal/3+me.stats.opened/10+(win?40+5*(lvl||2):0)+(draw?15:0));
   save.xu=(save.xu||0)+xu; Save.set(save); $('rXu').innerHTML=`${artIcon('ui:coin','🪙')} +<b>${xu}</b> Meme Coins · total <b>${save.xu}</b>`; refreshXu();
   if(win){ if(lvl){ if(!save.done.includes(lvl)) save.done.push(lvl); save.max=Math.max(save.max||1,lvl+1); } Save.set(save); audio.win(); confetti(); } else audio.lose();
   $('result').classList.remove('hidden'); $('hud').classList.add('hidden');
@@ -361,9 +361,10 @@ function drawDecorPreview(){ const cv=$('decPrev'), c=cv.getContext('2d'), D=dec
 function needTut(){ try{ if(localStorage.getItem('ltm_tut')==='1') return false; }catch(e){ return false; } if((save.bwMax||1)>1||save.tut||soloLoadInfo()||royaleLoadInfo()){ tutMark(); return false; } return true; }   /* người chơi cũ (đã qua ải / đang có ván lưu): không bắt học lại */
 function tutMark(){ save.tut=1; Save.set(save); try{ localStorage.setItem('ltm_tut','1'); }catch(e){} }
 function startTutorial(){ G.bwCfg={civ:save.civ||'rome',map:0,tut:true}; G.tutShown=false; startBigWar(1); $('stageIntro').classList.add('hidden'); G.bw.tutStart(); }
-function tutFinish(){ const bw=G.bw, skipped=!!(bw&&bw.tut&&bw.tut.skipped), first=!save.tut; G.tutShown=true; tutMark(); if(!skipped&&first){ save.xu=(save.xu||0)+50; Save.set(save); refreshXu(); }
+const BW_TUT_XU=coinK(50);   /* thưởng học xong hướng dẫn (~15% của 50) */
+function tutFinish(){ const bw=G.bw, skipped=!!(bw&&bw.tut&&bw.tut.skipped), first=!save.tut; G.tutShown=true; tutMark(); if(!skipped&&first){ save.xu=(save.xu||0)+BW_TUT_XU; Save.set(save); refreshXu(); }
   stopBigWar(true); $('menu').classList.add('hidden'); $('tdTitle').textContent= skipped? '🎓 Tutorial skipped' : '🎓 Tutorial complete!';
-  $('tdText').innerHTML= skipped? 'You can replay it any time from <b>📖 How to play</b>.' : (first? 'You earned <b>🪙 50 coins</b>. ' : '')+'Now take on the 10-stage campaign — each boss is smarter than the last.';
+  $('tdText').innerHTML= skipped? 'You can replay it any time from <b>📖 How to play</b>.' : (first? `You earned <b>🪙 ${BW_TUT_XU} coins</b>. ` : '')+'Now take on the 10-stage campaign — each boss is smarter than the last.';
   $('tutDone').classList.remove('hidden'); const t0=performance.now(), ghost=()=>performance.now()-t0<500;   /* cú chạm 'Got it' trên màn trận còn sinh một 'click' rơi đúng vào nút của thẻ này: bỏ qua 0,5 s đầu */
   $('tdGo').onclick=()=>{ if(ghost()) return; audio.click(); $('tutDone').classList.add('hidden'); Campaign.open(); }; $('tdMenu').onclick=()=>{ if(ghost()) return; audio.click(); $('tutDone').classList.add('hidden'); $('menu').classList.remove('hidden'); setupMenus(); }; }
 function renderGear(){ refreshXu(); const inv=save.inv, pack=save.pack, list=$('gearList'), MAX=BW.gear.slots; list.innerHTML='';
@@ -535,7 +536,7 @@ function showBwResult(){
   const meC=bw.civOf(bw.localFid), enC=bw.civOf(bw.localFid===0?1:0);
   const CQ=BW_CONQ[bw.conq], CQn= CQ&&BW_CONQ[BW_CONQ_ORDER[CQ.i+1]];
   $('rSub').textContent= CQ? (win? (CQ.id==='tribe'? `Every tribe now follows ${meC.icon} ${bw.natName(0)}!` : CQ.id==='civil'? `${meC.icon} ${meC.name} is one kingdom again — every region bows to you!` : `The whole world belongs to ${meC.icon} ${meC.name}!`) : `Your last camp has fallen in the ${CQ.name}...`) : bw.royale? (win? `The whole realm belongs to ${meC.icon} ${meC.name} — every nation has fallen!` : 'Your last camp has fallen — the realm belongs to others...') : (win? `${meC.icon} ${meC.name} has defeated ${enC.icon} ${enC.name}!` : `${enC.icon} ${enC.name} has taken our last camp...`);
-  const xu=Math.round(bw.stats.eat/40 + bw.stats.win*4 + (win? 30+18*lv : 8));
+  const xu=coinK(bw.stats.eat/40 + bw.stats.win*4 + (win? 30+18*lv : 8));   /* (5.8) ~15% mức cũ */
   const solo=!bw.royale&&!(bw.cfg&&bw.cfg.p2p)&&!(bw.cfg&&bw.cfg.classic), NL=BW_LEVELS.length; let first=false, rec=false;
   save.xu=(save.xu||0)+xu; if(win&&solo){ first=(save.bwMax||1)<lv+1; save.bwMax=Math.max(save.bwMax||1,lv+1); const cp=save.camp||(save.camp={best:{}}); cp.best=cp.best||{}; const t=Math.round(bw.time); if(!cp.best[lv]||t<cp.best[lv]){ rec=!!cp.best[lv]; cp.best[lv]=t; } } Save.set(save); refreshXu();
   if(CQ&&win){ const cq=save.conq||(save.conq={civ:bw.cfg.civ,diff:bw.cfg.diff,stage:0}); cq.stage=Math.max(cq.stage|0,CQ.i+1); cq.civ=bw.cfg.civ; cq.diff=bw.cfg.diff; const bt=cq.best||(cq.best={}); const t=Math.round(bw.time); if(!bt[CQ.id]||t<bt[CQ.id]) bt[CQ.id]=t; Save.set(save); }

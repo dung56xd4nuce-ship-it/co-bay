@@ -569,7 +569,7 @@ class BigWar{
       armies:this.armies.map(a=>Object.assign({},a,{hunt:ref(a.hunt),mergeInto:ref(a.mergeInto),path:undefined,_pk:undefined,pi:undefined,pvT:undefined})),
       convoys:(this.convoys||[]).filter(c=>!c.done).map(c=>Object.assign({},c,{to:ref(c.to),path:undefined,_pk:undefined,pi:undefined})).filter(c=>c.to),
       battles:this.battles.filter(b=>!b.done).map(b=>Object.assign({},b,{A:side(b.A),B:side(b.B)})),
-      scouts:this.scouts, aiScouts:this.aiScouts, gear:(this.gear||[]).map(g=>({id:g.id,cd:g.cd})), tempVis:this.tempVis||[] };
+      scouts:this.scouts, aiScouts:this.aiScouts, gear:(this.gear||[]).map(g=>({id:g.id,cd:g.cd})), tempVis:this.tempVis||[], st:this._st||null };
   }
   loadState(sv){
     this.nodes=sv.nodes.map(n=>Object.assign({},n));
@@ -586,6 +586,7 @@ class BigWar{
     Object.assign(this,sv.sc); this.zoomTgt=this.zoom||1;
     this.stats=sv.stats||this.stats; this.fed=sv.fed||{}; this.nextWaveF=sv.nextWaveF||{}; this.cap0=sv.cap0||{}; this.n0=sv.n0||{};
     this.allies=new Set(sv.allies||[]); this.scouts=sv.scouts||[]; this.aiScouts=sv.aiScouts||[];
+    if(sv.st&&Array.isArray(sv.st.h)) this._st=sv.st;   /* biểu đồ quân số nối tiếp ván đã lưu */
     this.tempVis=sv.tempVis||[]; this._gearLive=true; this.lossLog=[]; for(const g of this.gear||[]){ const o=(sv.gear||[]).find(q=>q.id===g.id); if(o) g.cd=o.cd||0; } if(!(sv.sc&&sv.sc.coinT>0)) this.coinT=(Math.floor(this.time/BW.coinsFor.every)+1)*BW.coinsFor.every;   /* ván lưu từ bản cũ (chưa có mốc thưởng): tính từ mốc 10 phút kế tiếp, không trả bù cho thời gian đã chơi */
     this.notes=[]; this.texts=[]; this.fx=[]; this.rings=[]; this.fxs=[]; this.menu=null; this.sel=null; this.selA=null; this.selG=null;
     if(!this.nodes.some(n=>n.capOf!=null)){ const seen=new Set(); for(const n of this.nodes){ if(n.camp&&n.owner!==2&&(n.home??n.owner)===n.owner&&!seen.has(n.owner)){ n.capOf=n.owner; seen.add(n.owner); } } }
@@ -765,6 +766,7 @@ class BigWar{
     if(this.over) return;
     if(this.tut) this.tutUpdate(dt);
     this.time+=dt;
+    if(this.statTick) this.statTick();   /* 📈 thống kê quân số theo giờ trận (src/09k_stats.js) */
     if(this.fxArrow){ this.fxArrow.t+=dt; if(this.fxArrow.t>0.6) this.fxArrow=null; }
     if(this._navWarm&&this._navWarm.length){ const k=this._navWarm.pop(); this.navCost(k); this.navComp(k); }
     if(this.gearTick) this.gearTick(dt);
@@ -1680,7 +1682,7 @@ class BigWar{
     if(this._zoomBtn) R['nút TOÀN CẢNH']=this._zoomBtn; if(this._rallyBtn) R['nút 📣']=this._rallyBtn; if(this._ambBtn) R['nút mai phục']=this._ambBtn;
     if(this._retreatBtn) R['nút RÚT LUI']={x:this._retreatBtn.x,y:this._retreatBtn.y,w:this._retreatBtn.w,h:this._retreatBtn.h};
     (this._noteRects||[]).forEach((n,i)=>R['thông báo '+(i+1)]={x:n.x,y:n.y,w:n.w,h:n.h});
-    if(this._rallyMenu) R['menu gọi quân']=this._rallyMenu; if(this._orderMenu) R['menu lệnh']=this._orderMenu; if(this._hintBox) R['dòng hướng dẫn']=this._hintBox; if(this._unitChip) R['thẻ binh chủng']=this._unitChip;
+    if(this._rallyMenu) R['menu gọi quân']=this._rallyMenu; if(this._orderMenu) R['menu lệnh']=this._orderMenu; if(this._hintBox) R['dòng hướng dẫn']=this._hintBox; if(this._statBox) R['bảng thống kê quân']=this._statBox; if(this._unitChip) R['thẻ binh chủng']=this._unitChip;
     if(this._gearBtn) R['nút quân nhu']=this._gearBtn; if(this._gearMenu) R['menu quân nhu']=this._gearMenu;
     if(L.rot) R['băng "xoay ngang"']=L.rot; return R; }
   drawHud(c,vw,vh,tm){
@@ -1861,12 +1863,14 @@ class BigWar{
         this._menuRects.push({x:mx+6,y:oy,w:mw-12,h:ih-6,id:o.id}); });
       c.textAlign='center'; }
     // dòng hướng dẫn 9 giây đầu: tự xuống dòng trên máy hẹp, nằm trên mép đáy an toàn
-    if(!this.tut && !this.sel && !this.selA && this.time<9 && !this.rallyPick && !this.rallyOpen && !this.menu){ const a2=0.6+0.4*Math.sin(tm*4); c.globalAlpha=a2; c.lineWidth=5; c.strokeStyle='#2a1a12'; c.textAlign='center';
+    this._hintOn=false;
+    if(!this.tut && !this.sel && !this.selA && this.time<9 && !this.rallyPick && !this.rallyOpen && !this.menu){ this._hintOn=true; const a2=0.6+0.4*Math.sin(tm*4); c.globalAlpha=a2; c.lineWidth=5; c.strokeStyle='#2a1a12'; c.textAlign='center';
       const s='Tap a BLUE army, then tap ANYWHERE: empty ground = camp, enemy = pursue. Forests/valleys/fords trigger AUTO-AMBUSH x2–x10. Enemy numbers stay hidden — 🕵️ SCOUT them!';
       const sShort='Tap a BLUE army, then tap a target. Forests, valleys & fords = AMBUSH. 🕵️ SCOUT hidden enemies!';
       const maxW=L.W-28; let fz=16, lines=null; for(;fz>=13;fz--){ c.font=`800 ${fz}px ${FONT}`; if(c.measureText(s).width<=maxW){ lines=[s]; break; } }
       if(!lines){ fz=13; c.font=`800 ${fz}px ${FONT}`; lines=bwWrap(c,s,maxW,9); if(lines.length>3) lines=bwWrap(c,sShort,maxW,3); } // quá 3 dòng sẽ đè nút 📣 → dùng câu ngắn
       const lh=fz+4; let tw=0; for(const ln of lines) tw=Math.max(tw,c.measureText(ln).width); this._hintBox={x:L.cx-tw/2,y:L.Y1-12-lines.length*lh,w:tw,h:lines.length*lh};
       lines.forEach((ln,i)=>{ const yy=L.Y1-16-(lines.length-1-i)*lh; c.strokeText(ln,L.cx,yy); c.fillStyle='#ffe27a'; c.fillText(ln,L.cx,yy); }); c.globalAlpha=1; }
+    if(this.drawStat) this.drawStat(c,L,tm);   /* 📈 góc phải dưới: tổng quân của ta theo thời gian (ẩn khi có menu / dòng hướng dẫn đầu trận) */
   }
 }

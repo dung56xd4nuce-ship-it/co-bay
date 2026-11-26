@@ -18,7 +18,7 @@ const BW_GEAR_BY={}; for(const g of BW_GEAR) BW_GEAR_BY[g.id]=g;
 BW.gear={slots:3, cdSolo:150, cdRoyale:240, teaT:30, teaMul:1.5, plankT:60, smokeT:30, smokeMul:1.5, scareT:60, scareMul:3, compassR:1600, compassT:30, bandFrac:0.3, bandWindow:60, bandR:520};
 // LÒ RÈN: mỗi bậc cộng bao nhiêu (5 bậc mỗi hạng mục). Tổng sát thương tối đa = (1+7,5%)×(1+7,5%) ≈ +15,6%.
 BW.forge={speed:0.02, power:0.015, armor:0.03, stamina:0.05, aura:0.03, weapon:0.015};
-BW.coinsFor={camp:15, capital:20, nation:40, every:600, survive:15};
+BW.coinsFor={camp:coinK(15), capital:coinK(20), nation:coinK(40), every:600, survive:coinK(15)};   /* (5.8) còn ~15%: 2 · 3 · 6 · 2 */
 
 // hệ số Lò rèn của một phe (chỉ người chơi, và chỉ khi trận có mang theo nâng cấp — P2P thì không)
 BigWar.prototype.upMul=function(kind,owner){ const u=this.up; if(!u||owner!==this.localFid) return 1;
