@@ -53,10 +53,12 @@ const org=await p.evaluate(()=>{ const r=document.getElementById('game').getBoun
 await p.touchscreen.tap(org[0]+btn[0],org[1]+btn[1]); await p.waitForTimeout(200);
 const camp0=await p.evaluate(()=>[__ltm.bw.nodes[0].x,__ltm.bw.nodes[0].y]);
 await tapW(camp0[0],camp0[1]);
+{ const m=await p.evaluate(()=>{ const bw=__ltm.bw; return bw.menu? bw.menu.opts.map(o=>o.id).join() : ''; }); ok(/move/.test(m)&&/selnode/.test(m)&&/cancel/.test(m),'B5 (6.3.1): chạm cứ điểm ta khi đang mai phục → menu hỏi rõ (rời mai phục tới tiếp viện / chọn cứ điểm kia / huỷ), không tự đổi chọn'); }
+{ const r=await p.evaluate(()=>{ const R=(__ltm.bw._menuRects||[]).find(r=>r.id==='selnode'); return R&&[R.x+R.w/2,R.y+R.h/2]; }); if(r) await p.touchscreen.tap(org[0]+r[0],org[1]+r[1]); await p.waitForTimeout(200); }
 st=await p.evaluate(([id,c0])=>{ const bw=__ltm.bw; const nd=bw.nodes[id];
   return { kept: nd.ambush===true&&nd.count===c0, switched: bw.sel&&bw.sel.id!==id }; },[nodeInfo.id,nodeInfo.count]);
 ok(st.kept, 'B5: node đang mai phục GIỮ NGUYÊN quân khi chạm node khác');
-ok(st.switched, 'B5: lựa chọn chuyển sang node kia');
+ok(st.switched, 'B5: chạm "👉 Select this post instead" → lựa chọn chuyển sang node kia');
 const fps=await p.evaluate(()=>new Promise(res=>{ let n=0; const t0=performance.now(); const lp=()=>{ n++; if(performance.now()-t0<2000) requestAnimationFrame(lp); else res(Math.round(n/2)); }; requestAnimationFrame(lp); }));
 console.log(which, R.filter(x=>x.startsWith('PASS')).length+'/'+R.length,'PASS | fps',fps,'| errors',errs.length);
 await b.close();

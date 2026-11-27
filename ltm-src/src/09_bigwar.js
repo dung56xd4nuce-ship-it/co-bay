@@ -417,6 +417,7 @@ class BigWar{
     if(this.gearTap&&this.gearTap(sx,sy)) return true;   /* 🎒 quân nhu */
     if(hit(this._rallyBtn)){ if(this.rallyPick){ this.rallyPick=0; } else { this.rallyOpen=true; this.menu=null; this.gearOpen=false; } audio.click(); return true; }
     if(this.menu&&this._menuRects){ for(const r of this._menuRects){ if(sx>=r.x&&sx<=r.x+r.w&&sy>=r.y&&sy<=r.y+r.h){ if(r.sel){ const S=this.sendSel||(this.sendSel={node:r.sel.node,type:null,frac:1}); if(S.node!==r.sel.node){ S.node=r.sel.node; S.type=null; S.frac=1; } if('type' in r.sel) S.type=r.sel.type; if('frac' in r.sel) S.frac=r.sel.frac; audio.click(); return true; } this.menuPick(r.id); return true; } }
+      if(this.menu.src&&(this.sel||this.selA||(this.selG&&this.selG.length))&&!(this.tut&&!this.tut.done)){ this.menu=null; return false; }   /* (6.3.1) menu lệnh đang mở mà chạm chỗ khác trên bản đồ = ĐỔI MỤC TIÊU (vẫn giữ quân đang chọn), không bỏ chọn */
       this.menu=null; this.sel=null; this.selA=null; this.selG=null; return true; } // chạm ngoài menu: đóng menu + bỏ chọn
     const rb=this._retreatBtn;
     if(rb&&sx>=rb.x&&sx<=rb.x+rb.w&&sy>=rb.y&&sy<=rb.y+rb.h){
@@ -468,9 +469,11 @@ class BigWar{
     const aWin= !!bA && (!best || bAd<=bd*1.25+10);
     const src=this.sel||this.selA;
     // LUẬT MAI PHỤC: nguồn đang mai phục + chạm vào node TA khác -> chỉ ĐỔI CHỌN, không bao giờ nhấc quân
+    // (6.3.1) trước đây chạm cứ điểm ta khi đang chọn quân mai phục là ĐỔI CHỌN sang cứ điểm (người chơi tưởng bị bỏ chọn) → nay hiện menu hỏi rõ
     if(src && src.ambush && !(this.selG&&this.selG.length>1) && best && best!==src && best.owner===F && !(bA&&bA.owner===F&&aWin)){
-      if(best.count>0){ this.sel=best; this.selA=null; this.selG=null; }
-      this.texts.push({x:src.x,y:src.y-70,s:'🪤 Ambushers hold their position',col:'#ffd54a',t:0,max:1.1});
+      this.menu={wx,wy,tgtArmy:null,tgtNode:best,opts:[{id:'move',s:'🛡️ Leave ambush · reinforce this post'},...(best.count>0?[{id:'selnode',s:'👉 Select this post instead'}]:[]),{id:'cancel',s:'✖ Cancel'}],
+        info:this.menuSupplyInfo(best,[{id:'move'}]),src:this.sel?{kind:'node',ref:this.sel}:{kind:'grp',refs:(this.selG&&this.selG.length?this.selG:[this.selA]).slice()}};
+      if(this.autoMenu) this.menuPick('move');
       audio.click(); return; }
     if(src && bA && bA.owner===F && bA!==src && aWin){ // chạm quân ta khác
       if(this.selG&&this.selG.includes(bA)){ this.selA=bA; this._dblChk(bA,wx,wy); audio.click(); return; } // vẫn giữ CẢ CỤM
@@ -524,7 +527,9 @@ class BigWar{
     return this.boxSelectWorld(x0,y0,x1,y1);
   }
   boxSelectWorld(x0,y0,x1,y1){ const F=this.localFid;
-    const inR=(a)=>{ const vy=a.y-28; return (a.x>=x0&&a.x<=x1&&((a.y>=y0&&a.y<=y1)||(vy>=y0&&vy<=y1))); };
+    // (6.3.1) quét trúng HÌNH VẼ của đạo quân (lính toả quanh + bảng số phía trên), không chỉ đúng điểm chân: vòng chạm như khi chạm tay (nở theo quy mô), lấy 70%
+    const inR=(a)=>{ const nU= a.count<80?2 : a.count<300?3 : a.count<800?5 : a.count<2000?7 : a.count<5000?9 : 12, r=(72+nU*3)*0.7, cy=a.y-28;
+      const qx=Math.max(x0,Math.min(x1,a.x)), qy=Math.max(y0,Math.min(y1,cy)); return hyp(a.x-qx,cy-qy)<=r; };
     const got=this.armies.filter(a=>a.owner===F&&!a.done&&a.count>0&&inR(a));
     // (6.3) quét cả ĐIỂM LUYỆN QUÂN / TRẠI CHĂN NUÔI trong vùng (không lấy trại, thành trấn): quân ở đó bước ra thành đạo, chờ lệnh; huỷ lệnh thì quay về
     let fromN=0; for(const n of this.nodes){ if(n.owner!==F||!n.eco||n.btl||!(n.count>=Math.max(30,BW.sendMin||0))||!(n.x>=x0&&n.x<=x1&&n.y>=y0&&n.y<=y1)) continue;
@@ -627,6 +632,7 @@ class BigWar{
     const F=this.localFid;
     const doSend=(s,to,mode)=>{ const a=this.send(s,to,this.selOpt(s)); if(a&&mode==='siege'){ for(const q of this._lastSent) q.siege= m.tgtNode? m.tgtNode.id : -1; } if(!a&&this.selOpt(s)&&s.owner===this.localFid) this.texts.push({x:s.x,y:s.y-80,s:`Too few troops to split (min ${BW.sendMin})`,col:'#ffb4a8',t:0,max:1.6}); return a; };
     let made=null;
+    if(id==='selnode'&&m.tgtNode){ this.sel=m.tgtNode; this.selA=null; this.selG=null; audio.click(); return true; }
     if(id==='switch'&&m.tgtOwn){ this.sel=null; this.selA=m.tgtOwn; this.selG=null; audio.click(); this._dblChk(m.tgtOwn,m.wx,m.wy); return true; }
     if(id==='merge'&&m.tgtOwn){ const tgt=m.tgtOwn;
       if(m.src.kind==='node'){ const s2=m.src.ref; this.sel=null;

@@ -79,6 +79,42 @@ for(const [dn,dev] of [...DEVICES, PORTRAIT[1], ['Android nhỏ ngang 640×360',
     await run(40); st=await T.ev(()=>({e:Math.round(window.__QE.count), left:__ltm.bw.armies.filter(a=>a.owner===0&&!a.done&&a.from===window.__QE.id).length}));
     ok(k>=1&&!!cx&&st.e>=300&&st.left===0,`quét rồi bấm "✖ Cancel": quân vừa bước ra (${k} đạo) quay về điểm luyện quân (giờ ${st.e} quân, đã cộng quân luyện thêm)`); }
 
+  // ---------- 4) 🪤 đạo đang mai phục ở trại: chọn rồi chạm cứ điểm ta → hiện menu, chạm "Leave ambush" là hành quân (trước đây bị đổi chọn, tưởng như bỏ chọn) ----------
+  await fresh();
+  const M=await T.ev(()=>{ const bw=__ltm.bw, c=bw.nodes[0]; const a={owner:0,type:'axe',count:440,x:c.x+40,y:c.y+60,to:-1,camped:true,ambush:true,trail:0,food:100}; bw.armies.push(a); window.__M=a;
+    const o=bw.nodes.filter(n=>n.owner===0&&n!==c).sort((p2,q)=>Math.hypot(p2.x-c.x,p2.y-c.y)-Math.hypot(q.x-c.x,q.y-c.y))[0]; window.__O=o; return {a:[a.x,a.y],o:[o.x,o.y]}; });
+  await look((M.a[0]+M.o[0])/2,(M.a[1]+M.o[1])/2,1);
+  { const s0=await T.scr(M.a[0],M.a[1]-28); await T.tap(s0[0],s0[1]); await p.waitForTimeout(250); }
+  ok(await T.ev(()=>__ltm.bw.selA===window.__M),'chạm đạo đang mai phục cạnh trại: chọn được đạo quân');
+  { const s1=await T.scr(M.o[0],M.o[1]); await T.tap(s1[0],s1[1]); await p.waitForTimeout(300); }
+  st=await T.ev(()=>({sel:__ltm.bw.selA===window.__M, m:(__ltm.bw.menu&&__ltm.bw.menu.opts.map(o=>o.s).join(' | '))||''}));
+  ok(st.sel&&/Leave ambush · reinforce this post/.test(st.m)&&/Select this post instead/.test(st.m),`chạm cứ điểm ta: vẫn giữ chọn đạo quân, hiện menu "${st.m}"`);
+  { const mv=await T.until(()=>{ const R=(__ltm.bw._menuRects||[]).find(r=>r.id==='move'); return R? [R.x+R.w/2,R.y+R.h/2] : null; },null,2500); if(mv){ await T.tap(mv[0],mv[1]); await p.waitForTimeout(300); } }
+  st=await T.ev(()=>{ const a=window.__M; return {to:a.to, o:window.__O.id, amb:a.ambush}; });
+  ok(st.to===st.o&&!st.amb,'chạm "🛡️ Leave ambush · reinforce this post": đạo quân rời mai phục, hành quân tới cứ điểm');
+  // ---------- 5) menu lệnh đang mở, chạm mục tiêu KHÁC trên bản đồ → đổi mục tiêu, vẫn giữ quân đang chọn ----------
+  await fresh();
+  const R5=await T.ev(()=>{ const bw=__ltm.bw, c=bw.nodes[0]; const a={owner:0,type:'spear',count:500,x:c.x+500,y:c.y+120,to:-1,camped:true,trail:0,food:100}; bw.armies.push(a); window.__R=a;
+    const pts=[]; for(let r=260;r<900&&pts.length<2;r+=40) for(let k=0;k<12&&pts.length<2;k++){ const x=a.x+Math.cos(k/12*6.283)*r, y=a.y+Math.sin(k/12*6.283)*r; if(bw.terAt(x,y)==='river'||bw.nodes.some(n=>Math.hypot(n.x-x,n.y-y)<200)||pts.some(q=>Math.hypot(q[0]-x,q[1]-y)<300)) continue; pts.push([x,y]); }
+    return {a:[a.x,a.y],P:pts}; });
+  await look(R5.a[0],R5.a[1],1);
+  { const s0=await T.scr(R5.a[0],R5.a[1]-28); await T.tap(s0[0],s0[1]); await p.waitForTimeout(200); const s1=await T.scr(R5.P[0][0],R5.P[0][1]); await T.tap(s1[0],s1[1]); await p.waitForTimeout(250); }
+  const m1=await T.ev(()=>{ const m=__ltm.bw.menu; return m&&[Math.round(m.wx),Math.round(m.wy)]; });
+  { const s2=await T.scr(R5.P[1][0],R5.P[1][1]); const inMenu=await T.ev(([x,y])=>(__ltm.bw._menuRects||[]).some(r=>x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h),s2); if(!inMenu){ await T.tap(s2[0],s2[1]); await p.waitForTimeout(250); } }
+  st=await T.ev(()=>{ const bw=__ltm.bw, m=bw.menu; return {sel:bw.selA===window.__R, m:m&&[Math.round(m.wx),Math.round(m.wy)], ids:m&&m.opts.map(o=>o.id).join()}; });
+  ok(!!m1&&st.sel&&st.m&&(st.m[0]!==m1[0]||st.m[1]!==m1[1])&&/move/.test(st.ids||''),'chọn đạo quân → chạm điểm A (hiện menu) → chạm điểm B ngoài menu: vẫn giữ đạo quân, menu chuyển sang điểm B');
+  { const mv=await T.until(()=>{ const R=(__ltm.bw._menuRects||[]).find(r=>r.id==='move'); return R? [R.x+R.w/2,R.y+R.h/2] : null; },null,2000); if(mv){ await T.tap(mv[0],mv[1]); await p.waitForTimeout(250); } }
+  st=await T.ev(([x,y])=>{ const a=window.__R; return {tx:Math.round(a.tx), ty:Math.round(a.ty), x, y, moving:!a.camped}; },R5.P[1]);
+  ok(Math.hypot(st.tx-st.x,st.ty-st.y)<5&&st.moving,'chạm "🏃 March here": đạo quân đi tới điểm B');
+  // ---------- 6) quét chỉ phủ HÌNH lính và bảng số (phía trên chân đạo quân) vẫn chọn được ----------
+  await fresh();
+  const R6=await T.ev(()=>{ const bw=__ltm.bw, c=bw.nodes[0]; const a={owner:0,type:'archer',count:900,x:c.x+700,y:c.y+250,to:-1,camped:true,trail:0,food:100}; bw.armies.push(a); window.__S=a; return [a.x,a.y]; });
+  await look(R6[0],R6[1],1.6);
+  { const a=await T.scr(R6[0]-70,R6[1]-110), c=await T.scr(R6[0]+70,R6[1]-40);
+    await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:a[0],y:a[1],id:1}]}); await p.waitForTimeout(550);
+    for(let i=1;i<=10;i++){ await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:a[0]+(c[0]-a[0])*i/10,y:a[1]+(c[1]-a[1])*i/10,id:1}]}); await p.waitForTimeout(22); }
+    await p.waitForTimeout(100); await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]}); await p.waitForTimeout(300); }
+  ok(await T.ev(()=>(__ltm.bw.selG||[]).includes(window.__S)),'giữ tay quét quanh hình lính + bảng số (không trùm chân đạo quân): vẫn chọn được đạo quân ngoài đồng');
   ok(!T.errs.length,'không có lỗi JS '+T.errs.slice(0,2).join(' | '));
   await T.ctx.close(); }
 await finish('📣 Gom quân · 🔲 quét vùng · 🤝 gộp đạo (6.3)',b);
