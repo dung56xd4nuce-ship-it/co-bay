@@ -260,22 +260,31 @@ function menuBg(){ const cv=$('menuBg'); const c=cv.getContext('2d'); const walk
     c.fillStyle='rgba(10,6,25,0.35)'; c.fillRect(0,0,W,H);
     menuAnim=requestAnimationFrame(loop); };
   menuAnim=requestAnimationFrame(loop); }
+// (6.4) nút chọn chế độ: biểu tượng vẽ riêng (không dùng emoji của máy) + tên + một dòng phụ, mọi thẻ cùng bố cục
+const MODE_ICON={
+  swords:'<svg viewBox="0 0 32 32"><g fill="none" stroke="#2a1a12" stroke-linecap="round" stroke-linejoin="round"><path d="M7 6l13 13M25 6L12 19" stroke-width="3.4"/><path d="M17 22.5l6-6M15 22.5l-6-6" stroke-width="2.8"/><path d="M21.5 20.5l4 4M10.5 20.5l-4 4" stroke-width="3.8"/></g></svg>',
+  cal:'<svg viewBox="0 0 32 32"><g fill="none" stroke="#2a1a12" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="7" width="22" height="20" rx="4" fill="#fff8ec"/><path d="M5 13h22" /><path d="M11 4v6M21 4v6"/><path d="M11 20l4 4 7-8" stroke="#1f9d55" stroke-width="3.2"/></g></svg>',
+  globe:'<svg viewBox="0 0 32 32"><g fill="none" stroke="#2a1a12" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="16" r="11.5" fill="#bfe6ff"/><path d="M9 11c3-3 6-1 6 2s-3 3-3 6-3 2-5-1M19 8c2 1 5 3 5 6s-4 2-5 5 2 5 3 6" fill="#7bd389"/></g></svg>',
+  play:'<svg viewBox="0 0 32 32"><path d="M11 6.5l14 9.5-14 9.5z" fill="#2a1a12" stroke="#2a1a12" stroke-width="3" stroke-linejoin="round"/></svg>'};
+function modeBtn(id,icon,title,sub){ const b=$(id); if(!b) return; b.classList.add('mode'); b.innerHTML=`<span class="mi">${MODE_ICON[icon]||''}</span><span class="mt"><b>${title}</b>${sub? `<small>${sub}</small>` : ''}</span>`; }
+function chalSub(){ try{ const C=chalState(), dk=chalDayKey(), wk=chalWeekKey(), dd=C.d.key===dk&&C.d.done, wd=C.w.key===wk&&C.w.done, st=(C.last===dk||C.last===chalPrevDay(dk))? (C.streak|0) : 0;
+    return (dd? '✔ Today done' : `Today +${BW.chal.dayXu} coins`)+' · '+(wd? '✔ week done' : `week +${BW.chal.weekXu}`)+(st>1? ` · ${st}-day streak` : ''); }catch(e){ return 'New challenge every day and every week'; } }
 function setupMenus(){
   const max=Math.max(1,Math.min(40,save.max||1)); $('bPlay').textContent= max>1? `▶ Play Stage ${max}` : '▶ Play Stage 1';
   $('bPlay').onclick=()=>{ audio.init(); startLevel(Math.max(1,Math.min(40,save.max||1))); };
   $('bMini').onclick=()=>{ audio.init(); startLevel('mini'); };
-  $('bBW').onclick=()=>{ audio.init(); if(needTut()){ startTutorial(); return; } refreshContinue(); $('bossPick').classList.remove('hidden'); };
+  $('bBW').onclick=()=>{ audio.init(); if(needTut()){ startTutorial(); return; } refreshContinue(); modeBtn('bChal','cal','CHALLENGES',chalSub()); $('bossPick').classList.remove('hidden'); };
   $('bTut').onclick=()=>{ audio.init(); startTutorial(); };
-  { const cl=campCleared(), cur=Math.min(CAMP_N,cl+1); $('bBoss1v1').innerHTML= cl>=CAMP_N? '⚔️ 1 vs 1 CAMPAIGN<br><small>👑 All 10 stages cleared — replay any stage</small>' : `⚔️ 1 vs 1 CAMPAIGN<br><small>Stage ${cur} of ${CAMP_N} · ${cl} cleared</small>`; }
+  { const cl=campCleared(), cur=Math.min(CAMP_N,cl+1); modeBtn('bBoss1v1','swords','1 vs 1 CAMPAIGN', cl>=CAMP_N? 'All 10 stages cleared — replay any stage' : `Stage ${cur} of ${CAMP_N} · ${cl} cleared`); modeBtn('bChal','cal','CHALLENGES',chalSub()); }
   $('bBoss1v1').onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); Campaign.open(); };
   $('bBossRoyale').onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); Conquest.open(); };   /* (5.7) Quần Hùng → CHINH PHẠT: Bộ lạc → Nội chiến → Đại chiến */
-  try{ const cq=save.conq, st=cq? Math.min(3,cq.stage|0) : 0; $('bBossRoyale').innerHTML= !cq? '🌏 CONQUEST — Tribes → Civil War → Great War<br><small>Choose a nation and unite the world (auto-save)</small>' : st>=3? '🌏 CONQUEST<br><small>👑 The world is yours — start a new conquest</small>' : `🌏 CONQUEST<br><small>${BW_CIV[cq.civ]? BW_CIV[cq.civ].icon+' '+BW_CIV[cq.civ].name+' · ' : ''}Stage ${st+1}/3: ${BW_CONQ[BW_CONQ_ORDER[st]].name}</small>`; }catch(e){}   /* bảng Chinh phạt nạp sau (src/09j): dựng lại menu ở cuối tệp đó */
+  try{ const cq=save.conq, st=cq? Math.min(3,cq.stage|0) : 0; modeBtn('bBossRoyale','globe','CONQUEST', !cq? 'Tribes → Civil War → Great War' : st>=3? 'The world is yours — start a new conquest' : `${BW_CIV[cq.civ]? BW_CIV[cq.civ].name+' · ' : ''}Stage ${st+1}/3: ${BW_CONQ[BW_CONQ_ORDER[st]].name}`); }catch(e){ modeBtn('bBossRoyale','globe','CONQUEST','Tribes → Civil War → Great War'); }   /* bảng Chinh phạt nạp sau (src/09j): dựng lại menu ở cuối tệp đó */
   const refreshContinue=()=>{ const sv=royaleLoadInfo(), bc=$('bBossContinue');
     if(bc){ if(sv){ const d=new Date(sv.savedAt), nat=new Set(sv.nodes.filter(n=>n.camp&&n.owner!==2).map(n=>n.owner)).size, mm=Math.floor((sv.sc.time||0)/60);
-        let cq=null; try{ cq=BW_CONQ[sv.cfg.conq]; }catch(e){} bc.style.display=''; bc.innerHTML=`▶ CONTINUE ${cq? 'CONQUEST' : 'WARLORDS'}<br><small>${cq? cq.icon+' '+cq.name+' · '+(sv.cfg.asc? '★'+sv.cfg.asc+' · ' : '') : ''}${DIFF_N[sv.cfg.diff==null?1:sv.cfg.diff]} · ${nat} ${cq? cq.unit : 'nations'} · played ${mm} min · saved ${d.toLocaleString('en-US',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'short'})}</small>`;
+        let cq=null; try{ cq=BW_CONQ[sv.cfg.conq]; }catch(e){} bc.style.display=''; modeBtn('bBossContinue','play',`CONTINUE ${cq? 'CONQUEST' : 'WARLORDS'}`,`${cq? cq.name+' · '+(sv.cfg.asc? '★'+sv.cfg.asc+' · ' : '') : ''}${DIFF_N[sv.cfg.diff==null?1:sv.cfg.diff]} · ${nat} ${cq? cq.unit : 'nations'} · ${mm} min played`); void d;
         bc.onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); royaleResume(); }; }
       else bc.style.display='none'; }
-    const ss=soloLoadInfo(), sc=$('bSoloContinue'); if(sc){ if(ss){ sc.style.display=''; sc.innerHTML= ss.cfg&&ss.cfg.endless? `▶ CONTINUE ∞ ENDLESS ${ss.cfg.endless}<br><small>${(()=>{ try{ return (ss.cfg.mut||[]).map(m=>BW_MUT[m]? BW_MUT[m].icon+' '+BW_MUT[m].name : '').join(' · '); }catch(e){ return ''; } })()} · played ${Math.floor((ss.sc.time||0)/60)} min</small>` : `▶ CONTINUE STAGE ${ss.lv}<br><small>${stageName(ss.lv)} · played ${Math.floor((ss.sc.time||0)/60)} min</small>`; sc.onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); soloResume(); }; } else sc.style.display='none'; } }; refreshContinue();
+    const ss=soloLoadInfo(), sc=$('bSoloContinue'); if(sc){ if(ss){ sc.style.display=''; if(ss.cfg&&ss.cfg.endless) modeBtn('bSoloContinue','play',`CONTINUE ∞ ENDLESS ${ss.cfg.endless}`,`${(()=>{ try{ return (ss.cfg.mut||[]).map(m=>BW_MUT[m]? BW_MUT[m].name : '').join(' · '); }catch(e){ return ''; } })()} · ${Math.floor((ss.sc.time||0)/60)} min played`); else modeBtn('bSoloContinue','play',`CONTINUE STAGE ${ss.lv}`,`${stageName(ss.lv)} · ${Math.floor((ss.sc.time||0)/60)} min played`); sc.onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); soloResume(); }; } else sc.style.display='none'; } }; refreshContinue();
   $('bBossClose').onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); };
   $('bP2P').onclick=()=>{ audio.init(); P2P.open(); };
   $('bFull').onclick=()=>{ audio.init(); audio.click(); goFullscreen(); };

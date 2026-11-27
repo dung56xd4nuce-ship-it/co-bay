@@ -45,7 +45,7 @@ for(const [dn,dev] of [...DEVICES, PORTRAIT[1], ['Android nhỏ ngang 640×360',
   /* so với đúng những gì đã ghi xuống máy (trận vẫn chạy cho tới lúc bấm thoát) */
   const s1=await T.ev(()=>{ const sv=JSON.parse(localStorage.getItem('ltm_solo_save_v1')); return {t:Math.round(sv.sc.time),lv:sv.lv,map:sv.cfg.map,nodes:sv.nodes.map(n=>n.owner+':'+Math.round(n.count/5)).join(','),arm:sv.armies.filter(a=>!a.done).length}; });
   await p.reload(); await p.waitForFunction(()=>window.__ltm); await p.waitForTimeout(400); await T.tapEl('#bBW'); await p.waitForTimeout(250);
-  const ct=await txt('#bSoloContinue'); ok(await T.visible('#bSoloContinue')&&/CONTINUE STAGE 2/.test(ct)&&/Pasture Wars/.test(ct)&&/played 1 min/.test(ct),`tắt app mở lại: nút "${ct}"`);
+  const ct=await txt('#bSoloContinue'); ok(await T.visible('#bSoloContinue')&&/CONTINUE STAGE 2/.test(ct)&&/Pasture Wars/.test(ct)&&/1 min played/.test(ct),`tắt app mở lại: nút "${ct}"`);
   ok(/Stage 2 of 10 · 1 cleared/.test(await txt('#bBoss1v1'))&&await inView('#bossPick .btn'),'nút chiến dịch ghi "Stage 2 of 10 · 1 cleared"; bảng chọn chế độ không tràn màn hình');
   await T.ev(()=>{ const o=soloResume; soloResume=function(){ const r=o(), b=G.bw; window.__s2={t:Math.round(b.time),lv:b.lv,map:b.cfg.map,en:b.civOf(1).id,nodes:b.nodes.map(n=>n.owner+':'+Math.round(n.count/5)).join(','),arm:b.armies.filter(a=>!a.done).length}; return r; }; });   /* chụp trạng thái NGAY lúc ván vừa mở lại (trước khi trận chạy tiếp) */
   r=await T.tapEl('#bSoloContinue'); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.lastVw>0&&window.__s2); await p.waitForTimeout(400); const s2=await T.ev(()=>window.__s2);

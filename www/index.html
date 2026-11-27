@@ -207,10 +207,18 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
 @keyframes siIn{0%{opacity:0;transform:scale(1.15)}9%{opacity:1;transform:scale(1)}82%{opacity:1}100%{opacity:0}}
 #rStage{font-weight:900;font-size:17px;margin-top:4px}#rStage .unl{display:block;color:#7dffcf;font-size:15px;margin-top:2px}#rStage .rec{display:block;color:#ffd54a;font-size:13px}
 #civStage .btn.dif{width:auto;padding:0 10px;font-size:13px;opacity:.55;filter:grayscale(.6)}#civStage .btn.dif.on{opacity:1;filter:none;background:linear-gradient(#c8f7c5,#4ade80);box-shadow:0 0 0 3px rgba(255,255,255,.75)}
-#bossPick .btn.big small{display:block;font-size:.6em;font-weight:700;opacity:.92;line-height:1.25}
+#bossPick{background:rgba(10,6,25,.9);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+#bossPick .card{width:100%;max-width:440px!important;box-sizing:border-box;display:flex;flex-direction:column;gap:10px;padding:16px}
+#bossPick .bphead{display:flex;align-items:center;justify-content:space-between} #bossPick h2{margin:0;font-size:22px;letter-spacing:2px;color:#ffd54a}
+#bBossClose{width:40px;height:40px;min-height:40px;padding:0;font-size:17px;border-radius:50%;flex:none}
+#bossPick .btn.mode{display:flex;align-items:center;gap:12px;width:100%;box-sizing:border-box;margin:0;padding:10px 14px;min-height:64px;text-align:left;font-size:18px;line-height:1.15}
+#bossPick .mode .mi{flex:none;width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.55);border:2px solid var(--ink);display:flex;align-items:center;justify-content:center} #bossPick .mode .mi svg{width:30px;height:30px;display:block}
+#bossPick .mode .mt{min-width:0;flex:1;display:flex;flex-direction:column;gap:2px} #bossPick .mode .mt b{font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#bossPick .mode .mt small{font-size:13px;font-weight:700;opacity:.85;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 @media (max-height:500px) and (orientation:landscape){
-  #bossPick .card{max-width:min(96vw,780px)!important;display:grid;grid-template-columns:1fr 1fr;gap:6px 8px;align-items:stretch;padding:10px 14px}
-  #bossPick h2{grid-column:1/-1;margin:0;font-size:18px} #bossPick .btn.big{font-size:15px;padding:6px 10px;margin:0;line-height:1.2} #bossPick p{display:none} #bossPick .card>div:last-child{grid-column:1/-1}
+  #bossPick .card{width:100%;max-width:720px!important;display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:stretch;padding:10px 14px}
+  #bossPick .bphead{grid-column:1/-1} #bossPick h2{font-size:18px} #bBossClose{width:34px;height:34px;min-height:34px} #bossPick .btn.mode{font-size:15px;padding:5px 10px;min-height:48px} #bossPick .mode .mi{width:36px;height:36px} #bossPick .mode .mi svg{width:26px;height:26px} #bossPick .mode .mt small{font-size:12px;-webkit-line-clamp:1}
+  #bossPick .card{gap:6px;padding:8px 12px;max-height:calc(100dvh - 12px - var(--safe-b))}
   #result .card{padding:8px 16px;max-height:calc(100dvh - 12px)} #result h1{font-size:28px;text-shadow:0 3px 0 var(--ink)} #result h1 img{max-height:13vh!important} #rStage{font-size:14px;margin-top:0} #rStage .unl,#rStage .rec{display:inline;margin:0 0 0 8px;font-size:13px}
   #result .sub{margin:1px 0!important;font-size:12px} #result .stats{font-size:12.5px;gap:1px 16px;margin:4px 0 6px;grid-template-columns:1fr 1fr 1fr} #result .menuBtns{gap:6px} #result .menuBtns .btn{font-size:15px;padding:5px 14px} }
 @media (max-height:420px) and (orientation:landscape){ #campHint,#conqHint{display:none} .campcard h2{font-size:18px} .stg{min-height:54px;padding:5px 9px} #stageIntro{top:14%} }
@@ -267,7 +275,7 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
     <div class="coinbar"><span class="ic" data-art="ui:coin">🪙</span> <b class="xu">0</b> Meme Coins</div>
     <button class="btn achCorner" id="bAch" aria-label="Achievements">🏆<span id="achBadge" class="achbadge"></span></button>
     <button class="btn sndBtn sndCorner" id="bMSound" aria-label="Sound on/off"><span class="ic" data-art="ui:sound">🔊</span></button>
-    <div id="ver" style="position:absolute;right:calc(10px + var(--safe-r));bottom:calc(6px + var(--safe-b));font-size:12px;font-weight:700;opacity:.6;pointer-events:none">v6.3.1</div>
+    <div id="ver" style="position:absolute;right:calc(10px + var(--safe-r));bottom:calc(6px + var(--safe-b));font-size:12px;font-weight:700;opacity:.6;pointer-events:none">v6.4</div>
   </div>
   <div id="gear" class="screen hidden"><div class="card wide"><div class="fhead"><h2>🎒 Supplies</h2><div class="coinbar"><span class="ic" data-art="ui:coin">🪙</span> <b class="xu">0</b> Coins</div></div>
     <div class="civtabs armtabs"><button class="btn on" disabled>🎒 Supplies</button><button class="btn" id="bToForge"><span class="ic" data-art="ui:forge">⚒️</span> Forge</button><button class="btn" id="bToDecor">🏮 Decor</button><button class="btn" data-armtab="gens">🎖️ Generals</button></div>
@@ -307,14 +315,13 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
     <div style="text-align:right"><button class="btn" data-back>← Back</button></div></div></div>
   <div id="levels" class="screen hidden"><div class="card"><h2>🗺️ 100-stage campaign</h2><p>Stages 1–20: 4 factions. Stages 21–40: <b>8 factions</b>, plus <b>2 side flags 🚩</b> and <b>whole-faction surrender</b>. Stages 41+ (12 factions) in development. Every stage: at minute 10 a <b>🌩️ fog storm</b> closes in on the Drum.</p><div class="grid" id="lvgrid"></div><div style="text-align:right"><button class="btn" data-back>← Back</button></div></div></div>
   <div id="bossPick" class="screen hidden"><div class="card" style="max-width:520px">
-  <h2>👑 BATTLE</h2>
-  <button class="btn big" id="bSoloContinue" style="display:none;background:linear-gradient(#c8f7c5,#4ade80)">▶ CONTINUE</button>
-  <button class="btn big" id="bBoss1v1">⚔️ 1 vs 1 — 10-stage campaign</button>
-  <button class="btn big" id="bBossContinue" style="display:none;background:linear-gradient(#c8f7c5,#4ade80)">▶ CONTINUE</button>
-  <button class="btn big" id="bChal" style="background:linear-gradient(#d9f7ff,#5cc8ff)">📅 Daily &amp; weekly challenges</button>
-  <button class="btn big" id="bBossRoyale" style="background:linear-gradient(#ffe9b9,#ffb13d)">🌏 CONQUEST — Tribes → Civil War → Great War</button>
-  <p style="font-size:13px;opacity:0.8">Conquest: start as one tribe, unite the tribes, win your country's civil war, then conquer every nation in the Great War. A rival falls when it loses its capital — its land and armies surrender to the conqueror.</p>
-  <div style="text-align:right"><button class="btn" id="bBossClose">✖ Close</button></div></div></div>
+  <div class="bphead"><h2>BATTLE</h2><button class="btn" id="bBossClose" aria-label="Close">✕</button></div>
+  <button class="btn big mode" id="bSoloContinue" style="display:none;background:linear-gradient(#c8f7c5,#4ade80)">CONTINUE</button>
+  <button class="btn big mode" id="bBossContinue" style="display:none;background:linear-gradient(#c8f7c5,#4ade80)">CONTINUE</button>
+  <button class="btn big mode" id="bBoss1v1" style="background:linear-gradient(#fff4c9,#ffd36b)">1 vs 1 CAMPAIGN</button>
+  <button class="btn big mode" id="bBossRoyale" style="background:linear-gradient(#ffe9b9,#ffb13d)">CONQUEST</button>
+  <button class="btn big mode" id="bChal" style="background:linear-gradient(#d9f7ff,#5cc8ff)">CHALLENGES</button>
+  </div></div>
 <div id="campaign" class="screen hidden"><div class="card wide campcard"><div class="fhead"><h2>⚔️ Campaign</h2><div id="campProg" class="campprog"></div></div>
   <p id="campHint" style="margin:0 0 6px;opacity:.85">Each stage: a new land and a smarter boss. Clear a stage to unlock the next — your progress is saved.</p>
   <div id="campList" class="camplist"></div>
@@ -2967,22 +2974,31 @@ function menuBg(){ const cv=$('menuBg'); const c=cv.getContext('2d'); const walk
     c.fillStyle='rgba(10,6,25,0.35)'; c.fillRect(0,0,W,H);
     menuAnim=requestAnimationFrame(loop); };
   menuAnim=requestAnimationFrame(loop); }
+// (6.4) nút chọn chế độ: biểu tượng vẽ riêng (không dùng emoji của máy) + tên + một dòng phụ, mọi thẻ cùng bố cục
+const MODE_ICON={
+  swords:'<svg viewBox="0 0 32 32"><g fill="none" stroke="#2a1a12" stroke-linecap="round" stroke-linejoin="round"><path d="M7 6l13 13M25 6L12 19" stroke-width="3.4"/><path d="M17 22.5l6-6M15 22.5l-6-6" stroke-width="2.8"/><path d="M21.5 20.5l4 4M10.5 20.5l-4 4" stroke-width="3.8"/></g></svg>',
+  cal:'<svg viewBox="0 0 32 32"><g fill="none" stroke="#2a1a12" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="7" width="22" height="20" rx="4" fill="#fff8ec"/><path d="M5 13h22" /><path d="M11 4v6M21 4v6"/><path d="M11 20l4 4 7-8" stroke="#1f9d55" stroke-width="3.2"/></g></svg>',
+  globe:'<svg viewBox="0 0 32 32"><g fill="none" stroke="#2a1a12" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="16" r="11.5" fill="#bfe6ff"/><path d="M9 11c3-3 6-1 6 2s-3 3-3 6-3 2-5-1M19 8c2 1 5 3 5 6s-4 2-5 5 2 5 3 6" fill="#7bd389"/></g></svg>',
+  play:'<svg viewBox="0 0 32 32"><path d="M11 6.5l14 9.5-14 9.5z" fill="#2a1a12" stroke="#2a1a12" stroke-width="3" stroke-linejoin="round"/></svg>'};
+function modeBtn(id,icon,title,sub){ const b=$(id); if(!b) return; b.classList.add('mode'); b.innerHTML=`<span class="mi">${MODE_ICON[icon]||''}</span><span class="mt"><b>${title}</b>${sub? `<small>${sub}</small>` : ''}</span>`; }
+function chalSub(){ try{ const C=chalState(), dk=chalDayKey(), wk=chalWeekKey(), dd=C.d.key===dk&&C.d.done, wd=C.w.key===wk&&C.w.done, st=(C.last===dk||C.last===chalPrevDay(dk))? (C.streak|0) : 0;
+    return (dd? '✔ Today done' : `Today +${BW.chal.dayXu} coins`)+' · '+(wd? '✔ week done' : `week +${BW.chal.weekXu}`)+(st>1? ` · ${st}-day streak` : ''); }catch(e){ return 'New challenge every day and every week'; } }
 function setupMenus(){
   const max=Math.max(1,Math.min(40,save.max||1)); $('bPlay').textContent= max>1? `▶ Play Stage ${max}` : '▶ Play Stage 1';
   $('bPlay').onclick=()=>{ audio.init(); startLevel(Math.max(1,Math.min(40,save.max||1))); };
   $('bMini').onclick=()=>{ audio.init(); startLevel('mini'); };
-  $('bBW').onclick=()=>{ audio.init(); if(needTut()){ startTutorial(); return; } refreshContinue(); $('bossPick').classList.remove('hidden'); };
+  $('bBW').onclick=()=>{ audio.init(); if(needTut()){ startTutorial(); return; } refreshContinue(); modeBtn('bChal','cal','CHALLENGES',chalSub()); $('bossPick').classList.remove('hidden'); };
   $('bTut').onclick=()=>{ audio.init(); startTutorial(); };
-  { const cl=campCleared(), cur=Math.min(CAMP_N,cl+1); $('bBoss1v1').innerHTML= cl>=CAMP_N? '⚔️ 1 vs 1 CAMPAIGN<br><small>👑 All 10 stages cleared — replay any stage</small>' : `⚔️ 1 vs 1 CAMPAIGN<br><small>Stage ${cur} of ${CAMP_N} · ${cl} cleared</small>`; }
+  { const cl=campCleared(), cur=Math.min(CAMP_N,cl+1); modeBtn('bBoss1v1','swords','1 vs 1 CAMPAIGN', cl>=CAMP_N? 'All 10 stages cleared — replay any stage' : `Stage ${cur} of ${CAMP_N} · ${cl} cleared`); modeBtn('bChal','cal','CHALLENGES',chalSub()); }
   $('bBoss1v1').onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); Campaign.open(); };
   $('bBossRoyale').onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); Conquest.open(); };   /* (5.7) Quần Hùng → CHINH PHẠT: Bộ lạc → Nội chiến → Đại chiến */
-  try{ const cq=save.conq, st=cq? Math.min(3,cq.stage|0) : 0; $('bBossRoyale').innerHTML= !cq? '🌏 CONQUEST — Tribes → Civil War → Great War<br><small>Choose a nation and unite the world (auto-save)</small>' : st>=3? '🌏 CONQUEST<br><small>👑 The world is yours — start a new conquest</small>' : `🌏 CONQUEST<br><small>${BW_CIV[cq.civ]? BW_CIV[cq.civ].icon+' '+BW_CIV[cq.civ].name+' · ' : ''}Stage ${st+1}/3: ${BW_CONQ[BW_CONQ_ORDER[st]].name}</small>`; }catch(e){}   /* bảng Chinh phạt nạp sau (src/09j): dựng lại menu ở cuối tệp đó */
+  try{ const cq=save.conq, st=cq? Math.min(3,cq.stage|0) : 0; modeBtn('bBossRoyale','globe','CONQUEST', !cq? 'Tribes → Civil War → Great War' : st>=3? 'The world is yours — start a new conquest' : `${BW_CIV[cq.civ]? BW_CIV[cq.civ].name+' · ' : ''}Stage ${st+1}/3: ${BW_CONQ[BW_CONQ_ORDER[st]].name}`); }catch(e){ modeBtn('bBossRoyale','globe','CONQUEST','Tribes → Civil War → Great War'); }   /* bảng Chinh phạt nạp sau (src/09j): dựng lại menu ở cuối tệp đó */
   const refreshContinue=()=>{ const sv=royaleLoadInfo(), bc=$('bBossContinue');
     if(bc){ if(sv){ const d=new Date(sv.savedAt), nat=new Set(sv.nodes.filter(n=>n.camp&&n.owner!==2).map(n=>n.owner)).size, mm=Math.floor((sv.sc.time||0)/60);
-        let cq=null; try{ cq=BW_CONQ[sv.cfg.conq]; }catch(e){} bc.style.display=''; bc.innerHTML=`▶ CONTINUE ${cq? 'CONQUEST' : 'WARLORDS'}<br><small>${cq? cq.icon+' '+cq.name+' · '+(sv.cfg.asc? '★'+sv.cfg.asc+' · ' : '') : ''}${DIFF_N[sv.cfg.diff==null?1:sv.cfg.diff]} · ${nat} ${cq? cq.unit : 'nations'} · played ${mm} min · saved ${d.toLocaleString('en-US',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'short'})}</small>`;
+        let cq=null; try{ cq=BW_CONQ[sv.cfg.conq]; }catch(e){} bc.style.display=''; modeBtn('bBossContinue','play',`CONTINUE ${cq? 'CONQUEST' : 'WARLORDS'}`,`${cq? cq.name+' · '+(sv.cfg.asc? '★'+sv.cfg.asc+' · ' : '') : ''}${DIFF_N[sv.cfg.diff==null?1:sv.cfg.diff]} · ${nat} ${cq? cq.unit : 'nations'} · ${mm} min played`); void d;
         bc.onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); royaleResume(); }; }
       else bc.style.display='none'; }
-    const ss=soloLoadInfo(), sc=$('bSoloContinue'); if(sc){ if(ss){ sc.style.display=''; sc.innerHTML= ss.cfg&&ss.cfg.endless? `▶ CONTINUE ∞ ENDLESS ${ss.cfg.endless}<br><small>${(()=>{ try{ return (ss.cfg.mut||[]).map(m=>BW_MUT[m]? BW_MUT[m].icon+' '+BW_MUT[m].name : '').join(' · '); }catch(e){ return ''; } })()} · played ${Math.floor((ss.sc.time||0)/60)} min</small>` : `▶ CONTINUE STAGE ${ss.lv}<br><small>${stageName(ss.lv)} · played ${Math.floor((ss.sc.time||0)/60)} min</small>`; sc.onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); soloResume(); }; } else sc.style.display='none'; } }; refreshContinue();
+    const ss=soloLoadInfo(), sc=$('bSoloContinue'); if(sc){ if(ss){ sc.style.display=''; if(ss.cfg&&ss.cfg.endless) modeBtn('bSoloContinue','play',`CONTINUE ∞ ENDLESS ${ss.cfg.endless}`,`${(()=>{ try{ return (ss.cfg.mut||[]).map(m=>BW_MUT[m]? BW_MUT[m].name : '').join(' · '); }catch(e){ return ''; } })()} · ${Math.floor((ss.sc.time||0)/60)} min played`); else modeBtn('bSoloContinue','play',`CONTINUE STAGE ${ss.lv}`,`${stageName(ss.lv)} · ${Math.floor((ss.sc.time||0)/60)} min played`); sc.onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); soloResume(); }; } else sc.style.display='none'; } }; refreshContinue();
   $('bBossClose').onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); };
   $('bP2P').onclick=()=>{ audio.init(); P2P.open(); };
   $('bFull').onclick=()=>{ audio.init(); audio.click(); goFullscreen(); };

@@ -12,12 +12,12 @@ rm -rf $REPO/ltm-src && mkdir -p $REPO/ltm-src/src && cp src/*.js src/shell.html
 cd $REPO
 PREV=$(grep -o 'ltm-v[0-9.]*' .github/workflows/build-android.yml | head -1 | sed 's/ltm-v//')
 sed -i "s/v$PREV/v$V/g" .github/workflows/build-android.yml README.md
-CODE=$(echo "$V" | tr -d .)
+CODE=$(echo "$V" | awk -F. '{print $1*100+$2*10+$3}')   # 6.3.1 → 631, 6.4 → 640: số luôn tăng để cài đè được
 sed -i "s/versionCode [0-9]*/versionCode $CODE/; s/versionName \"[^\"]*\"/versionName \"$V\"/" android/app/build.gradle
 git add -A
 git commit -q -m "$MSG
 
-Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>
 Claude-Session: https://claude.ai/code/session_011dXpbbj7myjXTyBRigucVQ"
 git -c push.negotiate=true push -q origin loan-the-meme
 git log --oneline | head -1
