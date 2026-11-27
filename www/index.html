@@ -192,7 +192,9 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
 .chrongrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;max-height:58vh;overflow:auto}.civ.chron{cursor:default}.civ.chron.off{opacity:.5;filter:grayscale(.7)}.civ.chron.on{border-color:#ffd54a}
 #conquest .stg.asc{border-color:#ffd54a;background:linear-gradient(90deg,rgba(255,213,74,.18),rgba(255,107,214,.12))}#conquest .stg.asc .no{background:linear-gradient(#ffe27a,#ff9f1a);color:#3a2000}
 #campaign .stg.endless .no{background:linear-gradient(#b48cff,#5b3fd6)}
-.gport{width:64px;height:64px;border-radius:50%;flex:0 0 64px}.gxp{height:6px;border-radius:4px;background:rgba(255,255,255,.15);margin-top:4px;overflow:hidden}.gxp i{display:block;height:100%;background:linear-gradient(90deg,#7dffcf,#4ade80)}.gtag{font-size:12px;font-weight:800;color:#ffd54a;margin-left:6px}
+#genList{grid-template-columns:repeat(auto-fill,minmax(330px,1fr))} #genList .fcard{align-items:flex-start} #genList .fcard>.btn{align-self:center;flex:0 0 auto;white-space:nowrap} #genList .fcard>.fb{flex:1 1 auto;min-width:0}
+  .genciv{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:0 0 8px} #genCiv{font:700 15px system-ui;padding:7px 10px;border-radius:10px;border:2px solid #3a2a1c;background:#fff8ec;color:#2a1a12;max-width:100%} .ghist{font-style:italic;opacity:.85} .gtag.leg{background:#ffd54a;color:#3a2a00}
+  .gport{width:64px;height:64px;border-radius:50%;flex:0 0 64px}.gxp{height:6px;border-radius:4px;background:rgba(255,255,255,.15);margin-top:4px;overflow:hidden}.gxp i{display:block;height:100%;background:linear-gradient(90deg,#7dffcf,#4ade80)}.gtag{font-size:12px;font-weight:800;color:#ffd54a;margin-left:6px}
 .mtitle{font-weight:900;color:#ffd54a;text-shadow:0 2px 0 #3a2000;font-size:16px;margin:-2px 0 4px}
 .achtitles{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;margin:0 0 6px}.achtitles .btn{font-size:13px;padding:4px 10px}
 .achgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));grid-auto-rows:min-content;gap:6px;overflow:auto;flex:1 1 auto;min-height:0}.achgrid .agroup{grid-column:1/-1;font-weight:900;color:#ffd54a;margin-top:4px}
@@ -265,7 +267,7 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
     <div class="coinbar"><span class="ic" data-art="ui:coin">🪙</span> <b class="xu">0</b> Meme Coins</div>
     <button class="btn achCorner" id="bAch" aria-label="Achievements">🏆<span id="achBadge" class="achbadge"></span></button>
     <button class="btn sndBtn sndCorner" id="bMSound" aria-label="Sound on/off"><span class="ic" data-art="ui:sound">🔊</span></button>
-    <div id="ver" style="position:absolute;right:calc(10px + var(--safe-r));bottom:calc(6px + var(--safe-b));font-size:12px;font-weight:700;opacity:.6;pointer-events:none">v6.1</div>
+    <div id="ver" style="position:absolute;right:calc(10px + var(--safe-r));bottom:calc(6px + var(--safe-b));font-size:12px;font-weight:700;opacity:.6;pointer-events:none">v6.2</div>
   </div>
   <div id="gear" class="screen hidden"><div class="card wide"><div class="fhead"><h2>🎒 Supplies</h2><div class="coinbar"><span class="ic" data-art="ui:coin">🪙</span> <b class="xu">0</b> Coins</div></div>
     <div class="civtabs armtabs"><button class="btn on" disabled>🎒 Supplies</button><button class="btn" id="bToForge"><span class="ic" data-art="ui:forge">⚒️</span> Forge</button><button class="btn" id="bToDecor">🏮 Decor</button><button class="btn" data-armtab="gens">🎖️ Generals</button></div>
@@ -278,7 +280,8 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
     <div style="text-align:right;margin-top:8px"><button class="btn" data-back>← Back</button></div></div></div>
   <div id="gens" class="screen hidden"><div class="card wide"><div class="fhead"><h2>🎖️ Generals</h2><div class="coinbar"><span class="ic" data-art="ui:coin">🪙</span> <b class="xu">0</b> Coins</div></div>
     <div class="civtabs armtabs"><button class="btn" data-armtab="gear">🎒 Supplies</button><button class="btn" data-armtab="forge"><span class="ic" data-art="ui:forge">⚒️</span> Forge</button><button class="btn" data-armtab="decor">🏮 Decor</button><button class="btn on" data-armtab="gens" disabled>🎖️ Generals</button></div>
-    <p class="note" style="margin:2px 0 6px">Recruit generals with coins and <b>bring 1 (or 2) into battle</b>. Each has a talent that always helps your side. Generals gain experience every battle (<b>win +3</b>, lose +1) and grow stronger up to <b>level 5</b>. <b id="genSlots"></b></p>
+    <p class="note" style="margin:2px 0 6px"><b>Real generals from history</b> for every civilization — they <b>ride only with their own</b>. Each has a talent; <b>win +3 XP</b>, lose +1, up to <b>level 5</b>.</p>
+    <div class="genciv"><select id="genCiv" aria-label="Civilization"></select> <b id="genSlots"></b></div>
     <div id="genList" class="flist"></div>
     <div style="text-align:right;margin-top:8px"><button class="btn" data-back>← Back</button></div></div></div>
   <div id="chalScr" class="screen hidden"><div class="card wide campcard"><div class="fhead"><h2>📅 Challenges</h2><div id="chalProg" class="campprog"></div></div>
@@ -3066,29 +3069,43 @@ function drawDecorPreview(){ const cv=$('decPrev'), c=cv.getContext('2d'), D=dec
   const im=ArtImages['prop:tent']; if(im){ c.drawImage(recolorUnit(im,0),x-95,y-110,190,190); } else { c.fillStyle='#3b82f6'; c.strokeStyle='#2a1a12'; c.lineWidth=5; c.beginPath(); c.moveTo(x-85,y+45); c.lineTo(x,y-75); c.lineTo(x+85,y+45); c.closePath(); c.fill(); c.stroke(); }
   BW.drawDecor(c,x,y,ids,t,1); c.restore(); }
 // 🎖️ (6.0) TƯỚNG LĨNH: chiêu mộ bằng xu, chọn mang 1 (mở thêm ô thứ 2) — lên cấp qua các trận
-function genState(){ const g=save.gen||(save.gen={own:{},on:[],slot2:0}); if(!g.own) g.own={}; if(!Array.isArray(g.on)) g.on=[]; g.on=g.on.filter(id=>BW_GEN_BY[id]&&g.own[id]!=null).slice(0,g.slot2? 2 : 1); return g; }
-function genPack(){ const g=genState(); return g.on.map(id=>({id,lv:BW.genLevel(g.own[id])})); }
+// 🎖️ (6.2) tướng có thật: save.gen = {own:{mãTướng:xp}, on:{nước:[mãTướng…]}, slot2}
+function genState(){ const g=save.gen||(save.gen={own:{},on:{},slot2:0}); if(!g.own) g.own={};
+  let ref=0; for(const k of Object.keys(g.own)) if(BW_GEN_BY[k]){ ref+=BW_GEN_BY[k].cost; delete g.own[k]; }   /* tướng chung chung của bản 6.0 → hoàn xu */
+  if(!g.on||Array.isArray(g.on)||typeof g.on!=='object') g.on={};
+  for(const c of Object.keys(g.on)) g.on[c]=(Array.isArray(g.on[c])? g.on[c] : []).filter(id=>BW_HERO[id]&&BW_HERO[id].civ===c&&g.own[id]!=null).slice(0,g.slot2? 2 : 1);
+  if(ref){ save.xu=(save.xu||0)+ref; G.genRefund=(G.genRefund||0)+ref; save.genRefund=(save.genRefund||0)+ref; Save.set(save); } return g; }
+function genPack(civ){ const g=genState(); return (g.on[civ]||[]).map(id=>({id,lv:BW.genLevel(g.own[id])})); }
 const GEN_IMG={};
-function genPortrait(D,sz){ const k=D.id+':'+sz; if(GEN_IMG[k]) return GEN_IMG[k]; const c=document.createElement('canvas'); c.width=c.height=sz; const x=c.getContext('2d');
-  x.fillStyle=D.col; x.beginPath(); x.arc(sz/2,sz/2,sz/2,0,7); x.fill(); x.fillStyle='rgba(255,255,255,0.25)'; x.beginPath(); x.arc(sz/2,sz*0.38,sz*0.42,0,7); x.fill();
+function genPortrait(H,sz){ const k=H.id+':'+sz; if(GEN_IMG[k]) return GEN_IMG[k]; const D=BW_GEN_BY[H.skill], cv=BW_CIV[H.civ]||{}, c=document.createElement('canvas'); c.width=c.height=sz; const x=c.getContext('2d');
+  x.fillStyle=cv.color||D.col; x.beginPath(); x.arc(sz/2,sz/2,sz/2,0,7); x.fill(); x.fillStyle='rgba(255,255,255,0.25)'; x.beginPath(); x.arc(sz/2,sz*0.38,sz*0.42,0,7); x.fill();
   try{ x.save(); x.beginPath(); x.arc(sz/2,sz/2,sz/2-2,0,7); x.clip(); x.drawImage(makeUnitSprite('general',0,D.w),-sz*0.18,-sz*0.02,sz*1.36,sz*1.36); x.restore(); }catch(e){}
-  x.font=`${Math.round(sz*0.34)}px system-ui`; x.textAlign='center'; x.textBaseline='middle'; x.fillStyle='#fff'; x.beginPath(); x.fillStyle='rgba(20,12,36,.85)'; x.arc(sz*0.8,sz*0.8,sz*0.2,0,7); x.fill(); x.fillStyle='#fff'; x.fillText(D.icon,sz*0.8,sz*0.82);
-  x.strokeStyle='#2a1a12'; x.lineWidth=3; x.beginPath(); x.arc(sz/2,sz/2,sz/2-1.5,0,7); x.stroke(); return GEN_IMG[k]=c.toDataURL(); }
-function renderGens(){ refreshXu(); const g=genState(), list=$('genList'), MAX=g.slot2? 2 : 1; list.innerHTML='';
-  $('genSlots').textContent=`Bringing ${g.on.length}/${MAX}.`;
+  x.textAlign='center'; x.textBaseline='middle'; x.fillStyle='rgba(20,12,36,.85)'; x.beginPath(); x.arc(sz*0.8,sz*0.8,sz*0.2,0,7); x.fill(); x.fillStyle=D.col; x.lineWidth=2; x.strokeStyle=D.col; x.stroke();
+  x.font=`${Math.round(sz*0.24)}px system-ui`; x.fillStyle='#fff'; x.fillText(D.icon,sz*0.8,sz*0.82);
+  if(H.legend){ x.font=`${Math.round(sz*0.26)}px system-ui`; x.fillText('👑',sz*0.2,sz*0.2); }
+  x.strokeStyle=H.legend? '#ffd54a' : '#2a1a12'; x.lineWidth=H.legend? 5 : 3; x.beginPath(); x.arc(sz/2,sz/2,sz/2-2,0,7); x.stroke(); return GEN_IMG[k]=c.toDataURL(); }
+function genCivNow(){ return BW_HEROES_OF[G.genCiv]? G.genCiv : BW_HEROES_OF[save.civ]? save.civ : 'daiviet'; }
+function renderGens(){ refreshXu(); const g=genState(), civ=genCivNow(), on=g.on[civ]||(g.on[civ]=[]), list=$('genList'), MAX=g.slot2? 2 : 1, H=BW_HEROES_OF[civ]; list.innerHTML='';
+  G.genRefund=0; if(save.genRefund){ const d=document.createElement('div'); d.className='fcard on'; d.dataset.gen='refund'; d.innerHTML=`<div class="fi">🪙</div><div class="fb"><div class="fn">Generals are now real figures from history</div><div class="fd">The generals you recruited before were refunded: <b>🪙 ${save.genRefund} coins</b>. Pick new ones for each civilization below.</div></div>`; list.appendChild(d); delete save.genRefund; Save.set(save); }
+  const sel=$('genCiv'); if(sel){ if(!sel.options.length){ const R={asia:'Asia',europe:'Europe',africa:'Africa',americas:'Americas',oceania:'Oceania'};
+      for(const r of Object.keys(R)){ const og=document.createElement('optgroup'); og.label=R[r]; for(const c of BW_CIVS.filter(c=>c.reg===r)){ const o=document.createElement('option'); o.value=c.id; og.appendChild(o); } sel.appendChild(og); }
+      sel.onchange=()=>{ audio.click(); G.genCiv=sel.value; renderGens(); }; }
+    for(const o of sel.options){ const c=BW_CIV[o.value], L=BW_HEROES_OF[o.value]||[], n=L.filter(h=>g.own[h.id]!=null).length; o.textContent=`${c.icon} ${c.name} — ${n}/${L.length}`; }
+    sel.value=civ; }
+  $('genSlots').textContent=`${BW_CIV[civ].name}: bringing ${on.length}/${MAX}.`;
   if(!g.slot2){ const d=document.createElement('div'); d.className='fcard'; d.dataset.gen='slot2'; d.innerHTML=`<div class="fi">🎖️</div><div class="fb"><div class="fn">Second general slot</div><div class="fd">Bring two generals into every battle — both talents work together.</div></div>`;
     const b=document.createElement('button'); b.className='btn'; b.dataset.genbuy='slot2'; b.innerHTML=`${artIcon('ui:coin','🪙')} ${BW.genSlot2}`; b.disabled=(save.xu||0)<BW.genSlot2;
     b.onclick=()=>{ if((save.xu||0)<BW.genSlot2) return; save.xu-=BW.genSlot2; g.slot2=1; Save.set(save); audio.fanfare&&audio.fanfare(); achCheck(); renderGens(); }; d.appendChild(b); list.appendChild(d); }
-  for(const D of BW_GENERALS){ const own=g.own[D.id]!=null, xp=g.own[D.id]|0, lv=BW.genLevel(xp), on=g.on.includes(D.id), d=document.createElement('div'); d.className='fcard'+(on?' on':''); d.dataset.gen=D.id;
+  for(const h of H){ const D=BW_GEN_BY[h.skill], own=g.own[h.id]!=null, xp=g.own[h.id]|0, lv=BW.genLevel(xp), isOn=on.includes(h.id), d=document.createElement('div'); d.className='fcard'+(isOn?' on':''); d.dataset.gen=h.id;
     const nx=BW.genXP[lv]||null, p0=BW.genXP[lv-1]||0, bar= own? (nx? Math.round((xp-p0)/(nx-p0)*100) : 100) : 0;
-    d.innerHTML=`<img class="gport" src="${genPortrait(D,128)}" alt=""><div class="fb"><div class="fn">${D.name}${own? `<span class="gtag">Lv ${lv}${lv>=5?' · MAX':''}</span>` : ''}</div><div class="fd"><b>${D.icon} ${D.skill}:</b> ${D.desc(D.val(own? lv : 1),own? lv : 1)}${own&&lv<5? ` <span style="opacity:.7">(Lv ${lv+1}: ${D.desc(D.val(lv+1),lv+1)})</span>` : ''}</div>${own? `<div class="gxp"><i style="width:${bar}%"></i></div><div class="fd" style="opacity:.75">XP ${xp}${nx? ' / '+nx : ''}</div>` : ''}</div>`;
-    const b=document.createElement('button'); b.className='btn'+(on?' on':''); b.dataset.genbtn=D.id;
-    if(!own){ b.innerHTML=`${artIcon('ui:coin','🪙')} ${D.cost}`; b.disabled=(save.xu||0)<D.cost; b.onclick=()=>{ if((save.xu||0)<D.cost) return; save.xu-=D.cost; g.own[D.id]=0; if(g.on.length<MAX) g.on.push(D.id); Save.set(save); audio.fanfare&&audio.fanfare(); achCheck(); renderGens(); }; }
-    else { b.textContent= on? '✔ Bringing' : 'Bring'; b.disabled= !on&&g.on.length>=MAX&&MAX>1; b.onclick=()=>{ audio.click(); const i=g.on.indexOf(D.id); if(i>=0) g.on.splice(i,1); else { if(g.on.length>=MAX) g.on.shift(); g.on.push(D.id); } Save.set(save); renderGens(); }; }
+    d.innerHTML=`<img class="gport" src="${genPortrait(h,128)}" alt=""><div class="fb"><div class="fn">${h.name}${own? `<span class="gtag">Lv ${lv}${lv>=5?' · MAX':''}</span>` : (h.legend? '<span class="gtag leg">Legend</span>' : '')}</div><div class="fd ghist">${h.line}</div><div class="fd"><b>${D.icon} ${D.skill}:</b> ${D.desc(D.val(own? lv : 1),own? lv : 1)}${own&&lv<5? ` <span style="opacity:.7">(Lv ${lv+1}: ${D.desc(D.val(lv+1),lv+1)})</span>` : ''}</div>${own? `<div class="gxp"><i style="width:${bar}%"></i></div><div class="fd" style="opacity:.75">XP ${xp}${nx? ' / '+nx : ''}</div>` : ''}</div>`;
+    const b=document.createElement('button'); b.className='btn'+(isOn?' on':''); b.dataset.genbtn=h.id;
+    if(!own){ b.innerHTML=`${artIcon('ui:coin','🪙')} ${h.cost}`; b.disabled=(save.xu||0)<h.cost; b.onclick=()=>{ if((save.xu||0)<h.cost) return; save.xu-=h.cost; g.own[h.id]=0; if(on.length<MAX) on.push(h.id); Save.set(save); audio.fanfare&&audio.fanfare(); achCheck(); renderGens(); }; }
+    else { b.textContent= isOn? '✔ Bringing' : 'Bring'; b.disabled= !isOn&&on.length>=MAX&&MAX>1; b.onclick=()=>{ audio.click(); const i=on.indexOf(h.id); if(i>=0) on.splice(i,1); else { if(on.length>=MAX) on.shift(); on.push(h.id); } Save.set(save); renderGens(); }; }
     d.appendChild(b); list.appendChild(d); } }
 // sau mỗi trận: tướng mang theo nhận kinh nghiệm (thắng +3, thua +1); trả về dòng báo lên cấp
 function genAward(bw,win){ if(!bw||!bw.gens||!bw.gens.length) return []; const g=genState(), out=[];
-  for(const x of bw.gens){ if(g.own[x.id]==null) continue; const a=BW.genLevel(g.own[x.id]); g.own[x.id]=(g.own[x.id]|0)+(win? 3 : 1); const b=BW.genLevel(g.own[x.id]); if(b>a) out.push(`🎖️ ${BW_GEN_BY[x.id].name} reached level ${b}!`); }
+  for(const x of bw.gens){ if(g.own[x.id]==null) continue; const a=BW.genLevel(g.own[x.id]); g.own[x.id]=(g.own[x.id]|0)+(win? 3 : 1); const b=BW.genLevel(g.own[x.id]); if(b>a) out.push(`🎖️ ${(BW_HERO[x.id]||{}).name||x.id} reached level ${b}!`); }
   Save.set(save); return out; }
 // 🎓 (5.5) HƯỚNG DẪN LẦN ĐẦU
 function needTut(){ try{ if(localStorage.getItem('ltm_tut')==='1') return false; }catch(e){ return false; } if((save.bwMax||1)>1||save.tut||soloLoadInfo()||royaleLoadInfo()){ tutMark(); return false; } return true; }   /* người chơi cũ (đã qua ải / đang có ván lưu): không bắt học lại */
@@ -3191,7 +3208,7 @@ function startBigWar(lv){
   const decorOn=decorState().on.slice();   // ⚒️ Lò rèn: chỉ trận một người chơi (P2P hai bên phải ngang nhau)
   G.lastBwCfg=Object.assign({},G.bwCfg||{}); G.bw=new BigWar(lv, G.bwCfg||{}); G.bw.autoMenu=false;
   G.bw.decor=decorOn;   /* 🏮 đồ trang trí trại (chỉ là hình, máy nào vẽ theo máy đó) */
-  G.bw.genSetup(genPack());   /* 🎖️ tướng mang theo */
+  G.bw.genSetup(genPack(((G.bw.civOf&&G.bw.civOf(G.bw.localFid))||{}).id||(G.bwCfg||{}).civ||save.civ));   /* 🎖️ tướng mang theo: chỉ tướng của nền văn minh ta đang chơi */
   G.bw.gearSetup(G.bw.conq==='tribe'? [] : save.pack.filter(id=>(save.inv[id]||0)>0), {slots:BW.gearSlotsFor(save.gearSlots), stock:(id)=>save.inv[id]||0, spend:(id)=>{ save.inv[id]=Math.max(0,(save.inv[id]||0)-1); Save.set(save); }});   // 🎒 quân nhu mang theo (P2P: gearSetup tự bỏ qua)
   G.bw.onCoin=(n)=>{ if(G.bw&&G.bw.cfg.tut) return;   /* trận hướng dẫn không phát xu lẻ: chỉ thưởng 50 xu khi học xong */ save.xu=(save.xu||0)+n; Save.set(save); refreshXu(); if(!saveDue) saveDue=performance.now(); };   /* 🪙 xu theo mốc ở Quần Hùng: xu vào túi ngay, và ván được lưu ngay sau đó (không thể thoát game để "hạ lại" cùng một nước lấy xu lần nữa) */
   G.bw.lv=lv; G.world=null; G.paused=false; G.resultShown=false; G.sel.clear(); G.bwCfg=null;
@@ -6647,15 +6664,16 @@ if(typeof setupMenus==='function'){ try{ setupMenus(); }catch(e){} }   /* dựng
 // ============ 🎖️ (6.0) TƯỚNG LĨNH — chiêu mộ bằng xu, lên cấp qua các trận, mang 1–2 tướng vào trận ============
 // Mỗi tướng một tài năng (bị động, luôn có hiệu lực cho phe ta). Cấp 1–5: hiệu lực tăng theo cấp. Kinh nghiệm: thắng +3, thua +1.
 // Không áp dụng ở P2P (hai người phải ngang nhau) và trận hướng dẫn.
+// 8 TÀI NĂNG (6.2: tướng có thật ở 09m_heroes.js, mỗi vị mang một tài năng)
 const BW_GENERALS=[
-  {id:'vanguard', name:'Lü Bu the Vanguard',    icon:'⚔️', cost:250, w:5, col:'#ef4444', skill:'Attack',   desc:(v)=>`Your troops hit ${pct(v)} harder`,                 val:(l)=>0.05+0.02*(l-1)},
-  {id:'warden',   name:'Iron Warden Kanetsugu', icon:'🛡️', cost:220, w:3, col:'#64748b', skill:'Defence',  desc:(v)=>`Your strongholds defend ${pct(v)} better`,           val:(l)=>0.08+0.03*(l-1)},
-  {id:'rider',    name:'Subutai the Swift',     icon:'🐎', cost:200, w:2, col:'#f59e0b', skill:'March',    desc:(v)=>`Your armies march ${pct(v)} faster`,                 val:(l)=>0.06+0.02*(l-1)},
-  {id:'ranger',   name:'Hawkeye Ranger',        icon:'🏹', cost:180, w:1, col:'#22c55e', skill:'Sight',    desc:(v)=>`You see ${pct(v)} further through the fog`,          val:(l)=>0.15+0.05*(l-1)},
-  {id:'guide',    name:'Woodland Guide Aranya',  icon:'🌲', cost:240, w:0, col:'#15803d', skill:'Pathfinder', desc:(v,l)=>`Your foot troops cross ${l>=3? 'forests and mountains' : 'forests'} at full speed`+(l>=3? '' : ' (mountains too from level 3)'), val:(l)=>l},
-  {id:'medic',    name:'Hua Tuo the Healer',    icon:'💉', cost:260, w:4, col:'#ec4899', skill:'Field medic', desc:(v)=>`After each battle you win, ${pct(v)} of the troops you lost there return`, val:(l)=>0.10+0.04*(l-1)},
-  {id:'recruiter',name:'Recruiter Ma Yuan',     icon:'📣', cost:230, w:3, col:'#8b5cf6', skill:'Recruiting', desc:(v)=>`Your camps and farms raise troops ${pct(v)} faster`, val:(l)=>0.08+0.03*(l-1)},
-  {id:'treasurer',name:'Treasurer Croesus',     icon:'💰', cost:300, w:2, col:'#eab308', skill:'Treasury', desc:(v)=>`You earn ${pct(v)} more Meme Coins`,                val:(l)=>0.15+0.05*(l-1)},
+  {id:'vanguard', name:'Attack',    icon:'⚔️', cost:250, w:5, col:'#ef4444', skill:'Attack',   desc:(v)=>`Your troops hit ${pct(v)} harder`,                 val:(l)=>0.05+0.02*(l-1)},
+  {id:'warden',   name:'Defence', icon:'🛡️', cost:220, w:3, col:'#64748b', skill:'Defence',  desc:(v)=>`Your strongholds defend ${pct(v)} better`,           val:(l)=>0.08+0.03*(l-1)},
+  {id:'rider',    name:'March',     icon:'🐎', cost:200, w:2, col:'#f59e0b', skill:'March',    desc:(v)=>`Your armies march ${pct(v)} faster`,                 val:(l)=>0.06+0.02*(l-1)},
+  {id:'ranger',   name:'Sight',        icon:'🏹', cost:180, w:1, col:'#22c55e', skill:'Sight',    desc:(v)=>`You see ${pct(v)} further through the fog`,          val:(l)=>0.15+0.05*(l-1)},
+  {id:'guide',    name:'Pathfinder', icon:'🌲', cost:240, w:0, col:'#15803d', skill:'Pathfinder', desc:(v,l)=>`Your foot troops cross ${l>=3? 'forests and mountains' : 'forests'} at full speed`+(l>=3? '' : ' (mountains too from level 3)'), val:(l)=>l},
+  {id:'medic',    name:'Field medic',    icon:'💉', cost:260, w:4, col:'#ec4899', skill:'Field medic', desc:(v)=>`After each battle you win, ${pct(v)} of the troops you lost there return`, val:(l)=>0.10+0.04*(l-1)},
+  {id:'recruiter',name:'Recruiting',     icon:'📣', cost:230, w:3, col:'#8b5cf6', skill:'Recruiting', desc:(v)=>`Your camps and farms raise troops ${pct(v)} faster`, val:(l)=>0.08+0.03*(l-1)},
+  {id:'treasurer',name:'Treasury',     icon:'💰', cost:300, w:2, col:'#eab308', skill:'Treasury', desc:(v)=>`You earn ${pct(v)} more Meme Coins`,                val:(l)=>0.15+0.05*(l-1)},
 ];
 function pct(v){ return '+'+Math.round(v*100)+'%'; }
 const BW_GEN_BY={}; for(const g of BW_GENERALS) BW_GEN_BY[g.id]=g;
@@ -6663,13 +6681,324 @@ BW.genXP=[0,5,12,22,35];   /* kinh nghiệm cần để lên cấp 2,3,4,5 */
 BW.genSlot2=400;           /* mở ô tướng thứ 2 */
 BW.genLevel=function(xp){ let l=1; for(let i=1;i<BW.genXP.length;i++) if((xp|0)>=BW.genXP[i]) l=i+1; return l; };
 // gắn tướng vào ván: list = [{id,lv}]
+// gắn tướng vào ván: list = [{id: mã tướng có thật (BW_HERO), lv}] — chỉ tướng của đúng nền văn minh ta đang chơi (lọc ở genPack)
 BigWar.prototype.genSetup=function(list){ this.gens=[]; this.genK={}; if(!list||(this.cfg&&(this.cfg.p2p||this.cfg.tut))) return;
-  for(const g of list){ const D=BW_GEN_BY[g.id]; if(D&&this.gens.length<2&&!this.gens.some(x=>x.id===g.id)){ this.gens.push({id:g.id,lv:Math.max(1,Math.min(5,g.lv|0))}); this.genK[g.id]=D.val(Math.max(1,Math.min(5,g.lv|0))); } }
+  for(const g of list){ const H=typeof BW_HERO!=='undefined'&&BW_HERO[g.id], D=H&&BW_GEN_BY[H.skill]; if(!D||this.gens.length>=2||this.gens.some(x=>x.id===g.id)) continue;
+    const lv=Math.max(1,Math.min(5,g.lv|0)); this.gens.push({id:g.id,skill:H.skill,name:H.name,lv}); this.genK[H.skill]= H.skill==='guide'? Math.max(this.genK.guide||0,D.val(lv)) : (this.genK[H.skill]||0)+D.val(lv); }   /* hai tướng cùng tài năng: cộng dồn (Dẫn đường lấy cấp cao hơn) */
   const K=this.genK; if(K.ranger){ this.visR=Math.round(this.visR*(1+K.ranger)); this._visT=0; if(this._updateVision) this._updateVision(); }
   if(K.recruiter) this.L.grow*=1+K.recruiter;
   if(K.treasurer) this._coinK=(this._coinK||1)*(1+K.treasurer);
-  if(this.gens.length){ const c=this.nodes.find(n=>n.owner===this.localFid&&n.camp)||this.nodes[0]; this.note('🎖️ '+this.gens.map(x=>BW_GEN_BY[x.id].icon+' '+BW_GEN_BY[x.id].name+' (Lv '+x.lv+')').join(' · ')+' ride with you',c.x,c.y,'🎖️'); } };
+  if(this.gens.length){ const c=this.nodes.find(n=>n.owner===this.localFid&&n.camp)||this.nodes[0]; this.note('🎖️ '+this.gens.map(x=>BW_GEN_BY[x.skill].icon+' '+x.name+' (Lv '+x.lv+')').join(' · ')+(this.gens.length>1? ' ride' : ' rides')+' with you',c.x,c.y,'🎖️'); } };
 BigWar.prototype.gen=function(id){ return this.genK? this.genK[id]||0 : 0; };
+
+// ---- 09m_heroes.js
+// ============ 🎖️ (6.2) TƯỚNG CÓ THẬT TRONG LỊCH SỬ — mỗi nền văn minh 5–8 vị; nơi sử liệu ít chỉ 1 vị ============
+// Mỗi tướng dùng một trong 8 tài năng ở BW_GENERALS (Attack, Defence, March, Sight, Pathfinder, Field medic, Recruiting, Treasury),
+// chọn theo điều người đó nổi tiếng nhất. Tướng chỉ ra trận cùng nền văn minh của mình. Vị đứng đầu mỗi nước là "huyền thoại" (giá ×1,2).
+// [nước, tên, tài năng, một dòng lịch sử]
+const BW_HERO_ROWS=[
+  // --- Đại Việt · nhà Trần ---
+  ['daiviet','Trần Hưng Đạo','vanguard','Supreme commander who broke the Mongol-Yuan invasions of 1285 and 1288'],
+  ['daiviet','Trần Quang Khải','warden','Won at Chương Dương and retook the capital Thăng Long in 1285'],
+  ['daiviet','Trần Nhật Duật','rider','Led the strike that won the battle of Hàm Tử in 1285'],
+  ['daiviet','Trần Khánh Dư','treasurer','Sank the Yuan grain fleet at Vân Đồn in 1288'],
+  ['daiviet','Phạm Ngũ Lão','recruiter','Rose from a farm boy to command the royal guard'],
+  ['daiviet','Trần Quốc Toản','ranger','The boy general under the banner "Defeat the strong foe"'],
+  ['daiviet','Yết Kiêu','guide','Master swimmer who holed enemy warships from below'],
+  // --- Tang ---
+  ['tang','Li Jing','vanguard','Crushed the Eastern Turks in a winter raid in 630'],
+  ['tang','Li Shiji','warden','Veteran marshal who served three Tang emperors'],
+  ['tang','Su Dingfang','rider','Defeated the Western Turks and took the Silk Road oases'],
+  ['tang','Xue Rengui','ranger','"Three arrows settled the Tian Shan" against the Tiele'],
+  ['tang','Gao Xianzhi','guide','Led an army across the Pamir passes in 747'],
+  ['tang','Guo Ziyi','medic','Restored the dynasty after the An Lushan rebellion'],
+  ['tang','Li Guangbi','recruiter','Held the line beside Guo Ziyi in the rebellion wars'],
+  ['tang','Pei Xingjian','treasurer','Scholar-general who captured a Western Turk leader by a ruse'],
+  // --- Japan · Tokugawa ---
+  ['japan','Tokugawa Ieyasu','recruiter','Won Sekigahara in 1600 and founded the shogunate'],
+  ['japan','Honda Tadakatsu','vanguard','Said to have fought over fifty battles without a wound'],
+  ['japan','Ii Naomasa','rider','Led the red-armoured "Red Devils" cavalry'],
+  ['japan','Sakakibara Yasumasa','warden','One of the Four Heavenly Kings of the Tokugawa'],
+  ['japan','Sakai Tadatsugu','guide','Senior retainer and the eldest of the Four Heavenly Kings'],
+  ['japan','Hattori Hanzō','ranger','Guided Ieyasu to safety through Iga in 1582'],
+  ['japan','Honda Masanobu','treasurer','Ieyasu\'s trusted adviser in matters of state'],
+  // --- Goguryeo ---
+  ['goguryeo','Gwanggaeto the Great','vanguard','Expanded Goguryeo across Manchuria and the peninsula'],
+  ['goguryeo','Jangsu','treasurer','Ruled 79 years and moved the capital to Pyongyang'],
+  ['goguryeo','Eulji Mundeok','guide','Destroyed a Sui army at the Salsu River in 612'],
+  ['goguryeo','Yang Manchun','warden','Held Ansi Fortress against Tang Taizong in 645'],
+  ['goguryeo','Yeon Gaesomun','recruiter','Military dictator who repelled the Tang for years'],
+  ['goguryeo','On Dal','rider','Famed general under King Pyeongwon'],
+  // --- Mongol ---
+  ['mongol','Genghis Khan','recruiter','United the steppe tribes in 1206'],
+  ['mongol','Subutai','vanguard','Planned campaigns from China to Hungary'],
+  ['mongol','Jebe','ranger','"The Arrow", master archer and pursuit commander'],
+  ['mongol','Muqali','warden','Viceroy who waged the war in northern China'],
+  ['mongol','Bo\'orchu','rider','Genghis Khan\'s first companion and general'],
+  ['mongol','Jelme','medic','Saved Genghis Khan\'s life after an arrow wound'],
+  ['mongol','Yelü Chucai','treasurer','Statesman who set up the empire\'s taxes'],
+  // --- Khmer (ít sử liệu về tướng: 1 vị) ---
+  ['khmer','Jayavarman VII','recruiter','Drove out the Cham in 1181 and rebuilt Angkor'],
+  // --- Maurya (1 vị) ---
+  ['maurya','Chandragupta Maurya','vanguard','Founded the empire and pushed back Seleucus I'],
+  // --- Persia · Achaemenid ---
+  ['persia','Cyrus the Great','recruiter','Founded the Achaemenid Empire and took Babylon'],
+  ['persia','Darius the Great','treasurer','Organised the satrapies and minted the gold daric'],
+  ['persia','Mardonius','vanguard','Commanded the Persian army at Plataea'],
+  ['persia','Hydarnes','warden','Led the Immortals round the pass at Thermopylae'],
+  ['persia','Datis','rider','Commanded the Persian expedition to Marathon'],
+  ['persia','Harpagus','guide','Conquered the cities of Ionia and Lycia for Cyrus'],
+  ['persia','Artaphernes','ranger','Satrap of Sardis during the Ionian Revolt'],
+  // --- Ottoman ---
+  ['ottoman','Suleiman the Magnificent','recruiter','Took Belgrade, Rhodes and won at Mohács'],
+  ['ottoman','Pargalı İbrahim Pasha','vanguard','Grand vizier and commander at Mohács in 1526'],
+  ['ottoman','Hayreddin Barbarossa','rider','Admiral who won the sea battle of Preveza in 1538'],
+  ['ottoman','Turgut Reis','ranger','Corsair admiral of the western Mediterranean'],
+  ['ottoman','Sokollu Mehmed Pasha','treasurer','Grand vizier who ran the empire for three sultans'],
+  ['ottoman','Mimar Sinan','guide','Engineer of bridges and roads for the army'],
+  ['ottoman','Lala Mustafa Pasha','warden','Conquered Cyprus in 1570–71'],
+  // --- Siam · Ayutthaya ---
+  ['siam','Naresuan','vanguard','Won the elephant duel at Nong Sarai in 1593'],
+  ['siam','Ekathotsarot','warden','Naresuan\'s brother and fellow commander'],
+  ['siam','Suriyothai','medic','Queen who died shielding her husband in battle in 1548'],
+  ['siam','Phraya Taksin','ranger','Broke out of the siege of Ayutthaya in 1767'],
+  ['siam','Phra Ratchamanu','rider','Naresuan\'s leading general'],
+  // --- Majapahit ---
+  ['majapahit','Gajah Mada','vanguard','Prime minister who swore to unite the archipelago'],
+  ['majapahit','Raden Wijaya','recruiter','Founded Majapahit after turning back the Yuan'],
+  ['majapahit','Hayam Wuruk','treasurer','King of Majapahit at its golden age'],
+  ['majapahit','Mpu Nala','rider','Admiral of the Majapahit fleet'],
+  ['majapahit','Adityawarman','guide','Led expeditions to Bali and Sumatra'],
+  ['majapahit','Ranggalawe','warden','Early war leader beside Raden Wijaya'],
+  // --- Tibet ---
+  ['tibet','Trisong Detsen','recruiter','Emperor whose armies took Chang\'an in 763'],
+  ['tibet','Songtsen Gampo','warden','Unified Tibet and founded the empire'],
+  ['tibet','Gar Tongtsen','treasurer','Chief minister who organised the empire'],
+  ['tibet','Gar Trinring Tsendro','vanguard','Defeated the Tang at Dafei River in 670'],
+  ['tibet','Takdra Lukhong','rider','Led the Tibetan army into Chang\'an in 763'],
+  // --- Timurid ---
+  ['timurid','Timur','vanguard','Conquered from Delhi to Ankara'],
+  ['timurid','Shah Rukh','recruiter','Held the empire together after Timur'],
+  ['timurid','Ulugh Beg','ranger','Ruler of Samarkand and great astronomer'],
+  ['timurid','Muhammad Sultan','rider','Timur\'s chosen heir, at Ankara in 1402'],
+  ['timurid','Miran Shah','warden','Governor of western Persia for Timur'],
+  ['timurid','Khalil Sultan','treasurer','Seized Samarkand and its treasury in 1405'],
+  // --- Chola ---
+  ['chola','Rajendra I','rider','Sent his fleet to raid Srivijaya in 1025'],
+  ['chola','Rajaraja I','recruiter','Built the Chola into an empire'],
+  ['chola','Rajadhiraja I','vanguard','Warrior king who fell at the battle of Koppam'],
+  ['chola','Virarajendra','warden','Defeated the Western Chalukyas at Kudal Sangamam'],
+  ['chola','Kulothunga I','treasurer','Abolished tolls and revived trade'],
+  ['chola','Araiyan Rajarajan','guide','General of Rajendra I in the eastern campaigns'],
+  // --- Umayyad ---
+  ['umayyad','Tariq ibn Ziyad','vanguard','Crossed to Iberia and won at Guadalete in 711'],
+  ['umayyad','Musa ibn Nusayr','recruiter','Governor of Ifriqiya who directed the conquest of Iberia'],
+  ['umayyad','Qutayba ibn Muslim','ranger','Conquered Bukhara and Samarkand'],
+  ['umayyad','Muhammad ibn Qasim','rider','Conquered Sindh at the age of seventeen'],
+  ['umayyad','Maslama ibn Abd al-Malik','warden','Led the siege of Constantinople in 717–718'],
+  ['umayyad','Uqba ibn Nafi','guide','Rode across North Africa to the Atlantic'],
+  ['umayyad','al-Hajjaj ibn Yusuf','treasurer','Governor of Iraq who reformed the coinage'],
+  // --- Assyria ---
+  ['assyria','Sargon II','vanguard','Conquered Urartu and built Dur-Sharrukin'],
+  ['assyria','Tiglath-Pileser III','recruiter','Created Assyria\'s standing army'],
+  ['assyria','Sennacherib','warden','Besieged Lachish in 701 BC'],
+  ['assyria','Esarhaddon','guide','Crossed the Sinai and conquered Egypt'],
+  ['assyria','Shalmaneser III','rider','Fought the coalition at Qarqar in 853 BC'],
+  ['assyria','Ashurbanipal','treasurer','Last great king; built the library of Nineveh'],
+  ['assyria','Dayyan-Ashur','ranger','Commander-in-chief (turtanu) of Shalmaneser III'],
+  // --- Babylon ---
+  ['babylon','Nebuchadnezzar II','vanguard','Defeated Egypt at Carchemish in 605 BC'],
+  ['babylon','Nabopolassar','recruiter','Freed Babylon from Assyria and founded the dynasty'],
+  ['babylon','Nebuzaradan','warden','Captain of the guard of Nebuchadnezzar'],
+  ['babylon','Neriglissar','rider','General who later became king'],
+  ['babylon','Nabonidus','treasurer','Last king of Babylon, restorer of temples'],
+  // --- Hittite ---
+  ['hittite','Suppiluliuma I','vanguard','Made the Hittites a great power'],
+  ['hittite','Mursili I','rider','Marched down the Euphrates and sacked Babylon'],
+  ['hittite','Mursili II','ranger','Fought yearly campaigns recorded in his annals'],
+  ['hittite','Muwatalli II','guide','Sprang the ambush on Ramesses II at Kadesh'],
+  ['hittite','Hattusili III','treasurer','Signed the first known peace treaty with Egypt'],
+  // --- Rome · Empire ---
+  ['rome','Trajan','vanguard','Conquered Dacia; the empire reached its widest'],
+  ['rome','Marcus Agrippa','recruiter','Augustus\' general, victor at Actium'],
+  ['rome','Hadrian','warden','Built the wall across northern Britain'],
+  ['rome','Germanicus','ranger','Recovered the lost eagles in Germania'],
+  ['rome','Gnaeus Agricola','guide','Campaigned deep into Caledonia'],
+  ['rome','Lusius Quietus','rider','Commander of Trajan\'s Moorish cavalry'],
+  ['rome','Domitius Corbulo','medic','Strict trainer of legions in the East'],
+  // --- Macedon ---
+  ['macedon','Alexander the Great','vanguard','Never lost a battle from Granicus to the Hydaspes'],
+  ['macedon','Philip II','recruiter','Built the Macedonian phalanx'],
+  ['macedon','Parmenion','warden','Commanded the left wing in Alexander\'s battles'],
+  ['macedon','Craterus','rider','Alexander\'s most trusted field commander'],
+  ['macedon','Hephaestion','guide','Led the army\'s march into India'],
+  ['macedon','Cleitus the Black','medic','Saved Alexander\'s life at the Granicus'],
+  ['macedon','Ptolemy','ranger','Bodyguard of Alexander, later king of Egypt'],
+  ['macedon','Antipater','treasurer','Regent of Macedon while Alexander campaigned'],
+  // --- Sparta ---
+  ['sparta','Leonidas','warden','Held the pass at Thermopylae in 480 BC'],
+  ['sparta','Brasidas','vanguard','Took Amphipolis in the Peloponnesian War'],
+  ['sparta','Pausanias','recruiter','Commanded the Greeks at Plataea'],
+  ['sparta','Lysander','rider','Won at Aegospotami and ended the war'],
+  ['sparta','Gylippus','ranger','Led the defence of Syracuse against Athens'],
+  ['sparta','Agesilaus II','guide','Campaigned in Asia Minor against Persia'],
+  ['sparta','Cleomenes I','treasurer','Ambitious king of early Sparta'],
+  // --- Byzantium · Macedonian dynasty ---
+  ['byzantium','Basil II','vanguard','The "Bulgar-slayer" who conquered Bulgaria'],
+  ['byzantium','Nikephoros II Phokas','warden','Retook Crete and Cilicia'],
+  ['byzantium','John I Tzimiskes','rider','Defeated the Rus\' at Dorostolon'],
+  ['byzantium','Nikephoros Ouranos','ranger','Won the battle of the Spercheios in 997'],
+  ['byzantium','George Maniakes','guide','Led the expedition to Sicily'],
+  ['byzantium','Basil Lekapenos','treasurer','Chamberlain who ran the state for decades'],
+  // --- Vikings · North Sea Empire ---
+  ['vikings','Cnut the Great','recruiter','King of England, Denmark and Norway'],
+  ['vikings','Thorkell the Tall','vanguard','Jomsviking chieftain who raided England'],
+  ['vikings','Eric of Hlathir','warden','Earl of Northumbria under Cnut'],
+  ['vikings','Ulf Jarl','rider','Cnut\'s regent in Denmark'],
+  ['vikings','Sweyn Forkbeard','guide','Conquered England in 1013'],
+  ['vikings','Godwin of Wessex','treasurer','Earl of Wessex, Cnut\'s chief man in England'],
+  // --- Franks · Carolingian ---
+  ['franks','Charlemagne','recruiter','Crowned emperor in 800'],
+  ['franks','Charles Martel','warden','Stopped the Umayyad advance at Tours in 732'],
+  ['franks','Roland','vanguard','Fell at Roncevaux Pass in 778'],
+  ['franks','William of Gellone','rider','Helped take Barcelona in 801'],
+  ['franks','Eric of Friuli','treasurer','Seized the treasure of the Avars in the 790s'],
+  ['franks','Pepin the Short','guide','First Carolingian king of the Franks'],
+  // --- England · Plantagenet ---
+  ['england','Edward the Black Prince','vanguard','Won at Poitiers in 1356'],
+  ['england','Edward III','recruiter','Won at Crécy in 1346'],
+  ['england','Henry of Grosmont','rider','Duke of Lancaster and fast-moving raider'],
+  ['england','John Chandos','warden','Constable of Aquitaine'],
+  ['england','Walter Manny','guide','Led the relief of Hennebont'],
+  ['england','Thomas Dagworth','ranger','Won at La Roche-Derrien in 1347'],
+  ['england','Robert Knolles','treasurer','Captain who grew rich on the war in France'],
+  // --- Huns ---
+  ['huns','Attila','vanguard','Ravaged the Balkans, Gaul and Italy'],
+  ['huns','Bleda','rider','Ruled the Huns jointly with Attila'],
+  ['huns','Rugila','recruiter','King who united the Huns before Attila'],
+  ['huns','Uldin','guide','Early Hun king who fought both for and against Rome'],
+  ['huns','Ellac','warden','Attila\'s eldest son, fell at the Nedao'],
+  ['huns','Onegesius','treasurer','Attila\'s chief minister'],
+  // --- Gauls ---
+  ['gauls','Vercingetorix','vanguard','United the Gauls against Caesar in 52 BC'],
+  ['gauls','Ambiorix','guide','Ambushed and destroyed a Roman legion at Atuatuca'],
+  ['gauls','Commius','rider','King of the Atrebates who joined the revolt'],
+  ['gauls','Vercassivellaunus','warden','Led the relief army at Alesia'],
+  ['gauls','Lucterius','ranger','Raided the Roman province in 52 BC'],
+  ['gauls','Brennus','treasurer','Sacked Rome around 390 BC'],
+  // --- Kievan Rus' ---
+  ['rus','Yaroslav the Wise','recruiter','Defeated the Pechenegs at Kiev in 1036'],
+  ['rus','Sviatoslav I','vanguard','Destroyed the Khazar Khaganate'],
+  ['rus','Vladimir the Great','treasurer','Grand prince who built Kiev\'s power'],
+  ['rus','Mstislav of Chernigov','rider','Won at Listven in 1024'],
+  ['rus','Dobrynya','warden','Vladimir\'s uncle and voivode'],
+  // --- Spain · Habsburg ---
+  ['spain','Charles V','recruiter','Ruled an empire on which the sun never set'],
+  ['spain','Gonzalo Fernández de Córdoba','vanguard','"The Great Captain" who shaped the tercios'],
+  ['spain','Duke of Alba','warden','Iron-handed commander in the Low Countries'],
+  ['spain','Álvaro de Bazán','rider','Admiral who never lost a battle'],
+  ['spain','Don John of Austria','ranger','Commanded the Holy League at Lepanto'],
+  ['spain','Hernán Cortés','guide','Marched inland to Tenochtitlan'],
+  ['spain','Ambrogio Spinola','treasurer','Paid for his own armies; took Breda'],
+  // --- Holy Roman Empire · Hohenstaufen ---
+  ['hre','Frederick Barbarossa','vanguard','Led six campaigns into Italy'],
+  ['hre','Henry the Lion','rider','Duke of Saxony and Bavaria'],
+  ['hre','Otto of Wittelsbach','warden','Barbarossa\'s standard-bearer'],
+  ['hre','Rainald of Dassel','treasurer','Barbarossa\'s chancellor'],
+  ['hre','Frederick II','recruiter','"Wonder of the world", emperor and crusader'],
+  ['hre','Henry VI','guide','Won the Kingdom of Sicily'],
+  // --- Poland–Lithuania ---
+  ['poland','Jan III Sobieski','recruiter','Led the hussar charge at Vienna in 1683'],
+  ['poland','Stanisław Żółkiewski','vanguard','Won at Klushino and entered Moscow'],
+  ['poland','Jan Karol Chodkiewicz','rider','Won at Kircholm in 1605'],
+  ['poland','Stanisław Koniecpolski','warden','Defended the southern borders'],
+  ['poland','Stefan Czarniecki','guide','Hero of the war against Sweden'],
+  ['poland','Jan Zamoyski','treasurer','Chancellor and Grand Hetman'],
+  // --- Swiss Confederacy ---
+  ['swiss','Hans Waldmann','recruiter','Commanded the Zürich men at Murten in 1476'],
+  ['swiss','Arnold Winkelried','vanguard','Legendary hero of Sempach'],
+  ['swiss','Adrian von Bubenberg','warden','Held Murten against Charles the Bold'],
+  ['swiss','Hans von Hallwyl','rider','Led the vanguard at Murten'],
+  ['swiss','Niklaus von Flüe','medic','Hermit whose counsel kept the Confederacy together'],
+  // --- Egypt · New Kingdom ---
+  ['egypt','Ramesses II','vanguard','Fought the Hittites at Kadesh'],
+  ['egypt','Thutmose III','rider','Won at Megiddo; seventeen campaigns'],
+  ['egypt','Ahmose I','recruiter','Expelled the Hyksos and founded the New Kingdom'],
+  ['egypt','Horemheb','warden','General who became pharaoh'],
+  ['egypt','Amenhotep II','ranger','Famed archer pharaoh'],
+  ['egypt','Djehuty','guide','Took Joppa by hiding soldiers in baskets'],
+  ['egypt','Seti I','treasurer','Restored Egypt\'s power in the Levant'],
+  // --- Carthage · Barcid ---
+  ['carthage','Hannibal','vanguard','Crossed the Alps and won at Cannae'],
+  ['carthage','Hamilcar Barca','recruiter','Built the Barcid power base in Iberia'],
+  ['carthage','Hasdrubal Barca','guide','Crossed the Alps after his brother'],
+  ['carthage','Mago Barca','ranger','Hannibal\'s youngest brother'],
+  ['carthage','Maharbal','rider','Commander of Hannibal\'s cavalry'],
+  ['carthage','Hasdrubal the Fair','treasurer','Founded Carthago Nova and its silver mines'],
+  // --- Mali · Keita ---
+  ['mali','Sundiata Keita','vanguard','Won at Kirina and founded the empire'],
+  ['mali','Mansa Musa','treasurer','Richest ruler of his age'],
+  ['mali','Tiramakhan Traoré','rider','Sundiata\'s general who conquered the west'],
+  ['mali','Fakoli Koroma','warden','Sundiata\'s general at Kirina'],
+  ['mali','Sakura','recruiter','Former slave who seized the throne and expanded Mali'],
+  ['mali','Abu Bakr II','guide','Said to have sailed into the Atlantic'],
+  // --- Kush · 25th Dynasty ---
+  ['kush','Piye','vanguard','Conquered Egypt around 727 BC'],
+  ['kush','Taharqa','recruiter','Pharaoh who fought the Assyrians'],
+  ['kush','Shabaka','warden','Took full control of Egypt'],
+  ['kush','Kashta','treasurer','First Kushite king to rule in Upper Egypt'],
+  ['kush','Tantamani','rider','Last Kushite pharaoh of Egypt'],
+  // --- Aksum (1 vị) ---
+  ['aksum','Ezana','vanguard','King who campaigned against Meroë'],
+  // --- Zulu ---
+  ['zulu','Shaka','vanguard','Created the regiment system and the "horns of the buffalo"'],
+  ['zulu','Ndlela kaSompisi','warden','Shaka\'s and Dingane\'s chief commander'],
+  ['zulu','Mzilikazi','guide','Led his people north and founded the Ndebele kingdom'],
+  ['zulu','Ntshingwayo kaMahole','ranger','Commanded at Isandlwana in 1879'],
+  ['zulu','Dabulamanzi kaMpande','rider','Led the attack at Rorke\'s Drift'],
+  ['zulu','Cetshwayo','recruiter','Last king of the independent Zulu kingdom'],
+  // --- Maya ---
+  ['maya','Siyaj K\'ak\'','vanguard','Arrived at Tikal in 378 and changed its dynasty'],
+  ['maya','Jasaw Chan K\'awiil I','warden','Tikal king who defeated Calakmul in 695'],
+  ['maya','Yuknoom Ch\'een II','recruiter','Made Calakmul the great power of its age'],
+  ['maya','K\'inich Janaab Pakal','treasurer','Palenque\'s greatest king'],
+  ['maya','Bird Jaguar IV','ranger','Warrior king of Yaxchilan'],
+  ['maya','Itzamnaaj Bahlam III','rider','Yaxchilan\'s "Shield Jaguar"'],
+  // --- Aztec ---
+  ['aztec','Ahuitzotl','vanguard','Greatly expanded the empire\'s lands'],
+  ['aztec','Tlacaelel','treasurer','Chief adviser who reshaped the state'],
+  ['aztec','Moctezuma I','recruiter','Expanded the Triple Alliance'],
+  ['aztec','Itzcoatl','guide','Broke Azcapotzalco and founded the alliance'],
+  ['aztec','Axayacatl','rider','Conquered Tlatelolco in 1473'],
+  ['aztec','Cuauhtémoc','warden','Defended Tenochtitlan to the end in 1521'],
+  // --- Inca ---
+  ['inca','Pachacuti','recruiter','Turned Cusco into an empire'],
+  ['inca','Túpac Inca Yupanqui','vanguard','Conquered from Ecuador to Chile'],
+  ['inca','Huayna Capac','guide','Extended the empire north to Colombia'],
+  ['inca','Rumiñawi','warden','Fought on against the Spanish in Quito'],
+  ['inca','Quizquiz','rider','General of Atahualpa in the civil war'],
+  ['inca','Chalcuchimac','ranger','General of Atahualpa in the civil war'],
+  // --- Haudenosaunee (1 vị) ---
+  ['iroquois','Thayendanegea','vanguard','Mohawk war leader also known as Joseph Brant'],
+  // --- Tonga (1 vị) ---
+  ['tonga','Tāufaʻāhau','recruiter','United Tonga and became King George Tupou I'],
+  // --- Māori ---
+  ['maori','Hongi Hika','vanguard','Ngāpuhi chief who led the Musket Wars'],
+  ['maori','Te Rauparaha','rider','Ngāti Toa chief, composer of the haka "Ka Mate"'],
+  ['maori','Te Ruki Kawiti','warden','Built the pā at Ruapekapeka'],
+  ['maori','Hōne Heke','recruiter','Cut down the flagstaff at Kororāreka'],
+  ['maori','Rewi Maniapoto','guide','Defended Ōrākau pā in 1864'],
+  ['maori','Tītokowaru','ranger','Ngāti Ruanui war leader of the 1860s'],
+];
+const BW_HEROES=[], BW_HERO={}, BW_HEROES_OF={};
+{ const slug=(s)=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  for(const [civ,name,skill,line] of BW_HERO_ROWS){ const L=BW_HEROES_OF[civ]||(BW_HEROES_OF[civ]=[]), legend=L.length===0, S=BW_GEN_BY[skill];
+    const h={id:civ+'.'+slug(name), civ, name, skill, line, legend, cost:Math.round(S.cost*(legend? 1.2 : 1)/10)*10};
+    L.push(h); BW_HEROES.push(h); BW_HERO[h.id]=h; } }
+// người chơi bản 6.0 đã mua tướng chung chung: hoàn xu ngay khi mở game và báo một lần
+if(typeof window!=='undefined'){
+  setTimeout(()=>{ try{ if(typeof genState==='function'&&typeof save!=='undefined'){ genState(); if(typeof refreshXu==='function') refreshXu(); } }catch(e){} },300);   /* trước lượt trao thành tựu lúc mở game */
+  setTimeout(()=>{ try{ if(G.genRefund&&!G.bw){ toast(`🎖️ Generals are now real figures from history — refunded 🪙 ${G.genRefund} coins`,6); G.genRefund=0; } }catch(e){} },4500); }   /* sau các thông báo thành tựu */
 
 // ---- 09n_meta.js
 // ============ 📅🏆 (6.0) THỬ THÁCH NGÀY / TUẦN · THÀNH TỰU & DANH HIỆU ============
@@ -6730,7 +7059,7 @@ const BW_ACH=[
   {id:'wk5',   cat:'Challenges', icon:'🏆', name:'Seasoned Raider', desc:'Complete 5 weekly challenges',          xu:60, test:(s)=>(s.chal&&s.chal.wdone|0)>=5},
   // 🎖️ Tướng lĩnh
   {id:'gen1',  cat:'Generals', icon:'🎖️', name:'First Officer',    desc:'Recruit your first general',             xu:10, test:(s)=>Object.keys((s.gen&&s.gen.own)||{}).length>=1},
-  {id:'gen8',  cat:'Generals', icon:'🏅', name:'Lord of Heroes',   desc:'Recruit all 8 generals',                 xu:80, title:'Lord of Heroes', test:(s)=>Object.keys((s.gen&&s.gen.own)||{}).length>=BW_GENERALS.length},
+  {id:'gen8',  cat:'Generals', icon:'🏅', name:'Lord of Heroes',   desc:'Recruit 8 generals',                     xu:80, title:'Lord of Heroes', test:(s)=>Object.keys((s.gen&&s.gen.own)||{}).filter(k=>typeof BW_HERO!=='undefined'&&BW_HERO[k]).length>=8},
   {id:'genL5', cat:'Generals', icon:'⭐', name:'Legendary General',desc:'Raise a general to level 5',             xu:50, test:(s)=>Object.values((s.gen&&s.gen.own)||{}).some(x=>BW.genLevel(x)>=5)},
   {id:'slot2', cat:'Generals', icon:'👥', name:'Twin Banners',     desc:'Open the second general slot',           xu:20, test:(s)=>!!(s.gen&&s.gen.slot2)},
   // 🪙 Kho

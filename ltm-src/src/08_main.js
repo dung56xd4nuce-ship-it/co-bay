@@ -362,29 +362,43 @@ function drawDecorPreview(){ const cv=$('decPrev'), c=cv.getContext('2d'), D=dec
   const im=ArtImages['prop:tent']; if(im){ c.drawImage(recolorUnit(im,0),x-95,y-110,190,190); } else { c.fillStyle='#3b82f6'; c.strokeStyle='#2a1a12'; c.lineWidth=5; c.beginPath(); c.moveTo(x-85,y+45); c.lineTo(x,y-75); c.lineTo(x+85,y+45); c.closePath(); c.fill(); c.stroke(); }
   BW.drawDecor(c,x,y,ids,t,1); c.restore(); }
 // 🎖️ (6.0) TƯỚNG LĨNH: chiêu mộ bằng xu, chọn mang 1 (mở thêm ô thứ 2) — lên cấp qua các trận
-function genState(){ const g=save.gen||(save.gen={own:{},on:[],slot2:0}); if(!g.own) g.own={}; if(!Array.isArray(g.on)) g.on=[]; g.on=g.on.filter(id=>BW_GEN_BY[id]&&g.own[id]!=null).slice(0,g.slot2? 2 : 1); return g; }
-function genPack(){ const g=genState(); return g.on.map(id=>({id,lv:BW.genLevel(g.own[id])})); }
+// 🎖️ (6.2) tướng có thật: save.gen = {own:{mãTướng:xp}, on:{nước:[mãTướng…]}, slot2}
+function genState(){ const g=save.gen||(save.gen={own:{},on:{},slot2:0}); if(!g.own) g.own={};
+  let ref=0; for(const k of Object.keys(g.own)) if(BW_GEN_BY[k]){ ref+=BW_GEN_BY[k].cost; delete g.own[k]; }   /* tướng chung chung của bản 6.0 → hoàn xu */
+  if(!g.on||Array.isArray(g.on)||typeof g.on!=='object') g.on={};
+  for(const c of Object.keys(g.on)) g.on[c]=(Array.isArray(g.on[c])? g.on[c] : []).filter(id=>BW_HERO[id]&&BW_HERO[id].civ===c&&g.own[id]!=null).slice(0,g.slot2? 2 : 1);
+  if(ref){ save.xu=(save.xu||0)+ref; G.genRefund=(G.genRefund||0)+ref; save.genRefund=(save.genRefund||0)+ref; Save.set(save); } return g; }
+function genPack(civ){ const g=genState(); return (g.on[civ]||[]).map(id=>({id,lv:BW.genLevel(g.own[id])})); }
 const GEN_IMG={};
-function genPortrait(D,sz){ const k=D.id+':'+sz; if(GEN_IMG[k]) return GEN_IMG[k]; const c=document.createElement('canvas'); c.width=c.height=sz; const x=c.getContext('2d');
-  x.fillStyle=D.col; x.beginPath(); x.arc(sz/2,sz/2,sz/2,0,7); x.fill(); x.fillStyle='rgba(255,255,255,0.25)'; x.beginPath(); x.arc(sz/2,sz*0.38,sz*0.42,0,7); x.fill();
+function genPortrait(H,sz){ const k=H.id+':'+sz; if(GEN_IMG[k]) return GEN_IMG[k]; const D=BW_GEN_BY[H.skill], cv=BW_CIV[H.civ]||{}, c=document.createElement('canvas'); c.width=c.height=sz; const x=c.getContext('2d');
+  x.fillStyle=cv.color||D.col; x.beginPath(); x.arc(sz/2,sz/2,sz/2,0,7); x.fill(); x.fillStyle='rgba(255,255,255,0.25)'; x.beginPath(); x.arc(sz/2,sz*0.38,sz*0.42,0,7); x.fill();
   try{ x.save(); x.beginPath(); x.arc(sz/2,sz/2,sz/2-2,0,7); x.clip(); x.drawImage(makeUnitSprite('general',0,D.w),-sz*0.18,-sz*0.02,sz*1.36,sz*1.36); x.restore(); }catch(e){}
-  x.font=`${Math.round(sz*0.34)}px system-ui`; x.textAlign='center'; x.textBaseline='middle'; x.fillStyle='#fff'; x.beginPath(); x.fillStyle='rgba(20,12,36,.85)'; x.arc(sz*0.8,sz*0.8,sz*0.2,0,7); x.fill(); x.fillStyle='#fff'; x.fillText(D.icon,sz*0.8,sz*0.82);
-  x.strokeStyle='#2a1a12'; x.lineWidth=3; x.beginPath(); x.arc(sz/2,sz/2,sz/2-1.5,0,7); x.stroke(); return GEN_IMG[k]=c.toDataURL(); }
-function renderGens(){ refreshXu(); const g=genState(), list=$('genList'), MAX=g.slot2? 2 : 1; list.innerHTML='';
-  $('genSlots').textContent=`Bringing ${g.on.length}/${MAX}.`;
+  x.textAlign='center'; x.textBaseline='middle'; x.fillStyle='rgba(20,12,36,.85)'; x.beginPath(); x.arc(sz*0.8,sz*0.8,sz*0.2,0,7); x.fill(); x.fillStyle=D.col; x.lineWidth=2; x.strokeStyle=D.col; x.stroke();
+  x.font=`${Math.round(sz*0.24)}px system-ui`; x.fillStyle='#fff'; x.fillText(D.icon,sz*0.8,sz*0.82);
+  if(H.legend){ x.font=`${Math.round(sz*0.26)}px system-ui`; x.fillText('👑',sz*0.2,sz*0.2); }
+  x.strokeStyle=H.legend? '#ffd54a' : '#2a1a12'; x.lineWidth=H.legend? 5 : 3; x.beginPath(); x.arc(sz/2,sz/2,sz/2-2,0,7); x.stroke(); return GEN_IMG[k]=c.toDataURL(); }
+function genCivNow(){ return BW_HEROES_OF[G.genCiv]? G.genCiv : BW_HEROES_OF[save.civ]? save.civ : 'daiviet'; }
+function renderGens(){ refreshXu(); const g=genState(), civ=genCivNow(), on=g.on[civ]||(g.on[civ]=[]), list=$('genList'), MAX=g.slot2? 2 : 1, H=BW_HEROES_OF[civ]; list.innerHTML='';
+  G.genRefund=0; if(save.genRefund){ const d=document.createElement('div'); d.className='fcard on'; d.dataset.gen='refund'; d.innerHTML=`<div class="fi">🪙</div><div class="fb"><div class="fn">Generals are now real figures from history</div><div class="fd">The generals you recruited before were refunded: <b>🪙 ${save.genRefund} coins</b>. Pick new ones for each civilization below.</div></div>`; list.appendChild(d); delete save.genRefund; Save.set(save); }
+  const sel=$('genCiv'); if(sel){ if(!sel.options.length){ const R={asia:'Asia',europe:'Europe',africa:'Africa',americas:'Americas',oceania:'Oceania'};
+      for(const r of Object.keys(R)){ const og=document.createElement('optgroup'); og.label=R[r]; for(const c of BW_CIVS.filter(c=>c.reg===r)){ const o=document.createElement('option'); o.value=c.id; og.appendChild(o); } sel.appendChild(og); }
+      sel.onchange=()=>{ audio.click(); G.genCiv=sel.value; renderGens(); }; }
+    for(const o of sel.options){ const c=BW_CIV[o.value], L=BW_HEROES_OF[o.value]||[], n=L.filter(h=>g.own[h.id]!=null).length; o.textContent=`${c.icon} ${c.name} — ${n}/${L.length}`; }
+    sel.value=civ; }
+  $('genSlots').textContent=`${BW_CIV[civ].name}: bringing ${on.length}/${MAX}.`;
   if(!g.slot2){ const d=document.createElement('div'); d.className='fcard'; d.dataset.gen='slot2'; d.innerHTML=`<div class="fi">🎖️</div><div class="fb"><div class="fn">Second general slot</div><div class="fd">Bring two generals into every battle — both talents work together.</div></div>`;
     const b=document.createElement('button'); b.className='btn'; b.dataset.genbuy='slot2'; b.innerHTML=`${artIcon('ui:coin','🪙')} ${BW.genSlot2}`; b.disabled=(save.xu||0)<BW.genSlot2;
     b.onclick=()=>{ if((save.xu||0)<BW.genSlot2) return; save.xu-=BW.genSlot2; g.slot2=1; Save.set(save); audio.fanfare&&audio.fanfare(); achCheck(); renderGens(); }; d.appendChild(b); list.appendChild(d); }
-  for(const D of BW_GENERALS){ const own=g.own[D.id]!=null, xp=g.own[D.id]|0, lv=BW.genLevel(xp), on=g.on.includes(D.id), d=document.createElement('div'); d.className='fcard'+(on?' on':''); d.dataset.gen=D.id;
+  for(const h of H){ const D=BW_GEN_BY[h.skill], own=g.own[h.id]!=null, xp=g.own[h.id]|0, lv=BW.genLevel(xp), isOn=on.includes(h.id), d=document.createElement('div'); d.className='fcard'+(isOn?' on':''); d.dataset.gen=h.id;
     const nx=BW.genXP[lv]||null, p0=BW.genXP[lv-1]||0, bar= own? (nx? Math.round((xp-p0)/(nx-p0)*100) : 100) : 0;
-    d.innerHTML=`<img class="gport" src="${genPortrait(D,128)}" alt=""><div class="fb"><div class="fn">${D.name}${own? `<span class="gtag">Lv ${lv}${lv>=5?' · MAX':''}</span>` : ''}</div><div class="fd"><b>${D.icon} ${D.skill}:</b> ${D.desc(D.val(own? lv : 1),own? lv : 1)}${own&&lv<5? ` <span style="opacity:.7">(Lv ${lv+1}: ${D.desc(D.val(lv+1),lv+1)})</span>` : ''}</div>${own? `<div class="gxp"><i style="width:${bar}%"></i></div><div class="fd" style="opacity:.75">XP ${xp}${nx? ' / '+nx : ''}</div>` : ''}</div>`;
-    const b=document.createElement('button'); b.className='btn'+(on?' on':''); b.dataset.genbtn=D.id;
-    if(!own){ b.innerHTML=`${artIcon('ui:coin','🪙')} ${D.cost}`; b.disabled=(save.xu||0)<D.cost; b.onclick=()=>{ if((save.xu||0)<D.cost) return; save.xu-=D.cost; g.own[D.id]=0; if(g.on.length<MAX) g.on.push(D.id); Save.set(save); audio.fanfare&&audio.fanfare(); achCheck(); renderGens(); }; }
-    else { b.textContent= on? '✔ Bringing' : 'Bring'; b.disabled= !on&&g.on.length>=MAX&&MAX>1; b.onclick=()=>{ audio.click(); const i=g.on.indexOf(D.id); if(i>=0) g.on.splice(i,1); else { if(g.on.length>=MAX) g.on.shift(); g.on.push(D.id); } Save.set(save); renderGens(); }; }
+    d.innerHTML=`<img class="gport" src="${genPortrait(h,128)}" alt=""><div class="fb"><div class="fn">${h.name}${own? `<span class="gtag">Lv ${lv}${lv>=5?' · MAX':''}</span>` : (h.legend? '<span class="gtag leg">Legend</span>' : '')}</div><div class="fd ghist">${h.line}</div><div class="fd"><b>${D.icon} ${D.skill}:</b> ${D.desc(D.val(own? lv : 1),own? lv : 1)}${own&&lv<5? ` <span style="opacity:.7">(Lv ${lv+1}: ${D.desc(D.val(lv+1),lv+1)})</span>` : ''}</div>${own? `<div class="gxp"><i style="width:${bar}%"></i></div><div class="fd" style="opacity:.75">XP ${xp}${nx? ' / '+nx : ''}</div>` : ''}</div>`;
+    const b=document.createElement('button'); b.className='btn'+(isOn?' on':''); b.dataset.genbtn=h.id;
+    if(!own){ b.innerHTML=`${artIcon('ui:coin','🪙')} ${h.cost}`; b.disabled=(save.xu||0)<h.cost; b.onclick=()=>{ if((save.xu||0)<h.cost) return; save.xu-=h.cost; g.own[h.id]=0; if(on.length<MAX) on.push(h.id); Save.set(save); audio.fanfare&&audio.fanfare(); achCheck(); renderGens(); }; }
+    else { b.textContent= isOn? '✔ Bringing' : 'Bring'; b.disabled= !isOn&&on.length>=MAX&&MAX>1; b.onclick=()=>{ audio.click(); const i=on.indexOf(h.id); if(i>=0) on.splice(i,1); else { if(on.length>=MAX) on.shift(); on.push(h.id); } Save.set(save); renderGens(); }; }
     d.appendChild(b); list.appendChild(d); } }
 // sau mỗi trận: tướng mang theo nhận kinh nghiệm (thắng +3, thua +1); trả về dòng báo lên cấp
 function genAward(bw,win){ if(!bw||!bw.gens||!bw.gens.length) return []; const g=genState(), out=[];
-  for(const x of bw.gens){ if(g.own[x.id]==null) continue; const a=BW.genLevel(g.own[x.id]); g.own[x.id]=(g.own[x.id]|0)+(win? 3 : 1); const b=BW.genLevel(g.own[x.id]); if(b>a) out.push(`🎖️ ${BW_GEN_BY[x.id].name} reached level ${b}!`); }
+  for(const x of bw.gens){ if(g.own[x.id]==null) continue; const a=BW.genLevel(g.own[x.id]); g.own[x.id]=(g.own[x.id]|0)+(win? 3 : 1); const b=BW.genLevel(g.own[x.id]); if(b>a) out.push(`🎖️ ${(BW_HERO[x.id]||{}).name||x.id} reached level ${b}!`); }
   Save.set(save); return out; }
 // 🎓 (5.5) HƯỚNG DẪN LẦN ĐẦU
 function needTut(){ try{ if(localStorage.getItem('ltm_tut')==='1') return false; }catch(e){ return false; } if((save.bwMax||1)>1||save.tut||soloLoadInfo()||royaleLoadInfo()){ tutMark(); return false; } return true; }   /* người chơi cũ (đã qua ải / đang có ván lưu): không bắt học lại */
@@ -487,7 +501,7 @@ function startBigWar(lv){
   const decorOn=decorState().on.slice();   // ⚒️ Lò rèn: chỉ trận một người chơi (P2P hai bên phải ngang nhau)
   G.lastBwCfg=Object.assign({},G.bwCfg||{}); G.bw=new BigWar(lv, G.bwCfg||{}); G.bw.autoMenu=false;
   G.bw.decor=decorOn;   /* 🏮 đồ trang trí trại (chỉ là hình, máy nào vẽ theo máy đó) */
-  G.bw.genSetup(genPack());   /* 🎖️ tướng mang theo */
+  G.bw.genSetup(genPack(((G.bw.civOf&&G.bw.civOf(G.bw.localFid))||{}).id||(G.bwCfg||{}).civ||save.civ));   /* 🎖️ tướng mang theo: chỉ tướng của nền văn minh ta đang chơi */
   G.bw.gearSetup(G.bw.conq==='tribe'? [] : save.pack.filter(id=>(save.inv[id]||0)>0), {slots:BW.gearSlotsFor(save.gearSlots), stock:(id)=>save.inv[id]||0, spend:(id)=>{ save.inv[id]=Math.max(0,(save.inv[id]||0)-1); Save.set(save); }});   // 🎒 quân nhu mang theo (P2P: gearSetup tự bỏ qua)
   G.bw.onCoin=(n)=>{ if(G.bw&&G.bw.cfg.tut) return;   /* trận hướng dẫn không phát xu lẻ: chỉ thưởng 50 xu khi học xong */ save.xu=(save.xu||0)+n; Save.set(save); refreshXu(); if(!saveDue) saveDue=performance.now(); };   /* 🪙 xu theo mốc ở Quần Hùng: xu vào túi ngay, và ván được lưu ngay sau đó (không thể thoát game để "hạ lại" cùng một nước lấy xu lần nữa) */
   G.bw.lv=lv; G.world=null; G.paused=false; G.resultShown=false; G.sel.clear(); G.bwCfg=null;

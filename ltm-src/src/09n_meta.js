@@ -56,7 +56,7 @@ const BW_ACH=[
   {id:'wk5',   cat:'Challenges', icon:'🏆', name:'Seasoned Raider', desc:'Complete 5 weekly challenges',          xu:60, test:(s)=>(s.chal&&s.chal.wdone|0)>=5},
   // 🎖️ Tướng lĩnh
   {id:'gen1',  cat:'Generals', icon:'🎖️', name:'First Officer',    desc:'Recruit your first general',             xu:10, test:(s)=>Object.keys((s.gen&&s.gen.own)||{}).length>=1},
-  {id:'gen8',  cat:'Generals', icon:'🏅', name:'Lord of Heroes',   desc:'Recruit all 8 generals',                 xu:80, title:'Lord of Heroes', test:(s)=>Object.keys((s.gen&&s.gen.own)||{}).length>=BW_GENERALS.length},
+  {id:'gen8',  cat:'Generals', icon:'🏅', name:'Lord of Heroes',   desc:'Recruit 8 generals',                     xu:80, title:'Lord of Heroes', test:(s)=>Object.keys((s.gen&&s.gen.own)||{}).filter(k=>typeof BW_HERO!=='undefined'&&BW_HERO[k]).length>=8},
   {id:'genL5', cat:'Generals', icon:'⭐', name:'Legendary General',desc:'Raise a general to level 5',             xu:50, test:(s)=>Object.values((s.gen&&s.gen.own)||{}).some(x=>BW.genLevel(x)>=5)},
   {id:'slot2', cat:'Generals', icon:'👥', name:'Twin Banners',     desc:'Open the second general slot',           xu:20, test:(s)=>!!(s.gen&&s.gen.slot2)},
   // 🪙 Kho

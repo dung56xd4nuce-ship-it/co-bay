@@ -8,50 +8,69 @@ const fin=async(T,win,t)=>{ await T.ev(({win,t})=>{ const bw=__ltm.bw; bw.time=t
 for(const [dn,dev] of [...DEVICES, PORTRAIT[1]]){ console.log(dn);
   const T=await open(b,dev); const {p}=T; let r, s;
   await T.ev(()=>{ save.xu=3000; save.bwMax=4; Save.set(save); refreshXu(); });
-  // ---------- 🎖️ TƯỚNG LĨNH ----------
+  // ---------- 🎖️ TƯỚNG CÓ THẬT (6.2) ----------
+  // người chơi bản 6.0 đã có 2 tướng chung chung → mở game là được hoàn xu, có báo
+  await T.ev(()=>{ save.gen={own:{vanguard:5,medic:0},on:['vanguard'],slot2:0}; save.xu=1000; Save.set(save); }); await p.reload(); await p.waitForFunction(()=>window.__ltm&&typeof save!=='undefined'); await p.waitForTimeout(2300);
+  let seen=false; for(let k=0;k<45&&!seen;k++){ seen=await T.ev(()=>/refunded 🪙 510/.test(document.body.innerText)); if(!seen) await p.waitForTimeout(150); }
+  s=await T.ev(()=>({xu:save.xu, own:Object.keys(save.gen.own).join()}));
+  ok(s.xu>=1000+250+260&&s.own===''&&seen,`bản 6.0 → 6.2: 2 tướng cũ được hoàn 510 xu (số dư ${s.xu}, gồm cả thưởng thành tựu), có thông báo "refunded"`);
+  await T.ev(()=>{ save.xu=3000; save.civ='rome'; Save.set(save); refreshXu(); });
   await T.tapEl('#bGear'); await p.waitForTimeout(300); r=await tapIn(T,'#gear [data-armtab="gens"]'); await p.waitForTimeout(300);
-  if(!r.ok) console.log('   tab',JSON.stringify(r)); ok(r.ok&&await T.visible('#gens')&&await T.ev(()=>document.querySelectorAll('#genList [data-gen]').length===BW_GENERALS.length+1),'Kho → thẻ "🎖️ Generals": 8 tướng + ô tướng thứ 2');
-  ok(await T.ev(()=>[...document.querySelectorAll('#genList .gport')].every(i=>i.complete&&i.naturalWidth>0)),'mỗi tướng có chân dung');
-  const x0=await T.ev(()=>save.xu); r=await tapIn(T,'#genList [data-genbtn="medic"]'); await p.waitForTimeout(250);
-  s=await T.ev(()=>({g:save.gen, xu:save.xu, cost:BW_GEN_BY.medic.cost, slots:document.getElementById('genSlots').textContent}));
-  if(!(s.g&&s.g.own&&s.g.own.medic===0)) console.log('   rec',JSON.stringify(r),JSON.stringify(s),x0);
-  ok(r.ok&&s.g.own.medic===0&&s.g.on[0]==='medic'&&x0-s.xu===s.cost-10&&/1\/1/.test(s.slots),`chiêu mộ Hoa Đà: −${s.cost} xu (+10 xu thành tựu “First Officer”), tự mang theo (1/1)`);
-  r=await tapIn(T,'#genList [data-genbtn="vanguard"]'); await p.waitForTimeout(250);
-  ok(await T.ev(()=>save.gen.own.vanguard===0&&save.gen.on.join()==='medic'),'chiêu mộ thêm Lữ Bố: đã có nhưng chưa thay (chỉ 1 ô)');
-  r=await tapIn(T,'#genList [data-genbtn="vanguard"]'); await p.waitForTimeout(250);
-  ok(await T.ev(()=>save.gen.on.join()==='vanguard'),'bấm "Bring" Lữ Bố: thay Hoa Đà (1 ô)');
-  r=await tapIn(T,'#genList [data-genbuy="slot2"]'); await p.waitForTimeout(250); r=await tapIn(T,'#genList [data-genbtn="medic"]'); await p.waitForTimeout(250);
-  ok(await T.ev(()=>save.gen.slot2===1&&save.gen.on.length===2&&/2\/2/.test(document.getElementById('genSlots').textContent)),'mở ô thứ 2 (400 xu): mang cả Lữ Bố + Hoa Đà');
-  // hiệu lực từng tướng: so cùng một ván có / không có tướng
-  const ef=await T.ev(()=>{ const mk=(gl)=>{ const w=new BigWar(3,{civ:'rome',seed:9,map:6}); w.genSetup(gl); return w; }, b0=mk([]), out={};
-    for(const D of BW_GENERALS){ const w=mk([{id:D.id,lv:1}]); const a={owner:0,type:'spear',count:500,x:w.nodes[0].x,y:w.nodes[0].y}, n=w.nodes.find(n=>n.owner===0);
-      out[D.id]={spd:w.mvSpeed(a,w.mvProfile(a))/b0.mvSpeed(a,b0.mvProfile(a)), def:w.defMul(n)/b0.defMul(n), vis:w.visR/b0.visR, grow:w.L.grow/b0.L.grow, coin:(w._coinK||1), prof:w.mvProfile(a), prof0:b0.mvProfile(a), k:w.genK[D.id]}; }
-    const w=mk([{id:'guide',lv:3}]), a={owner:0,type:'spear',count:500,x:0,y:0}; out.guide3=w.mvProfile(a);
-    const p2=new BigWar(3,{civ:'rome',seed:9,map:6,p2p:true}); p2.genSetup([{id:'vanguard',lv:5}]); out.p2p=p2.gens.length; return out; });
+  ok(await T.ev(()=>/were refunded: 🪙 510 coins/.test(document.getElementById('genList').textContent)),'mở Generals lần đầu: thẻ báo đã hoàn 🪙 510 xu');
+  s=await T.ev(()=>({nr:BW_HEROES_OF.rome.length, n:document.querySelectorAll('#genList [data-gen]').length, names:[...document.querySelectorAll('#genList [data-gen] .fn')].map(e=>e.textContent), sel:document.getElementById('genCiv').value, opt:document.getElementById('genCiv').options.length}));
+  ok(r.ok&&await T.visible('#gens')&&s.sel==='rome'&&s.n===s.nr+2&&s.names.some(t=>/^Trajan/.test(t))&&s.opt===44,`Kho → "🎖️ Generals" mở đúng nước đang chọn (Rome): ${s.n-1} tướng có thật (Trajan, …) + ô thứ 2; ô chọn có đủ ${s.opt} nước`);
+  ok(await T.ev(()=>BW_CIVS.every(c=>{ const n=(BW_HEROES_OF[c.id]||[]).length; return n===1||(n>=5&&n<=8); })),'mọi nền văn minh đều có tướng: 5–8 vị, nơi ít sử liệu 1 vị');
+  ok(await T.ev(()=>[...document.querySelectorAll('#genList .gport')].every(i=>i.complete&&i.naturalWidth>0)&&!!document.querySelector('#genList [data-gen="rome.trajan"] .ghist')),'mỗi tướng có chân dung và một dòng sử');
+  // đổi nước bằng ô chọn
+  await tapIn(T,'#genCiv'); await p.selectOption('#genCiv','daiviet'); await p.waitForTimeout(300);
+  s=await T.ev(()=>[...document.querySelectorAll('#genList [data-gen]:not([data-gen="refund"]) .fn')].map(e=>e.textContent));
+  ok(s.length===8&&/^Trần Hưng Đạo/.test(s[1])&&/Legend/.test(s[1]),`chọn Đại Việt: 7 tướng nhà Trần, đứng đầu là Trần Hưng Đạo (huyền thoại)`);
+  await p.selectOption('#genCiv','khmer'); await p.waitForTimeout(300);
+  ok(await T.ev(()=>document.querySelectorAll('#genList [data-gen]').length===2&&/Jayavarman VII/.test(document.getElementById('genList').textContent)),'Khmer (ít sử liệu): 1 tướng — Jayavarman VII');
+  await p.selectOption('#genCiv','rome'); await p.waitForTimeout(300);
+  const x0=await T.ev(()=>save.xu); r=await tapIn(T,'#genList [data-genbtn="rome.domitius-corbulo"]'); await p.waitForTimeout(250);
+  s=await T.ev(()=>({g:save.gen, xu:save.xu, cost:BW_HERO['rome.domitius-corbulo'].cost, slots:document.getElementById('genSlots').textContent}));
+  ok(r.ok&&s.g.own['rome.domitius-corbulo']===0&&s.g.on.rome[0]==='rome.domitius-corbulo'&&x0-s.xu===s.cost-10&&/1\/1/.test(s.slots),`chiêu mộ Corbulo (Field medic): −${s.cost} xu (+10 xu thành tựu “First Officer”), tự mang theo cùng Rome (1/1)`);
+  r=await tapIn(T,'#genList [data-genbtn="rome.trajan"]'); await p.waitForTimeout(250);
+  ok(await T.ev(()=>save.gen.own['rome.trajan']===0&&BW_HERO['rome.trajan'].cost===300&&save.gen.on.rome.join()==='rome.domitius-corbulo'),'chiêu mộ Trajan (huyền thoại, 300 xu): đã có nhưng chưa thay (chỉ 1 ô)');
+  r=await tapIn(T,'#genList [data-genbtn="rome.trajan"]'); await p.waitForTimeout(250);
+  ok(await T.ev(()=>save.gen.on.rome.join()==='rome.trajan'),'bấm "Bring" Trajan: thay Corbulo');
+  r=await tapIn(T,'#genList [data-genbuy="slot2"]'); await p.waitForTimeout(250); r=await tapIn(T,'#genList [data-genbtn="rome.domitius-corbulo"]'); await p.waitForTimeout(250);
+  ok(await T.ev(()=>save.gen.slot2===1&&save.gen.on.rome.length===2&&/2\/2/.test(document.getElementById('genSlots').textContent)),'mở ô thứ 2 (400 xu): mang cả Trajan + Corbulo');
+  // hiệu lực từng tài năng (lấy một tướng bất kỳ mang tài năng đó)
+  const ef=await T.ev(()=>{ const hero=(k)=>BW_HEROES.find(h=>h.skill===k).id, mk=(gl)=>{ const w=new BigWar(3,{civ:'rome',seed:9,map:6}); w.genSetup(gl); return w; }, b0=mk([]), out={};
+    for(const D of BW_GENERALS){ const w=mk([{id:hero(D.id),lv:1}]); const a={owner:0,type:'spear',count:500,x:w.nodes[0].x,y:w.nodes[0].y}, n=w.nodes.find(n=>n.owner===0);
+      out[D.id]={spd:w.mvSpeed(a,w.mvProfile(a))/b0.mvSpeed(a,b0.mvProfile(a)), def:w.defMul(n)/b0.defMul(n), vis:w.visR/b0.visR, grow:w.L.grow/b0.L.grow, coin:(w._coinK||1), prof:w.mvProfile(a), prof0:b0.mvProfile(a)}; }
+    const w=mk([{id:hero('guide'),lv:3}]), a={owner:0,type:'spear',count:500,x:0,y:0}; out.guide3=w.mvProfile(a);
+    const w2=mk(BW_HEROES.filter(h=>h.skill==='guide').slice(0,2).map(h=>({id:h.id,lv:1}))); out.guide2=w2.mvProfile(a);
+    const p2=new BigWar(3,{civ:'rome',seed:9,map:6,p2p:true}); p2.genSetup([{id:'rome.trajan',lv:5}]); out.p2p=p2.gens.length; return out; });
   const n=(a,b2)=>Math.abs(a-b2)<0.005;
-  ok(n(ef.rider.spd,1.06)&&n(ef.warden.def,1.08)&&n(ef.ranger.vis,1.15)&&n(ef.recruiter.grow,1.08)&&n(ef.treasurer.coin,1.15),'tài năng có hiệu lực: Khinh kỵ +6% tốc độ · Thủ thành +8% thủ · Ưng nhãn +15% tầm nhìn · Mộ binh +8% sinh quân · Ngân khố +15% xu');
-  ok(ef.guide.prof!==ef.guide.prof0&&/f/.test(ef.guide.prof)&&/fm/.test(ef.guide3),`Dẫn đường: cấp 1 đi rừng (${ef.guide.prof}), cấp 3 cả rừng lẫn núi (${ef.guide3})`);
+  ok(n(ef.rider.spd,1.06)&&n(ef.warden.def,1.08)&&n(ef.ranger.vis,1.15)&&n(ef.recruiter.grow,1.08)&&n(ef.treasurer.coin,1.15),'tài năng có hiệu lực: March +6% · Defence +8% · Sight +15% · Recruiting +8% · Treasury +15% xu');
+  ok(/f/.test(ef.guide.prof)&&ef.guide.prof!==ef.guide.prof0&&/fm/.test(ef.guide3)&&!/m/.test(ef.guide2),`Pathfinder: cấp 1 đi rừng, cấp 3 cả núi; hai tướng cấp 1 không cộng thành cấp 3`);
   ok(ef.p2p===0,'P2P: tướng không vào trận (hai người ngang nhau)');
-  const lv=await T.ev(()=>[1,2,3,4,5].map(l=>BW_GEN_BY.vanguard.val(l)).map(v=>Math.round(v*100)).join(',')); ok(lv==='5,7,9,11,13','Lữ Bố mạnh dần theo cấp: +5% → +13% sát thương');
-  // vào trận thật: tướng đi cùng, Lữ Bố đánh mạnh hơn, Hoa Đà cứu quân sau trận thắng
+  const lv=await T.ev(()=>[1,2,3,4,5].map(l=>BW_GEN_BY.vanguard.val(l)).map(v=>Math.round(v*100)).join(',')); ok(lv==='5,7,9,11,13','tướng Attack mạnh dần theo cấp: +5% → +13% sát thương');
+  // chơi nước khác: tướng Rome không đi theo
+  await menu(T); await T.ev(()=>{ G.bwCfg={civ:'japan'}; startBigWar(3); __ltm.bw.skipIntro&&__ltm.bw.skipIntro(); }); await p.waitForTimeout(500);
+  ok(await T.ev(()=>__ltm.bw.gens.length===0),'chơi Nhật Bản: tướng của Rome không ra trận');
+  // vào trận thật với Rome
   await menu(T); await T.ev(()=>{ G.bwCfg={civ:'rome'}; startBigWar(3); __ltm.bw.skipIntro&&__ltm.bw.skipIntro(); }); await p.waitForTimeout(600);
-  s=await T.ev(()=>({g:__ltm.bw.gens.map(x=>x.id).join(),k:__ltm.bw.genK}));
-  ok(s.g==='vanguard,medic','vào trận: Lữ Bố + Hoa Đà đi cùng');
+  s=await T.ev(()=>({g:__ltm.bw.gens.map(x=>x.id).join(), notes:(__ltm.bw.notes||[]).map(x=>x.text||x.s||'').join(' | ')}));
+  ok(s.g==='rome.trajan,rome.domitius-corbulo'&&/Trajan \(Lv 1\).*Domitius Corbulo \(Lv 1\) ride with you/.test(s.notes),'chơi Rome: Trajan + Corbulo đi cùng, có dòng "… ride with you"');
   const heal=await T.ev(()=>{ const bw=__ltm.bw; const a={owner:0,type:'spear',count:1000,x:300,y:700,food:100,done:false}; const e={owner:1,type:'spear',count:0,x:300,y:700,food:0,done:false}; bw.armies.push(a,e);
     const b2={A:{fid:0,mul:1,es:[{kind:'army',ref:a}]},B:{fid:1,mul:1,es:[{kind:'army',ref:e}]},lostP:400,kind:'field',nodeId:-1,x:300,y:700,ter:'plain',id:777};
     try{ bw.bEnd(b2,b2.A,b2.B); }catch(err){ return 'err '+err.message; } return Math.round(a.count); });
-  ok(heal===1040,`Hoa Đà: thắng trận mất 400 quân → cứu lại ${typeof heal==='number'? heal-1000 : heal} (10%)`);
+  ok(heal===1040,`Corbulo (Field medic): thắng trận mất 400 quân → cứu lại ${typeof heal==='number'? heal-1000 : heal} (10%)`);
   const atk=await T.ev(()=>{ const bw=__ltm.bw, a={owner:0,type:'spear',count:800,x:900,y:700,food:100}, e={owner:1,type:'spear',count:800,x:910,y:700,food:100}; bw.armies.push(a,e); const b2=bw.startBattle(900,700,'plain',-1,{fid:0,e:{kind:'army',ref:a}},{fid:1,e:{kind:'army',ref:e}},1); return b2? b2.A.mul : null; });
-  ok(atk!=null&&Math.abs(atk-1.05)<1e-6,`Lữ Bố: phe ta vào trận với sức đánh ×${atk}`);
+  ok(atk!=null&&Math.abs(atk-1.05)<1e-6,`Trajan (Attack): phe ta vào trận với sức đánh ×${atk}`);
   await fin(T,true,400);
-  s=await T.ev(()=>({own:save.gen.own, st:document.getElementById('rStats').textContent}));
-  ok(s.own.vanguard===3&&s.own.medic===3,'thắng trận: mỗi tướng +3 kinh nghiệm');
+  s=await T.ev(()=>({own:save.gen.own}));
+  ok(s.own['rome.trajan']===3&&s.own['rome.domitius-corbulo']===3,'thắng trận: mỗi tướng +3 kinh nghiệm');
   await T.tapEl('#bAgain'); await p.waitForTimeout(800); await fin(T,true,400);
-  ok(/Lü Bu the Vanguard reached level 2/.test(await txt(T,'#rStats'))&&/Hua Tuo the Healer reached level 2/.test(await txt(T,'#rStats')),'thắng trận thứ 2: báo hai tướng lên cấp 2');
+  ok(/Trajan reached level 2/.test(await txt(T,'#rStats'))&&/Domitius Corbulo reached level 2/.test(await txt(T,'#rStats')),'thắng trận thứ 2: báo hai tướng lên cấp 2');
   await T.tapEl('#bAgain'); await p.waitForTimeout(800); await fin(T,false,200);
-  ok(await T.ev(()=>save.gen.own.vanguard===7),'thua trận: +1 kinh nghiệm');
+  ok(await T.ev(()=>save.gen.own['rome.trajan']===7),'thua trận: +1 kinh nghiệm');
   await menu(T); await T.tapEl('#bGear'); await p.waitForTimeout(250); await T.tapEl('#gear [data-armtab="gens"]'); await p.waitForTimeout(300);
-  ok(/Lv 2/.test(await txt(T,'#genList [data-gen="vanguard"]'))&&/XP 7 \/ 12/.test(await txt(T,'#genList [data-gen="vanguard"]'))&&/Lv 3:/.test(await txt(T,'#genList [data-gen="vanguard"]')),'thẻ tướng: "Lv 2", "XP 7 / 12", ghi hiệu lực cấp kế');
+  { const t=await txt(T,'#genList [data-gen="rome.trajan"]'); ok(/Lv 2/.test(t)&&/XP 7 \/ 12/.test(t)&&/Lv 3:/.test(t),'thẻ tướng: "Lv 2", "XP 7 / 12", ghi hiệu lực cấp kế'); }
   // ---------- 📅 THỬ THÁCH ----------
   await menu(T); await T.ev(()=>{ localStorage.setItem(SSAVE,JSON.stringify({v:1,lv:2,cfg:{civ:'rome'},sc:{time:77}})); save.conq={civ:'rome',diff:1,stage:1,best:{}}; Save.set(save); window.__rs=localStorage.getItem(RSAVE); });
   await T.tapEl('#bBW'); await p.waitForTimeout(250); r=await T.tapEl('#bChal'); await p.waitForTimeout(400);

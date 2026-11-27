@@ -192,7 +192,9 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
 .chrongrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px;max-height:58vh;overflow:auto}.civ.chron{cursor:default}.civ.chron.off{opacity:.5;filter:grayscale(.7)}.civ.chron.on{border-color:#ffd54a}
 #conquest .stg.asc{border-color:#ffd54a;background:linear-gradient(90deg,rgba(255,213,74,.18),rgba(255,107,214,.12))}#conquest .stg.asc .no{background:linear-gradient(#ffe27a,#ff9f1a);color:#3a2000}
 #campaign .stg.endless .no{background:linear-gradient(#b48cff,#5b3fd6)}
-.gport{width:64px;height:64px;border-radius:50%;flex:0 0 64px}.gxp{height:6px;border-radius:4px;background:rgba(255,255,255,.15);margin-top:4px;overflow:hidden}.gxp i{display:block;height:100%;background:linear-gradient(90deg,#7dffcf,#4ade80)}.gtag{font-size:12px;font-weight:800;color:#ffd54a;margin-left:6px}
+#genList{grid-template-columns:repeat(auto-fill,minmax(330px,1fr))} #genList .fcard{align-items:flex-start} #genList .fcard>.btn{align-self:center;flex:0 0 auto;white-space:nowrap} #genList .fcard>.fb{flex:1 1 auto;min-width:0}
+  .genciv{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:0 0 8px} #genCiv{font:700 15px system-ui;padding:7px 10px;border-radius:10px;border:2px solid #3a2a1c;background:#fff8ec;color:#2a1a12;max-width:100%} .ghist{font-style:italic;opacity:.85} .gtag.leg{background:#ffd54a;color:#3a2a00}
+  .gport{width:64px;height:64px;border-radius:50%;flex:0 0 64px}.gxp{height:6px;border-radius:4px;background:rgba(255,255,255,.15);margin-top:4px;overflow:hidden}.gxp i{display:block;height:100%;background:linear-gradient(90deg,#7dffcf,#4ade80)}.gtag{font-size:12px;font-weight:800;color:#ffd54a;margin-left:6px}
 .mtitle{font-weight:900;color:#ffd54a;text-shadow:0 2px 0 #3a2000;font-size:16px;margin:-2px 0 4px}
 .achtitles{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px;margin:0 0 6px}.achtitles .btn{font-size:13px;padding:4px 10px}
 .achgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));grid-auto-rows:min-content;gap:6px;overflow:auto;flex:1 1 auto;min-height:0}.achgrid .agroup{grid-column:1/-1;font-weight:900;color:#ffd54a;margin-top:4px}
@@ -278,7 +280,8 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
     <div style="text-align:right;margin-top:8px"><button class="btn" data-back>← Back</button></div></div></div>
   <div id="gens" class="screen hidden"><div class="card wide"><div class="fhead"><h2>🎖️ Generals</h2><div class="coinbar"><span class="ic" data-art="ui:coin">🪙</span> <b class="xu">0</b> Coins</div></div>
     <div class="civtabs armtabs"><button class="btn" data-armtab="gear">🎒 Supplies</button><button class="btn" data-armtab="forge"><span class="ic" data-art="ui:forge">⚒️</span> Forge</button><button class="btn" data-armtab="decor">🏮 Decor</button><button class="btn on" data-armtab="gens" disabled>🎖️ Generals</button></div>
-    <p class="note" style="margin:2px 0 6px">Recruit generals with coins and <b>bring 1 (or 2) into battle</b>. Each has a talent that always helps your side. Generals gain experience every battle (<b>win +3</b>, lose +1) and grow stronger up to <b>level 5</b>. <b id="genSlots"></b></p>
+    <p class="note" style="margin:2px 0 6px"><b>Real generals from history</b> for every civilization — they <b>ride only with their own</b>. Each has a talent; <b>win +3 XP</b>, lose +1, up to <b>level 5</b>.</p>
+    <div class="genciv"><select id="genCiv" aria-label="Civilization"></select> <b id="genSlots"></b></div>
     <div id="genList" class="flist"></div>
     <div style="text-align:right;margin-top:8px"><button class="btn" data-back>← Back</button></div></div></div>
   <div id="chalScr" class="screen hidden"><div class="card wide campcard"><div class="fhead"><h2>📅 Challenges</h2><div id="chalProg" class="campprog"></div></div>
