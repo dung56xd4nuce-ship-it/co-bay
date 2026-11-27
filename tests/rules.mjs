@@ -1240,10 +1240,44 @@ console.log(`\n${pass} đạt, ${fail} chưa đạt`);
     const sp=(k,t)=>BW.mv[k][t]; ok(sp('F','forest')<1&&sp('F','mountain')<sp('F','forest')&&sp('H','forest')<sp('F','forest')&&sp('R','forest')>sp('F','forest'), `🗺️ Tốc độ trong rừng: sát thủ ×${sp('R','forest')} > bộ binh ×${sp('F','forest')} > kỵ binh ×${sp('H','forest')}; núi chậm hơn rừng`); }
   { // 📣 bắt dính + 🚑 cứu trại
     const bw=mk(), mine=own(bw), camp=bw.nodes.find(n=>n.camp&&n.owner===0); for(const n of mine){ n.count=400; n.mix=null; } bw.scale=0.5;
-    const tgt=mine[0]; bw.rallyCall(5,tgt.x+70,tgt.y-50); const into=bw.armies.filter(a=>a.owner===0&&a.to===tgt.id).length, loose=bw.armies.filter(a=>a.owner===0&&a.to<0).length;
-    ok(into>=1&&loose===0&&tgt.count===400, `📣 Chạm lệch đồn 86px: hiệu lệnh BẮT DÍNH vào đồn — ${into} đạo kéo thẳng VÀO đồn (không đứng ngoài bãi), đồn đích không bị rút quân`);
-    const bw2=mk(), m2=own(bw2); for(const n of m2){ n.count=400; n.mix=null; } bw2.scale=0.5; let fx=0,fy=0,ok2=false; for(let x=300;x<BW.W-300&&!ok2;x+=97) for(let y=200;y<BW.H-200&&!ok2;y+=83){ if(!bw2.rallySnap(x,y)&&bw2.terAt(x,y)!=='river'){ fx=x; fy=y; ok2=true; } }
-    bw2.rallyCall(5,fx,fy); ok(bw2.armies.filter(a=>a.owner===0&&a.to<0&&a.rally).length>=1, '📣 Chạm giữa đồng trống (xa mọi trại): vẫn tập kết đúng điểm chạm như cũ');
+    const ecoOwn=(b)=>{ const E=b.nodes.filter(n=>n.eco&&n.eco!=='granary'); for(const n of E){ n.owner=0; n.count=300; n.mix=null; } return E; };
+    const hubs=(b)=>b.nodes.filter(n=>n.owner===0&&!n.eco), byD=(x,y)=>(a,b2)=>Math.hypot(a.x-x,a.y-y)-Math.hypot(b2.x-x,b2.y-y);
+    const E1=ecoOwn(bw); for(const n of hubs(bw)){ n.count=400; n.mix=null; }
+    const tgt=mine[0]; bw.rallyCall(5,tgt.x+70,tgt.y-50);
+    const H5=new Set(hubs(bw).sort(byD(tgt.x,tgt.y)).slice(0,5)), want=E1.filter(n=>{ const h=hubs(bw).sort(byD(n.x,n.y))[0]; return H5.has(h); });
+    const into=bw.armies.filter(a=>a.owner===0&&a.to===tgt.id), froms=new Set(into.map(a=>a.from));
+    ok(E1.length>=3&&want.length>=1&&into.length>=1&&want.every(n=>froms.has(n.id)&&n.count===0)&&[...froms].every(id=>want.some(n=>n.id===id))&&hubs(bw).every(n=>n.count===400)&&!bw.armies.some(a=>a.owner===0&&a.to<0),
+      `📣 (6.3) Gom 5 trại gần nhất: ${want.length}/${E1.length} điểm luyện quân/trại chăn nuôi quanh 5 trại đó kéo VÀO đồn được chạm (bắt dính); quân TRONG mọi trại, thành trấn giữ nguyên`);
+    const bw2=mk(), m2=own(bw2); for(const n of hubs(bw2)){ n.count=400; n.mix=null; } ecoOwn(bw2); bw2.scale=0.5; let fx=0,fy=0,ok2=false; for(let x=300;x<BW.W-300&&!ok2;x+=97) for(let y=200;y<BW.H-200&&!ok2;y+=83){ if(!bw2.rallySnap(x,y)&&bw2.terAt(x,y)!=='river'){ fx=x; fy=y; ok2=true; } }
+    bw2.rallyCall(10,fx,fy); ok(bw2.armies.filter(a=>a.owner===0&&a.to<0&&a.rally).length>=1&&hubs(bw2).every(n=>n.count===400), '📣 Gom 10 trại, chạm giữa đồng trống: quân điểm luyện quân tập kết đúng điểm chạm, trại giữ nguyên');
+    { const b5=mk(); for(const n of hubs(b5)){ n.count=400; n.mix=null; } const n0=b5.armies.length; b5.rallyCall(5,fx,fy);
+      ok(b5.armies.length===n0&&hubs(b5).every(n=>n.count===400)&&b5.notes.some(q=>/No training grounds or ranches with troops/.test(q.s||q.text||JSON.stringify(q))), '📣 Quanh 5 trại không có điểm luyện quân nào có quân: báo rõ, không rút quân trong trại'); }
+    { const bA=mk(); const HA=hubs(bA); for(const n of HA){ n.count=400; n.mix=null; } const EA=ecoOwn(bA); const fld={owner:0,type:'spear',count:250,x:HA[0].x+900,y:HA[0].y+300,to:-1,tx:HA[0].x+900,ty:HA[0].y+300,camped:true,trail:0,food:100}; bA.armies.push(fld);
+      const busy={owner:0,type:'spear',count:150,x:HA[1].x+600,y:HA[1].y,to:-1,camped:true,trail:0,food:100,btl:99}; bA.armies.push(busy);
+      bA.rallyCall(Infinity,fx,fy); const tot=bA.armies.filter(a=>a.owner===0&&!a.done&&a.rally).reduce((t,a)=>t+a.count,0);
+      ok(HA.every(n=>n.count===0)&&EA.every(n=>n.count===0)&&fld.rally&&fld.tx===fx&&!busy.rally&&tot===HA.length*400+EA.length*300+250,
+        `🚩 (6.3) Tổng động viên: rút sạch ${HA.length} trại/thành trấn + ${EA.length} điểm luyện quân/trại chăn nuôi + đạo quân đang đóng ngoài đồng (trừ đạo đang giao chiến) — ${tot} quân về điểm tập kết`); }
+    { // 🔲 quét: lấy cả quân điểm luyện quân trong vùng, không lấy trại; huỷ thì quay về
+      const bQ=mk(); const HQ=hubs(bQ); for(const n of HQ){ n.count=400; n.mix=null; } const EQ=ecoOwn(bQ), e=EQ[0], c=HQ.sort(byD(e.x,e.y))[0];
+      const box=[Math.min(e.x,c.x)-40,Math.min(e.y,c.y)-40,Math.max(e.x,c.x)+40,Math.max(e.y,c.y)+40]; const inBox=(n)=>n.x>=box[0]&&n.x<=box[2]&&n.y>=box[1]&&n.y<=box[3];
+      const fld={owner:0,type:'spear',count:120,x:(box[0]+box[2])/2,y:(box[1]+box[3])/2,to:-1,camped:true,trail:0,food:100}; bQ.armies.push(fld);
+      const k=bQ.boxSelectWorld(...box), eIn=EQ.filter(inBox), hIn=HQ.filter(inBox);
+      ok(k===1+eIn.length&&eIn.every(n=>n.count===0)&&hIn.length>=1&&hIn.every(n=>n.count===400)&&bQ.selG.includes(fld)&&bQ.selG.filter(a=>a.boxFrom!=null).length===eIn.length,
+        `🔲 (6.3) Quét vùng: chọn đạo quân ngoài đồng + quân ${eIn.length} điểm luyện quân trong vùng; ${hIn.length} trại trong vùng giữ nguyên`);
+      const pulled=bQ.selG.filter(a=>a.boxFrom!=null); bQ.menu={wx:0,wy:0,src:{kind:'grp',refs:bQ.selG.slice()}}; bQ.menuPick('cancel');
+      ok(pulled.every(a=>a.to===e.id||eIn.some(n=>n.id===a.to)), '🔲 Bỏ chọn: quân vừa bước ra khỏi điểm luyện quân quay về chỗ cũ'); }
+    { // 🤝 gộp đạo đứng sát nhau
+      const bM=mk(), c=hubs(bM)[0]; const X=c.x+700, Y=c.y+200; const mkA=(t,n,dx)=>({owner:0,type:t,count:n,x:X+dx,y:Y,to:-1,tx:X+dx,ty:Y,camped:true,trail:0,food:100});
+      const a1=mkA('spear',300,0), a2=mkA('archer',200,40), a3=mkA('cavalry',100,80), far=mkA('spear',50,400); bM.armies.push(a1,a2,a3,far);
+      for(let t=0;t<30;t++) bM.update(1/30);
+      ok(!a1.done&&a1.count===600&&a2.done&&a3.done&&!far.done&&far.count===50, `🤝 (6.3) Ba đạo (3 binh chủng) đứng sát nhau tự gộp thành 1 đạo ${a1.count} quân mang binh chủng đông nhất (${a1.type}); đạo đứng xa giữ riêng`);
+      const bG=mk(), cg=hubs(bG)[0]; const g1=mkA('spear',200,0), g2=mkA('archer',150,300), g3=mkA('cavalry',90,-300); for(const q of [g1,g2,g3]){ q.x=cg.x+600+(q.x-X); q.y=cg.y+400; q.tx=q.x; q.ty=q.y; } bG.armies.push(g1,g2,g3);
+      const dx=cg.x+600, dy=cg.y+900; bG.menu={wx:dx,wy:dy,src:{kind:'grp',refs:[g1,g2,g3]},opts:[]}; bG.menuPick('move');
+      for(let t=0;t<60*40&&[g1,g2,g3].filter(q=>!q.done).length>1;t++) bG.update(1/60);
+      const live=[g1,g2,g3].filter(q=>!q.done); ok(live.length===1&&live[0].count===440&&Math.hypot(live[0].x-dx,live[0].y-dy)<120, `🤝 Chọn 3 đạo, lệnh tới một điểm: tới nơi còn đúng 1 đạo ${live[0]&&live[0].count} quân (trước đây xếp hàng thành 3 đạo đứng sát nhau)`);
+      const bN=mk(), cn=hubs(bN)[0]; cn.count=600; cn.mix={spear:0.5,archer:0.3,cavalry:0.2}; cn.mixO=0; cn.type='spear'; const sx=cn.x+500, sy=cn.y+350; bN.menu={wx:sx,wy:sy,src:{kind:'node',ref:cn},opts:[]}; bN.menuPick('move');
+      const out=bN.armies.filter(a=>a.owner===0&&a.from===cn.id); for(let t=0;t<60*40&&out.filter(q=>!q.done).length>1;t++) bN.update(1/60);
+      ok(out.length>=2&&out.filter(q=>!q.done).length===1&&out.find(q=>!q.done).count===600, `🤝 Trại ${out.length} binh chủng ra một điểm: tới nơi gộp thành 1 đạo 600 quân`); }
     const bw3=mk(), m3=own(bw3), camp3=bw3.nodes.find(n=>n.camp&&n.owner===0); for(const n of m3){ n.count=400; n.mix=null; } const hurt=m3[m3.length-1];
     bw3.armies.push({owner:1,type:'spear',count:900,x:hurt.x+200,y:hurt.y,to:hurt.id,from:1,trail:0,food:100});
     bw3.rallyCall(-1,hurt.x+900,hurt.y+500); const res=bw3.armies.filter(a=>a.owner===0&&a.to===hurt.id).length;

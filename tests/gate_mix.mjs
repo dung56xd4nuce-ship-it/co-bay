@@ -44,8 +44,8 @@ for(const [dn,dev] of [...DEVICES, PORTRAIT[1], ['Android nhỏ ngang 640×360',
   c=R.find(r=>r.sel&&r.sel.frac===0.25); await T.tap(c.x,c.y); await p.waitForTimeout(200); R=await rects(); const g2=R.find(r=>r.id==='attack'||r.id==='move'); await T.tap(g2.x,g2.y); await p.waitForTimeout(350);
   st=await T.ev((id)=>{ const bw=__ltm.bw, n=bw.nodes[id], as=bw.armies.filter(a=>a.owner===0&&!a.done&&a.from===id); return {as:as.map(a=>a.count).join(),left:n.count}; },m1[2]);
   ok(st.as==='100'&&st.left===300,'chọn ¼: 100 lính đi, 300 ở lại giữ đồn');
-  // ---------- 4) 📣 hiệu lệnh bắt dính vào đồn
-  await fresh(); P=await pos(); await look(P.n[0],P.n[1]);
+  // ---------- 4) 📣 hiệu lệnh bắt dính vào đồn (6.3: Gom 5 trại = quân ở điểm luyện quân/trại chăn nuôi quanh 5 trại gần nhất)
+  await fresh(); P=await pos(); await T.ev(()=>{ for(const e of __ltm.bw.nodes.filter(n=>n.eco&&n.eco!=='granary')){ e.owner=0; e.count=300; e.mix=null; } }); await look(P.n[0],P.n[1]);
   const rb=await T.ev(()=>{ const r=__ltm.bw._rallyBtn; return [r.x+r.w/2,r.y+r.h/2]; }); await T.tap(rb[0],rb[1]); await p.waitForTimeout(300);
   let RR=await T.until(()=>{ const R=(__ltm.bw._rallyRects||[]); return R.length? R.map(r=>({n:r.n===Infinity?'all':r.n,x:r.x+r.w/2,y:r.y+r.h/2,in:r.x>=0&&r.y>=0&&r.x+r.w<=__ltm.bw.lastVw&&r.y+r.h<=__ltm.bw.lastVh})) : null; },null,2500)||[];
   ok(RR.length===5&&RR.some(r=>r.n===-1)&&RR.every(r=>r.in),'bảng hiệu lệnh có 5 dòng, thêm "🚑 Rescue a camp under attack", nằm gọn trong màn hình');
@@ -55,7 +55,7 @@ for(const [dn,dev] of [...DEVICES, PORTRAIT[1], ['Android nhỏ ngang 640×360',
   // chạm LỆCH khỏi đồn ~45px màn hình (ngón tay không trúng tâm)
   await tapW(P.n[0],P.n[1],38,-26);
   st=await T.ev(()=>{ const bw=__ltm.bw, n=window.__n, as=bw.armies.filter(a=>a.owner===0&&!a.done); return {n:as.length,into:as.filter(a=>a.to===n.id).length,loose:as.filter(a=>a.to<0).length,keep:Math.round(n.count),note:bw.notes.map(q=>q.s||q.text||'').join(' | ')}; });
-  ok(st.n>=1&&st.into===st.n&&st.loose===0&&st.keep===1200,`chạm lệch tâm đồn: ${st.into} đạo kéo thẳng VÀO đồn (không đạo nào đứng ngoài bãi), quân trong đồn giữ nguyên`);
+  ok(st.n>=1&&st.into===st.n&&st.loose===0&&st.keep===1200,`chạm lệch tâm đồn: ${st.into} đạo từ điểm luyện quân kéo thẳng VÀO đồn (không đạo nào đứng ngoài bãi), quân trong đồn giữ nguyên`);
   ok(/into your (stronghold|camp)/.test(st.note),'thông báo ghi rõ quân kéo "into your stronghold"');
   await T.ev(()=>{ const bw=__ltm.bw; for(let i=0;i<20*120&&bw.armies.some(a=>a.owner===0&&!a.done);i++){ bw.update(0.05); for(const a of bw.armies) a.food=100; } }); 
   ok(await T.ev(()=>!__ltm.bw.armies.some(a=>a.owner===0&&!a.done)&&window.__n.count>=1200+300),'các đạo tới nơi đều nhập hẳn vào đồn (đồn tăng quân)');

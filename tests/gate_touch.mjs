@@ -62,13 +62,14 @@ const runDevice=async(dn,dev,portrait)=>{ console.log(dn);
     await T.tap(...mid(R['nút −'])); await p.waitForTimeout(300); ok(await T.ev((z)=>__ltm.bw.zoomTgt<z*0.9,z1),`${tag}: nút － thu nhỏ`);
     const m=R['bản đồ nhỏ']; c0=await T.ev(()=>__ltm.bw.camX); await T.tap(m.x+m.w*0.8,m.y+m.h*0.5); await p.waitForTimeout(300); ok(await T.ev((c)=>Math.abs(__ltm.bw.camX-c)>800,c0),`${tag}: chạm bản đồ nhỏ → máy quay nhảy tới đó`);
     await T.ev(()=>{ const bw=__ltm.bw, c=bw.nodes[0]; bw.zoom=bw.zoomTgt=1; const hc=bw.homeCam(c.x,c.y,bw.lastVw/bw.scale0,bw.lastVh/bw.scale0); bw.camX=hc[0]; bw.camY=hc[1]; }); await p.waitForTimeout(250);
+    await T.ev(()=>{ const bw=__ltm.bw, c=bw.nodes[0]; for(const e of bw.nodes.filter(n=>n.eco&&n.eco!=='granary'&&Math.hypot(n.x-c.x,n.y-c.y)<2500)){ e.owner=0; e.count=300; } });   /* (6.3) Gom 5 trại = quân ở điểm luyện quân quanh trại */
     const n0=await T.ev(()=>__ltm.bw.armies.filter(a=>a.owner===0&&!a.done).length); let R2=await T.ev(()=>__ltm.bw.hudRects()); await T.tap(...mid(R2['nút 📣'])); await p.waitForTimeout(150);
     const rally=()=>T.until(()=>{ const R=(__ltm.bw._rallyRects||[]); return R.length? R.map(r=>({n:r.n,x:r.x+r.w/2,y:r.y+r.h/2})) : null; },null,1800);
     let rm=(await rally())||[];
     if(!rm.length){ R2=await T.ev(()=>__ltm.bw.hudRects()); await T.tap(...mid(R2['nút 📣'])); await p.waitForTimeout(150); rm=(await rally())||[]; }   // băng "xoay ngang" vừa tự ẩn làm nút dời chỗ đúng lúc chạm → người chơi chạm lại
     if(ok(rm.length===5&&rm.some(r=>r.n===-1),`${tag}: nút 📣 mở bảng gọi quân 5 dòng (có 🚑 Cứu trại)`)){ await T.tap(rm[0].x,rm[0].y); await p.waitForTimeout(250); ok(await T.ev(()=>__ltm.bw.rallyPick===5),`${tag}: chọn "5 trại gần nhất" → chờ chạm điểm tập kết`);
       const c=await T.ev(()=>{ const bw=__ltm.bw, c=bw.nodes[0]; return [c.x+330,c.y+30]; }); const s=await T.scr(c[0],c[1]); await T.tap(s[0],s[1]); await p.waitForTimeout(350);
-      ok(await T.ev((n)=>__ltm.bw.armies.filter(a=>a.owner===0&&!a.done).length>n,n0),`${tag}: chạm điểm tập kết → các trại xuất quân`); }   /* (5.4) điểm chạm có thể bắt dính vào một đồn của ta: quân kéo vào đồn đó (không còn cờ 'rally') — vẫn là xuất quân */
+      ok(await T.ev((n)=>__ltm.bw.armies.filter(a=>a.owner===0&&!a.done).length>n,n0),`${tag}: chạm điểm tập kết → điểm luyện quân quanh các trại xuất quân`); }   /* (5.4) điểm chạm có thể bắt dính vào một đồn của ta: quân kéo vào đồn đó (không còn cờ 'rally') — vẫn là xuất quân */
     ok(T.errs.length===0,`${tag}: không lỗi JS`+(T.errs.length?': '+T.errs[0]:''));
     await T.ctx.close(); }
 };

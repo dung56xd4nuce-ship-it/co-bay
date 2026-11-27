@@ -5,6 +5,7 @@
 //   • Xuất quân: chọn binh chủng (hoặc tất cả — mỗi loại một đạo, đi cùng nhau) và chọn lượng (tất cả / một nửa / một phần tư).
 BW.sendFracs=[[1,'All'],[0.5,'½'],[0.25,'¼']];
 BW.sendMin=20;   /* tách ra ít hơn 20 lính thì không thành một đạo quân */
+BW.mergeR=90;    /* (6.3) hai đạo cùng phe đứng yên cách nhau ≤ 90 thì tự gộp làm một */
 BigWar.prototype.mixOf=function(n){ const m=n.mix; if(m&&n.mixO===n.owner&&m[n.type]>0) return m; if(m){ n.mix=null; } const o={}; o[n.type]=1; return o; };
 BigWar.prototype.mixList=function(n){ const m=this.mixOf(n), out=[]; for(const t in m){ const c=m[t]*n.count; if(c>=1) out.push([t,c]); } return out.sort((a,b)=>b[1]-a[1]); };
 BigWar.prototype.mixSet=function(n,counts){ let tot=0, best=null, bc=-1; for(const t in counts){ if(!(counts[t]>0.5)){ delete counts[t]; continue; } tot+=counts[t]; if(counts[t]>bc){ bc=counts[t]; best=t; } }
