@@ -417,7 +417,7 @@ class BigWar{
     if(this.gearTap&&this.gearTap(sx,sy)) return true;   /* 🎒 quân nhu */
     if(hit(this._rallyBtn)){ if(this.rallyPick){ this.rallyPick=0; } else { this.rallyOpen=true; this.menu=null; this.gearOpen=false; } audio.click(); return true; }
     if(this.menu&&this._menuRects){ for(const r of this._menuRects){ if(sx>=r.x&&sx<=r.x+r.w&&sy>=r.y&&sy<=r.y+r.h){ if(r.sel){ const S=this.sendSel||(this.sendSel={node:r.sel.node,type:null,frac:1}); if(S.node!==r.sel.node){ S.node=r.sel.node; S.type=null; S.frac=1; } if('type' in r.sel) S.type=r.sel.type; if('frac' in r.sel) S.frac=r.sel.frac; audio.click(); return true; } this.menuPick(r.id); return true; } }
-      if(this.menu.src&&(this.sel||this.selA||(this.selG&&this.selG.length))&&!(this.tut&&!this.tut.done)){ this.menu=null; return false; }   /* (6.3.1) menu lệnh đang mở mà chạm chỗ khác trên bản đồ = ĐỔI MỤC TIÊU (vẫn giữ quân đang chọn), không bỏ chọn */
+      /* (6.5.1) chạm ra ngoài bảng lệnh = đóng bảng + bỏ chọn luôn (lỡ chạm nhầm một đạo quân thì chạm ra ngoài một lần là thoát) */
       this.menu=null; this.sel=null; this.selA=null; this.selG=null; return true; } // chạm ngoài menu: đóng menu + bỏ chọn
     const rb=this._retreatBtn;
     if(rb&&sx>=rb.x&&sx<=rb.x+rb.w&&sy>=rb.y&&sy<=rb.y+rb.h){

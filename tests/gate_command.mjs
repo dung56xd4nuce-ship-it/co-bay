@@ -92,7 +92,7 @@ for(const [dn,dev] of [...DEVICES, PORTRAIT[1], ['Android nhỏ ngang 640×360',
   { const mv=await T.until(()=>{ const R=(__ltm.bw._menuRects||[]).find(r=>r.id==='move'); return R? [R.x+R.w/2,R.y+R.h/2] : null; },null,2500); if(mv){ await T.tap(mv[0],mv[1]); await p.waitForTimeout(300); } }
   st=await T.ev(()=>{ const a=window.__M; return {to:a.to, o:window.__O.id, amb:a.ambush}; });
   ok(st.to===st.o&&!st.amb,'chạm "🛡️ Leave ambush · reinforce this post": đạo quân rời mai phục, hành quân tới cứ điểm');
-  // ---------- 5) menu lệnh đang mở, chạm mục tiêu KHÁC trên bản đồ → đổi mục tiêu, vẫn giữ quân đang chọn ----------
+  // ---------- 5) (6.5.1) lỡ chọn một đạo quân, bảng lệnh hiện ra: chạm ra ngoài bảng MỘT lần là đóng bảng + bỏ chọn; chạm tiếp bản đồ không hiện bảng nữa ----------
   await fresh();
   const R5=await T.ev(()=>{ const bw=__ltm.bw, c=bw.nodes[0]; const a={owner:0,type:'spear',count:500,x:c.x+500,y:c.y+120,to:-1,camped:true,trail:0,food:100}; bw.armies.push(a); window.__R=a;
     const pts=[]; for(let r=260;r<900&&pts.length<2;r+=40) for(let k=0;k<12&&pts.length<2;k++){ const x=a.x+Math.cos(k/12*6.283)*r, y=a.y+Math.sin(k/12*6.283)*r; if(bw.terAt(x,y)==='river'||bw.nodes.some(n=>Math.hypot(n.x-x,n.y-y)<200)||pts.some(q=>Math.hypot(q[0]-x,q[1]-y)<300)) continue; pts.push([x,y]); }
@@ -101,11 +101,11 @@ for(const [dn,dev] of [...DEVICES, PORTRAIT[1], ['Android nhỏ ngang 640×360',
   { const s0=await T.scr(R5.a[0],R5.a[1]-28); await T.tap(s0[0],s0[1]); await p.waitForTimeout(200); const s1=await T.scr(R5.P[0][0],R5.P[0][1]); await T.tap(s1[0],s1[1]); await p.waitForTimeout(250); }
   const m1=await T.ev(()=>{ const m=__ltm.bw.menu; return m&&[Math.round(m.wx),Math.round(m.wy)]; });
   { const s2=await T.scr(R5.P[1][0],R5.P[1][1]); const inMenu=await T.ev(([x,y])=>(__ltm.bw._menuRects||[]).some(r=>x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h),s2); if(!inMenu){ await T.tap(s2[0],s2[1]); await p.waitForTimeout(250); } }
-  st=await T.ev(()=>{ const bw=__ltm.bw, m=bw.menu; return {sel:bw.selA===window.__R, m:m&&[Math.round(m.wx),Math.round(m.wy)], ids:m&&m.opts.map(o=>o.id).join()}; });
-  ok(!!m1&&st.sel&&st.m&&(st.m[0]!==m1[0]||st.m[1]!==m1[1])&&/move/.test(st.ids||''),'chọn đạo quân → chạm điểm A (hiện menu) → chạm điểm B ngoài menu: vẫn giữ đạo quân, menu chuyển sang điểm B');
-  { const mv=await T.until(()=>{ const R=(__ltm.bw._menuRects||[]).find(r=>r.id==='move'); return R? [R.x+R.w/2,R.y+R.h/2] : null; },null,2000); if(mv){ await T.tap(mv[0],mv[1]); await p.waitForTimeout(250); } }
-  st=await T.ev(([x,y])=>{ const a=window.__R; return {tx:Math.round(a.tx), ty:Math.round(a.ty), x, y, moving:!a.camped}; },R5.P[1]);
-  ok(Math.hypot(st.tx-st.x,st.ty-st.y)<5&&st.moving,'chạm "🏃 March here": đạo quân đi tới điểm B');
+  st=await T.ev(()=>({sel:!!(__ltm.bw.selA||__ltm.bw.sel||(__ltm.bw.selG&&__ltm.bw.selG.length)), m:!!__ltm.bw.menu}));
+  ok(!!m1&&!st.sel&&!st.m,'chọn đạo quân → chạm điểm A (hiện bảng lệnh) → chạm ra ngoài bảng: bảng đóng, đạo quân được bỏ chọn');
+  { const s3=await T.scr(R5.P[0][0],R5.P[0][1]); await T.tap(s3[0],s3[1]); await p.waitForTimeout(250); }
+  st=await T.ev(()=>({m:!!__ltm.bw.menu, moved:!window.__R.camped}));
+  ok(!st.m&&!st.moved,'chạm tiếp vào bản đồ: không còn bảng lệnh nào hiện ra, đạo quân đứng yên');
   // ---------- 6) quét chỉ phủ HÌNH lính và bảng số (phía trên chân đạo quân) vẫn chọn được ----------
   await fresh();
   const R6=await T.ev(()=>{ const bw=__ltm.bw, c=bw.nodes[0]; const a={owner:0,type:'archer',count:900,x:c.x+700,y:c.y+250,to:-1,camped:true,trail:0,food:100}; bw.armies.push(a); window.__S=a; return [a.x,a.y]; });
