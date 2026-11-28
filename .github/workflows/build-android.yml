@@ -43,3 +43,5 @@ jobs:
             --notes "APK Android cài trực tiếp. Tải LoanTheMeme-v7.0.apk bên dưới → mở file → cho phép cài từ nguồn không xác định → chơi." \
             --target "$GITHUB_SHA" || true
           gh release upload ltm-v7.0 LoanTheMeme-v7.0.apk --clobber
+          cp android/app/build/outputs/bundle/release/app-release.aab LoanTheMeme-v7.0-unsigned.aab
+          gh release upload ltm-v7.0 LoanTheMeme-v7.0-unsigned.aab --clobber
