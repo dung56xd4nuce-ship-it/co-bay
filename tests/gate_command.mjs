@@ -115,6 +115,18 @@ for(const [dn,dev] of [...DEVICES, PORTRAIT[1], ['Android nhỏ ngang 640×360',
     for(let i=1;i<=10;i++){ await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:a[0]+(c[0]-a[0])*i/10,y:a[1]+(c[1]-a[1])*i/10,id:1}]}); await p.waitForTimeout(22); }
     await p.waitForTimeout(100); await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]}); await p.waitForTimeout(300); }
   ok(await T.ev(()=>(__ltm.bw.selG||[]).includes(window.__S)),'giữ tay quét quanh hình lính + bảng số (không trùm chân đạo quân): vẫn chọn được đạo quân ngoài đồng');
+  // ---------- 7) (6.5.2) bản đồ CHINH PHẠT (Nội chiến): cờ lệnh gom quân các làng / đồn nhỏ quanh trại, trại giữ nguyên ----------
+  await T.ev(()=>{ save.conq={civ:'rome',diff:1}; startConq('civil'); }); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.lastVw>0&&__ltm.bw.conq==='civil'); await p.waitForTimeout(500);
+  await T.ev(()=>{ const bw=__ltm.bw; bw.skipIntro&&bw.skipIntro(); bw.intro=null; document.getElementById('stageIntro').classList.add('hidden'); bw.autoMenu=false; bw.aiTurn=()=>{}; bw.nextAI=1e9; bw.armies.length=0; bw.notes=[]; bw.texts.length=0;
+    const F=bw.localFid, c=bw.nodes.find(n=>n.owner===F&&n.camp); const near=bw.nodes.filter(n=>n!==c&&!n.camp).sort((a,b2)=>Math.hypot(a.x-c.x,a.y-c.y)-Math.hypot(b2.x-c.x,b2.y-c.y)).slice(0,8);
+    near.forEach((n,i)=>{ n.owner=F; n.count=[6,12,18,40,9,60,25,7][i]; n.mix=null; n.btl=0; }); c.count=233; window.__C=c; window.__N=near; }); await T.settle(); await T.hookDraw();
+  S=await T.ev(()=>{ const bw=__ltm.bw, c=window.__C; for(let r=300;r<1600;r+=100) for(let k=0;k<16;k++){ const x=c.x+Math.cos(k/16*6.283)*r, y=c.y+Math.sin(k/16*6.283)*r; if(x<200||y<200||x>BW.W-200||y>BW.H-200) continue; if(!bw.rallySnap(x,y)&&bw.terAt(x,y)!=='river'&&!bw.nodes.some(n=>Math.hypot(n.x-x,n.y-y)<220)) return [x,y]; } return null; });
+  await look(S[0],S[1]); RR=await rallyRows(); await T.tap(RR.find(r=>r.n===5).x,RR.find(r=>r.n===5).y); await p.waitForTimeout(250);
+  { const sc=await T.scr(S[0],S[1]); await T.tap(sc[0],sc[1]); await p.waitForTimeout(350); }
+  st=await T.ev(()=>{ const bw=__ltm.bw, F=bw.localFid, as=bw.armies.filter(a=>a.owner===F&&!a.done); return {n:as.length, tot:as.reduce((t,a)=>t+a.count,0), empty:window.__N.every(n=>n.count===0), camp:window.__C.count, note:bw.notes.map(q=>q.s||q.text||'').join('|')}; });
+  ok(st.empty&&st.tot>=177&&st.camp===233&&/villages & posts around your 5 nearest camps/.test(st.note),`Nội chiến · "Call 5 nearest camps": cả 8 làng/đồn quanh trại (kể cả đồn 6–18 lính) xuất quân — ${st.tot} quân; đại bản doanh giữ nguyên 233`);
+  await run(120); st=await T.ev(([x,y])=>{ const bw=__ltm.bw, F=bw.localFid, as=bw.armies.filter(a=>a.owner===F&&!a.done); return {n:as.length, near:as.filter(a=>Math.hypot(a.x-x,a.y-y)<220).length}; },S);
+  ok(st.n<=2&&st.near>=1,`quân các làng hội về điểm cắm cờ và gộp lại (còn ${st.n} đạo)`);
   ok(!T.errs.length,'không có lỗi JS '+T.errs.slice(0,2).join(' | '));
   await T.ctx.close(); }
 await finish('📣 Gom quân · 🔲 quét vùng · 🤝 gộp đạo (6.3)',b);

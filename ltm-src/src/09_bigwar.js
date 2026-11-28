@@ -532,7 +532,7 @@ class BigWar{
       const qx=Math.max(x0,Math.min(x1,a.x)), qy=Math.max(y0,Math.min(y1,cy)); return hyp(a.x-qx,cy-qy)<=r; };
     const got=this.armies.filter(a=>a.owner===F&&!a.done&&a.count>0&&inR(a));
     // (6.3) quét cả ĐIỂM LUYỆN QUÂN / TRẠI CHĂN NUÔI trong vùng (không lấy trại, thành trấn): quân ở đó bước ra thành đạo, chờ lệnh; huỷ lệnh thì quay về
-    let fromN=0; for(const n of this.nodes){ if(n.owner!==F||!n.eco||n.btl||!(n.count>=Math.max(30,BW.sendMin||0))||!(n.x>=x0&&n.x<=x1&&n.y>=y0&&n.y<=y1)) continue;
+    let fromN=0; const CQ=!!this.conq; for(const n of this.nodes){ if(n.owner!==F||(CQ? n.camp : !n.eco)||n.btl||!(n.count>=(CQ? 2 : Math.max(30,BW.sendMin||0)))||!(n.x>=x0&&n.x<=x1&&n.y>=y0&&n.y<=y1)) continue;
       const a=this.send(n,{x:n.x,y:n.y+46,id:-1}); if(!a) continue; fromN++; const r2=(this._rid=(this._rid||0)+1);
       for(const q of this._lastSent){ q.boxFrom=n.id; q.boxT=this.time; if(this._lastSent.length>1) q.rally=r2; got.push(q); } }
     const free=got.filter(a=>!a.btl);
@@ -541,7 +541,7 @@ class BigWar{
     free.sort((a,b)=>b.count-a.count);
     this.sel=null; this.selA=free[0]; this.selG=free.slice();
     const tot=free.reduce((t,a)=>t+a.count,0);
-    this.texts.push({x:free[0].x,y:free[0].y-110,s:`👥 Selected ${free.length} armies · ${bwN(tot)} troops`+(fromN?` (${fromN} training ground${fromN>1?'s':''})`:''),col:'#7dffcf',t:0,max:1.6,big:1});
+    this.texts.push({x:free[0].x,y:free[0].y-110,s:`👥 Selected ${free.length} armies · ${bwN(tot)} troops`+(fromN?` (${fromN} ${CQ? 'post' : 'training ground'}${fromN>1?'s':''})`:''),col:'#7dffcf',t:0,max:1.6,big:1});
     audio.click(); return free.length;
   }
   rallyCall(N,x,y){ // 📣 (6.3) gom quân về một điểm
@@ -551,16 +551,17 @@ class BigWar{
     const F=this.localFid; let snap=null, rescue=N<0, all=N===Infinity;
     if(rescue){ const t=this.rescuePick(x,y); if(!t){ this.note('🚑 No camp of yours is in danger near there',x,y,'🚑'); return; } snap={node:t,x:t.x,y:t.y}; N=5; }
     else snap=this.rallySnap(x,y);                       /* (5.4) bắt dính trại / cứ điểm / đạo quân đang đóng gần ngón tay */
-    const x0=x, y0=y, MIN=Math.max(30,BW.sendMin||0), hubs=()=>this.nodes.filter(n=>n.owner===F&&!n.eco);
+    // (6.5.2) bản đồ CHINH PHẠT: quân nằm rải ở hàng chục làng / đồn nhỏ quanh các trại → "trại" = các đại bản doanh (lều OUR CAMP); mọi làng, đồn, điểm luyện quân quanh trại đều là điểm gom, kể cả đồn chỉ vài lính
+    const CQ=!!this.conq, x0=x, y0=y, MIN= CQ? 2 : Math.max(30,BW.sendMin||0), hubs=()=>this.nodes.filter(n=>n.owner===F&&(CQ? n.camp : !n.eco)), feeder=(n)=> CQ? !n.camp : !!n.eco;
     const pick=()=>{ const near=(a,b)=>hyp(a.x-x,a.y-y)-hyp(b.x-x,b.y-y), notTgt=(n)=>!(snap&&snap.node===n);
       if(rescue) return this.nodes.filter(n=>n.owner===F&&n.count>=100&&!n.eco&&!n.btl&&notTgt(n)).sort(near).slice(0,N);
       if(all) return this.nodes.filter(n=>n.owner===F&&n.count>=MIN&&!n.btl&&notTgt(n)).sort(near);
       const H=hubs().sort(near).slice(0,N), HS=new Set(H), HA=hubs();      /* N trại gần nhất; điểm luyện quân "thuộc" trại gần nó nhất */
-      return this.nodes.filter(n=>n.owner===F&&n.eco&&n.count>=MIN&&!n.btl&&notTgt(n)&&(()=>{ let b=null,bd=1e9; for(const h of HA){ const d=hyp(h.x-n.x,h.y-n.y); if(d<bd){bd=d;b=h;} } return b&&HS.has(b); })()).sort(near); };
+      return this.nodes.filter(n=>n.owner===F&&feeder(n)&&n.count>=MIN&&!n.btl&&notTgt(n)&&(()=>{ let b=null,bd=1e9; for(const h of HA){ const d=hyp(h.x-n.x,h.y-n.y); if(d<bd){bd=d;b=h;} } return b&&HS.has(b); })()).sort(near); };
     if(snap){ x=snap.x; y=snap.y; }
     const field=()=> all? this.armies.filter(a=>a.owner===F&&!a.done&&a.count>0&&!a.btl&&!(a.retreatT>0)&&!a.garrison&&!(snap&&snap.army===a)) : [];
     let src=pick(), fa=field(); if(!src.length&&!fa.length&&snap&&!rescue){ snap=null; x=x0; y=y0; src=pick(); fa=field(); }   /* chạm cạnh trại duy nhất còn quân: hiểu là gọi quân ra đúng điểm chạm như cũ */
-    if(!src.length&&!fa.length){ this.note(N===5||N===10? `No training grounds or ranches with troops around your ${N} nearest camps` : 'No camp has enough troops to call',x,y,'📣'); return; }
+    if(!src.length&&!fa.length){ this.note(N===5||N===10? (CQ? `No villages or posts with troops around your ${N} nearest camps` : `No training grounds or ranches with troops around your ${N} nearest camps`) : 'No camp has enough troops to call',x,y,'📣'); return; }
     if(this._asRemote==null) this.rallyMark={x,y,t:0,big:all};   /* cờ hiệu / trống trận tại điểm tập kết (lệnh của người chơi bên kia thì không hiện trên máy này) */
     const rid=(this._rid=(this._rid||0)+1); let sent=0, moved=0, tot=0;
     const tag=(q)=>{ if(snap&&snap.army) q.mergeInto=snap.army; else if(!(snap&&snap.node)) q.rally=rid; };
@@ -580,7 +581,7 @@ class BigWar{
     const where= snap&&snap.node? (snap.node.owner===F? ' into '+(snap.node.camp?'your camp':'your stronghold') : ' onto the '+(snap.node.owner===2?'neutral':'enemy')+' stronghold') : snap&&snap.army? ' to join your army' : '';
     const msg= rescue? `🚑 RESCUE: ${sent} nearest camps rushing to save ${snap.node.camp?'the camp':'the stronghold'}`+(refill?` · ${refill} ranches/training grounds sent troops to garrison`:'')
       : all? `🚩 GENERAL MOBILIZATION: ${sent} strongholds${moved? ` + ${moved} armies`:''} · ${bwN(tot)} troops marching${where||' here'}`
-      : `📣 ${sent} training grounds around your ${N} nearest camps rallying${where} · ${bwN(tot)} troops (camps keep their garrison)`;
+      : `📣 ${sent} ${CQ? 'villages & posts' : 'training grounds'} around your ${N} nearest camps rallying${where} · ${bwN(tot)} troops (camps keep their garrison)`;
     this.note(msg,x,y,all?'🚩':'📣');
     audio.order();
   }
