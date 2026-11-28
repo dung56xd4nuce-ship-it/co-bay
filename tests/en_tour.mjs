@@ -9,7 +9,7 @@ const tap=async(id,w=500)=>{ const r=await p.evaluate((id)=>{const e=document.ge
 const shot=async(n)=>p.screenshot({path:`/tmp/en_${tag}_${n}.png`});
 await shot('01_menu');
 await tap('bHelp'); await shot('02_help'); await p.evaluate(()=>{ const h=document.querySelector('#help .card'); h.scrollTop=1400; }); await shot('02b_help'); await p.evaluate(()=>document.querySelector('#help [data-back]').click()); await p.waitForTimeout(300);
-await tap('bP2P'); await shot('03_p2p'); await p.evaluate(()=>document.querySelector('#p2p [data-back]').click()); await p.waitForTimeout(300);
+await tap('bP2P'); await shot('03_lan'); await p.evaluate(()=>document.getElementById('lanOld').click()); await p.waitForTimeout(300); await shot('03_p2p'); await p.evaluate(()=>document.querySelector('#p2p [data-back]').click()); await p.waitForTimeout(300);
 await tap('bBW'); await shot('04_battle_menu'); await tap('bBossRoyale',900); await shot('04b_pick_nation'); await tap('civGo',1500); await p.waitForTimeout(5000); await shot('05_royale');
 // mở menu lệnh: chọn trại ta rồi chạm trại nước khác
 await p.evaluate(()=>{ const bw=__ltm.bw; const cap=bw.nodes.find(n=>n.capOf===0); const other=bw.nodes.filter(n=>n.camp&&n.owner>=3).sort((a,b)=>Math.hypot(a.x-cap.x,a.y-cap.y)-Math.hypot(b.x-cap.x,b.y-cap.y))[0]; bw.sel=cap; bw.tap(other.x,other.y); const s=bw.scale0*0.5; bw.zoom=bw.zoomTgt=0.5; bw.camX=other.x-bw.lastVw/s/2; bw.camY=other.y-bw.lastVh/s/2; });

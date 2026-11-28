@@ -47,7 +47,7 @@ BigWar.prototype.genConq=function(R,W,H,node){
   const st=()=>Math.round(S.start[0]+(S.start[1]-S.start[0])*R());
   const caps=[];
   fids.forEach((fid,i)=>{ const p=pts[i], c=node(p[0],p[1],fid,this.civType(fid),st(),true); c.struct='citadel'; c.home=fid; c.capOf=fid; caps.push(c); });
-  this.nodes[0].count=Math.round(S.start[0]+(S.start[1]-S.start[0])*(0.35+R()*0.3));   /* người chơi: khoảng giữa dải quân khởi điểm */
+  if(this.conq!=='mp') this.nodes[0].count=Math.round(S.start[0]+(S.start[1]-S.start[0])*(0.35+R()*0.3));   /* người chơi: khoảng giữa dải quân khởi điểm (đấu nhiều người: mọi nước như nhau) */
   // 2) PHỦ BẢN ĐỒ: đồn/làng trung lập + trang trại, kho lương, lò luyện (Bộ lạc: không có lò luyện vì chưa có binh chủng)
   const cell=S.cell, capGrid=new Map(), CG=1500; for(const c of caps){ const k=Math.floor(c.x/CG)*1000+Math.floor(c.y/CG); let a=capGrid.get(k); if(!a) capGrid.set(k,a=[]); a.push(c); }
   const nearCap=(x,y)=>{ let bd=1e9; const gx=Math.floor(x/CG), gy=Math.floor(y/CG); for(let r=1;r<=6&&bd>=1e9;r++) for(let ix=-r;ix<=r;ix++) for(let iy=-r;iy<=r;iy++){ const a=capGrid.get((gx+ix)*1000+gy+iy); if(a) for(const c of a){ const d=hyp(c.x-x,c.y-y); if(d<bd) bd=d; } } return bd; };
@@ -72,7 +72,8 @@ BigWar.prototype.genConq=function(R,W,H,node){
     const T=c.count; c.count=Math.round(T*0.45);   /* quân khởi điểm chia: kinh đô 45% · mỗi đồn 20% · trang trại 15% (máy cần quân ở đồn để mở rộng) */
     for(const n of near){ n.owner=c.owner; n.type=this.conq==='civil'? 'militia' : this.civType(c.owner,(R()*4)|0); n.count=Math.round(T*0.2); n.mix=null; }
     { const f=this.nodes.filter(n=>n.owner===2&&n.eco==='farm'&&Math.abs(n.x-c.x)<1600&&Math.abs(n.y-c.y)<1600).sort((a,b)=>hyp(a.x-c.x,a.y-c.y)-hyp(b.x-c.x,b.y-c.y))[0];
-      if(f){ f.owner=c.owner; f.count=Math.round(T*0.15); if(this.conq==='tribe') f.type='tribal'; } } }
+      if(f){ f.owner=c.owner; f.count=Math.round(T*0.15); if(this.conq==='tribe') f.type='tribal'; } else if(this.conq==='mp') c.count+=Math.round(T*0.15);
+      if(this.conq==='mp') c.count+=Math.round(T*0.2)*(S.posts-near.length); } }   /* đấu nhiều người: thiếu đồn/trang trại gần kinh đô thì phần quân đó ở lại kinh đô — mọi nước bằng nhau */
   this.royale=true;
   // 4) ngoại giao ban đầu
   if(S.ally>0){ const nf=fids.filter(f=>f!==0); for(const f of nf){ if(R()<S.ally){ const g=nf[(R()*nf.length)|0]; if(g!==f) this.setAlly(f,g,true); } } }

@@ -240,7 +240,7 @@ function pause(on){ if(!G.world&&!G.bw) return; G.paused=on; $('pause').classLis
 function bwSetPause(on){ // P2P: dừng là dừng CẢ HAI MÁY
   if(G.bw&&G.bw.cfg&&G.bw.cfg.p2p&&typeof P2P!=='undefined'&&P2P.connected){ P2P.setPause(on); pause(on); }
   else pause(on); }
-function showScreen(id){ ['menu','levels','help','pause','result','forge','gear','decor','tutDone','artscr','p2p','gens'].forEach(s=>$(s).classList.toggle('hidden',s!==id)); if(id==='menu'||id==='levels'||id==='forge'||id==='gear'||id==='artscr'||id==='gens') $('hud').classList.add('hidden'); }
+function showScreen(id){ ['menu','levels','help','pause','result','forge','gear','decor','tutDone','artscr','p2p','gens','lan'].forEach(s=>$(s).classList.toggle('hidden',s!==id)); if(id==='menu'||id==='levels'||id==='forge'||id==='gear'||id==='artscr'||id==='gens') $('hud').classList.add('hidden'); }
 function buildLevels(){ const grid=$('lvgrid'); grid.innerHTML=''; const max=Math.max(1,save.max||1);
   for(let L=1;L<=100;L++){ const b=document.createElement('button'); b.className='btn lv'; b.textContent=L; const avail=L<=40 && L<=max; if(save.done.includes(L)) b.classList.add('done'); if(!avail){ b.classList.add('lock'); b.textContent= L>40? '🔒' : '🔒'+L; b.title= L>40?'12-faction mode in development':'Win the previous stage to unlock'; }
     b.onclick=()=>{ audio.init(); if(avail) startLevel(L); }; grid.appendChild(b); } }
@@ -286,14 +286,14 @@ function setupMenus(){
       else bc.style.display='none'; }
     const ss=soloLoadInfo(), sc=$('bSoloContinue'); if(sc){ if(ss){ sc.style.display=''; if(ss.cfg&&ss.cfg.endless) modeBtn('bSoloContinue','play',`CONTINUE ∞ ENDLESS ${ss.cfg.endless}`,`${(()=>{ try{ return (ss.cfg.mut||[]).map(m=>BW_MUT[m]? BW_MUT[m].name : '').join(' · '); }catch(e){ return ''; } })()} · ${Math.floor((ss.sc.time||0)/60)} min played`); else modeBtn('bSoloContinue','play',`CONTINUE STAGE ${ss.lv}`,`${stageName(ss.lv)} · ${Math.floor((ss.sc.time||0)/60)} min played`); sc.onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); soloResume(); }; } else sc.style.display='none'; } }; refreshContinue();
   $('bBossClose').onclick=()=>{ audio.click(); $('bossPick').classList.add('hidden'); };
-  $('bP2P').onclick=()=>{ audio.init(); P2P.open(); };
+  $('bP2P').onclick=()=>{ audio.init(); Room.open(); };
   $('bFull').onclick=()=>{ audio.init(); audio.click(); goFullscreen(); };
   $('bwFull').onclick=(e)=>{ e.stopPropagation(); audio.click(); goFullscreen(); };
   const leave=()=>{ if(G.bw&&G.bw.cfg&&G.bw.cfg.p2p&&typeof P2P!=='undefined') P2P.drop('Your opponent left the match.'); G.paused=false; $('pause').classList.add('hidden'); stopBigWar(true); };
   $('bwBack').onclick=()=>{ audio.click(); const bw=G.bw; if(!bw){ stopBigWar(true); return; }
     if(bw.over){ leave(); return; }
     if(bw.royale&&!(bw.cfg&&bw.cfg.p2p)){ leave(); toast('💾 Warlords game saved — tap BATTLE → CONTINUE to resume',3); return; } // Quần Hùng tự lưu: thoát không mất gì
-    ask(bw.cfg&&bw.cfg.p2p? 'Leave the 2-player match?' : 'Leave this battle?', bw.cfg&&bw.cfg.p2p? 'Your opponent will be disconnected.' : 'Progress in this battle will be lost.', '🏠 Leave', leave); };
+    ask(bw.cfg&&bw.cfg.mp? 'Leave the match?' : bw.cfg&&bw.cfg.p2p? 'Leave the 2-player match?' : 'Leave this battle?', bw.cfg&&bw.cfg.mp? (bw.p2p==='host'? 'You are the host — the match will end for everyone.' : 'A bot will take over your nation.') : bw.cfg&&bw.cfg.p2p? 'Your opponent will be disconnected.' : 'Progress in this battle will be lost.', '🏠 Leave', leave); };
   $('bwPause').onclick=(e)=>{ e.stopPropagation(); audio.click(); bwSetPause(true); };
   $('bwRetry').onclick=()=>{ audio.click(); const bw=G.bw; if(!bw) return;
     if(bw.cfg&&bw.cfg.p2p){ toast('↻ Restart is not available in a 2-player match',2.5); return; }
@@ -307,7 +307,7 @@ function setupMenus(){
   $('bRestart').onclick=()=>{ if(G.bw){ const bw=G.bw; if(bw.royale&&!bw.over){ ask('Restart Warlords from the beginning?','Your current conquest will be lost.','↻ Restart',()=>{ pause(false); bwRestart(); }); return; } pause(false); bwRestart(); } else startLevel(G.level); };
   $('bPHelp').onclick=()=>{ G.helpFrom='pause'; $('pause').classList.add('hidden'); $('help').classList.remove('hidden'); };
   $('bMenu').onclick=()=>{ if(G.bw){ const bw=G.bw; if(bw.over||(bw.royale&&!(bw.cfg&&bw.cfg.p2p)&&!(bw.cfg&&bw.cfg.chal))){ leave(); return; }
-      ask(bw.cfg&&bw.cfg.p2p? 'Leave the 2-player match?' : 'Leave this battle?', bw.cfg&&bw.cfg.p2p? 'Your opponent will be disconnected.' : 'Progress in this battle will be lost.', '🏠 Leave', leave); return; }
+      ask(bw.cfg&&bw.cfg.mp? 'Leave the match?' : bw.cfg&&bw.cfg.p2p? 'Leave the 2-player match?' : 'Leave this battle?', bw.cfg&&bw.cfg.mp? (bw.p2p==='host'? 'You are the host — the match will end for everyone.' : 'A bot will take over your nation.') : bw.cfg&&bw.cfg.p2p? 'Your opponent will be disconnected.' : 'Progress in this battle will be lost.', '🏠 Leave', leave); return; }
     G.world=null; G.paused=true; showScreen('menu'); setupMenus(); };
   $('bAgain').onclick=()=>startLevel(G.level);
   $('bNext').onclick=()=>startLevel(Math.min(40,(typeof G.level==='number'?G.level:0)+1));
@@ -624,13 +624,14 @@ document.addEventListener('visibilitychange',()=>{ if(document.hidden) royaleSav
 window.addEventListener('pagehide',()=>royaleSave());
 function stopBigWar(toMenu){ royaleSave(); G.bw=null; $('bwbar').classList.add('hidden'); rotateHint(false); if(toMenu){ showScreen('menu'); setupMenus(); } }
 function showBwResult(){
-  const bw=G.bw, r=bw.result; G.resultShown=true; if(bw.royale){ try{ localStorage.removeItem(RSAVE); }catch(e){} } else if(!(bw.cfg&&bw.cfg.p2p)) soloClear(); const win=r.win; const lv=bw.lv; $('stageIntro').classList.add('hidden');
+  const bw=G.bw, r=bw.result; G.resultShown=true; if(bw.cfg&&bw.cfg.p2p){ /* đấu với người: không đụng tới ván đang lưu */ } else if(bw.royale){ try{ localStorage.removeItem(RSAVE); }catch(e){} } else soloClear(); const win=r.win; const lv=bw.lv; $('stageIntro').classList.add('hidden');
   $('rTitle').textContent= win? '🎉 VICTORY!' : '💀 DEFEAT';
   $('rTitle').style.color= win? '#ffd54a' : '#f87171';
   const bk= win? 'ui:win':'ui:lose'; if(artOK(bk)) $('rTitle').innerHTML=`<img src="${ArtUrls[bk]}" style="max-width:min(70vw,460px);max-height:max(17vh,96px)">`;
   const meC=bw.civOf(bw.localFid), enC=bw.civOf(bw.localFid===0?1:0);
-  const CH6=bw.cfg&&bw.cfg.chal, CQ= CH6? null : BW_CONQ[bw.conq], CQn= CQ&&BW_CONQ[BW_CONQ_ORDER[CQ.i+1]];   /* 📅 thử thách: không tính vào tiến trình chiến dịch / chinh phạt */
-  $('rSub').textContent= CQ? (win? (CQ.id==='tribe'? `Every tribe now follows ${meC.icon} ${bw.natName(0)}!` : CQ.id==='civil'? `${meC.icon} ${meC.name} is one kingdom again — every region bows to you!` : `The whole world belongs to ${meC.icon} ${meC.name}!`) : `Your last camp has fallen in the ${CQ.name}...`) : bw.royale? (win? `The whole realm belongs to ${meC.icon} ${meC.name} — every nation has fallen!` : 'Your last camp has fallen — the realm belongs to others...') : (win? `${meC.icon} ${meC.name} has defeated ${enC.icon} ${enC.name}!` : `${enC.icon} ${enC.name} has taken our last camp...`);
+  const CH6=bw.cfg&&bw.cfg.chal, CQ= (CH6||(bw.cfg&&bw.cfg.mp))? null : BW_CONQ[bw.conq], CQn= CQ&&BW_CONQ[BW_CONQ_ORDER[CQ.i+1]];   /* 📅 thử thách: không tính vào tiến trình chiến dịch / chinh phạt */
+  const MPr=bw.cfg&&bw.cfg.mp; if(MPr) $('rSub').textContent= r.left? (bw._p2pNote||'The host has left the match.') : win? `${meC.icon} ${bw.natName(bw.localFid)} is the last nation standing!` : (r.winFid>=0? `🏆 ${bw.natName(r.winFid)} wins the battle.` : 'The battle is over.');
+  else $('rSub').textContent= CQ? (win? (CQ.id==='tribe'? `Every tribe now follows ${meC.icon} ${bw.natName(0)}!` : CQ.id==='civil'? `${meC.icon} ${meC.name} is one kingdom again — every region bows to you!` : `The whole world belongs to ${meC.icon} ${meC.name}!`) : `Your last camp has fallen in the ${CQ.name}...`) : bw.royale? (win? `The whole realm belongs to ${meC.icon} ${meC.name} — every nation has fallen!` : 'Your last camp has fallen — the realm belongs to others...') : (win? `${meC.icon} ${meC.name} has defeated ${enC.icon} ${enC.name}!` : `${enC.icon} ${enC.name} has taken our last camp...`);
   const EN=bw.endless|0, xu=coinK((bw.stats.eat/40 + bw.stats.win*4 + (win? 30+18*(EN||lv) : 8))*(bw._coinK||1));   /* (5.8) ~15% mức cũ · (5.9) ★ Thăng Thiên ×(1+25%×bậc), ∞ ải vô tận theo số ải */
   const solo=!bw.royale&&!(bw.cfg&&bw.cfg.p2p)&&!(bw.cfg&&bw.cfg.classic)&&!CH6, NL=BW_LEVELS.length; let first=false, rec=false;
   save.xu=(save.xu||0)+xu; if(win&&solo&&EN){ const cp=save.camp||(save.camp={best:{}}); cp.endless=Math.max(cp.endless|0,EN); }

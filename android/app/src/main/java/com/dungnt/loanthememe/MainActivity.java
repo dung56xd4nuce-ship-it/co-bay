@@ -17,6 +17,7 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        registerPlugin(LanPlugin.class);   // chơi nhiều người qua WiFi nội bộ (không máy chủ)
         super.onCreate(savedInstanceState);
         Window window = getWindow();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {

@@ -46,24 +46,27 @@ const P2P={
           this.seed=seed; this.start(seed,civ,this.civ2); ch.send(JSON.stringify({op:'init',seed,civ:G.bw.cfg.civ,civ2:G.bw.cfg.civ2})); };
         this._began=false; this._go=go; setTimeout(go,6000); const pm=$('p2pMsg'); if(pm) pm.textContent='Connected — waiting for your opponent\'s nation…'; } };
     ch.onclose=()=>this.drop('Your opponent has left.');
-    ch.onmessage=(e)=>{ let m; try{ m=JSON.parse(e.data); }catch(err){ return; }
-      if(m.op==='hello'){ this.civ2=BW_CIV[m.civ]? m.civ : null; if(this.role==='host'&&this._go) this._go(); }
-      else if(m.op==='init'&&this.role==='guest'){ this._inited=true; clearInterval(this._helloT); this.start(m.seed,m.civ,m.civ2); }
-      else if(m.op==='rally'&&this.role==='host'&&G.bw){ G.bw.asFid(1,()=>G.bw.rallyCall(m.n<0? -1 : (m.n||Infinity),m.wx,m.wy)); }
-      else if(m.op==='box'&&this.role==='host'&&G.bw){ G.bw.asFid(1,()=>G.bw.boxSelectWorld(m.x0,m.y0,m.x1,m.y1)); }
-      else if(m.op==='note'&&this.role==='guest'&&G.bw){ G.bw.note(m.text,m.x,m.y,m.icon); }
-      else if(m.op==='tap'&&this.role==='host'&&G.bw){ G.bw.asFid(1,()=>G.bw.tap(m.wx,m.wy)); }
-      else if(m.op==='menu'&&this.role==='host'&&G.bw){ G.bw.asFid(1,()=>{ const bw=G.bw, keep=bw.sendSel, sn=bw.menu&&bw.menu.src&&bw.menu.src.kind==='node'? bw.menu.src.ref : null; bw.sendSel= m.sel&&sn? {node:sn.id,type:(typeof m.sel.type==='string'&&BW_TYPES.indexOf(m.sel.type)>=0)? m.sel.type : null,frac:(m.sel.frac===0.5||m.sel.frac===0.25)? m.sel.frac : 1} : null; try{ bw.menuPick(m.id); } finally { bw.sendSel=keep; } }); }
-      else if(m.op==='amb'&&this.role==='host'&&G.bw){ const n=G.bw.nodes[m.ni]; if(n&&n.owner===1) n.ambush=!!m.v; }
-      else if(m.op==='pause'){ if(this.role==='host'){ G.paused=!!m.v; pause(!!m.v); }
-        else { G.paused=!!m.v; pause(!!m.v); } }
-      else if(m.op==='retreat'&&this.role==='host'&&G.bw){ const b=G.bw.battles.filter(b2=>!b2.done)[m.bi]; if(b){
-        const mine2=[...b.A.es,...b.B.es].filter(e=>e.kind==='army'&&e.ref.owner===1).map(e=>e.ref);
-        for(const a of mine2) G.bw.retreatFromBattle(a); } }
-      else if(m.op==='snap'&&this.role==='guest'&&G.bw){ this.applySnap(m); }
-    };
+    ch.onmessage=(e)=>{ let m; try{ m=JSON.parse(e.data); }catch(err){ return; } this.handle(m,1); };
     if(ch.readyState==='open') ch.onopen(); // kênh của khách có thể đã mở sẵn khi nhận được: vẫn phải chào (gửi nước đã chọn)
   },
+  // xử lý một tin nhận được; fid = phe của người gửi (chủ phòng nhận từ khách). Dùng chung cho 2 người (WebRTC) và phòng WiFi nhiều người (Room)
+  handle(m,fid){ {
+      if(m.op==='hello'){ this.civ2=BW_CIV[m.civ]? m.civ : null; if(this.role==='host'&&this._go) this._go(); }
+      else if(m.op==='init'&&this.role==='guest'){ this._inited=true; clearInterval(this._helloT); this.start(m.seed,m.civ,m.civ2); }
+      else if(m.op==='rally'&&this.role==='host'&&G.bw){ G.bw.asFid(fid,()=>G.bw.rallyCall(m.n<0? -1 : (m.n||Infinity),m.wx,m.wy)); }
+      else if(m.op==='box'&&this.role==='host'&&G.bw){ G.bw.asFid(fid,()=>G.bw.boxSelectWorld(m.x0,m.y0,m.x1,m.y1)); }
+      else if(m.op==='note'&&this.role==='guest'&&G.bw){ G.bw.note(m.text,m.x,m.y,m.icon); }
+      else if(m.op==='tap'&&this.role==='host'&&G.bw){ G.bw.asFid(fid,()=>G.bw.tap(m.wx,m.wy)); }
+      else if(m.op==='menu'&&this.role==='host'&&G.bw){ G.bw.asFid(fid,()=>{ const bw=G.bw, keep=bw.sendSel, sn=bw.menu&&bw.menu.src&&bw.menu.src.kind==='node'? bw.menu.src.ref : null; bw.sendSel= m.sel&&sn? {node:sn.id,type:(typeof m.sel.type==='string'&&BW_TYPES.indexOf(m.sel.type)>=0)? m.sel.type : null,frac:(m.sel.frac===0.5||m.sel.frac===0.25)? m.sel.frac : 1} : null; try{ bw.menuPick(m.id); } finally { bw.sendSel=keep; } }); }
+      else if(m.op==='amb'&&this.role==='host'&&G.bw){ const n=G.bw.nodes[m.ni]; if(n&&n.owner===fid) n.ambush=!!m.v; }
+      else if(m.op==='pause'){ if(this.room&&this.role==='host') return;   /* phòng nhiều người: chỉ chủ phòng tạm dừng được */
+        if(this.role==='host'){ G.paused=!!m.v; pause(!!m.v); }
+        else { G.paused=!!m.v; pause(!!m.v); } }
+      else if(m.op==='retreat'&&this.role==='host'&&G.bw){ const b=G.bw.battles.filter(b2=>!b2.done)[m.bi]; if(b){
+        const mine2=[...b.A.es,...b.B.es].filter(e=>e.kind==='army'&&e.ref.owner===fid).map(e=>e.ref);
+        for(const a of mine2) G.bw.retreatFromBattle(a); } }
+      else if(m.op==='snap'&&this.role==='guest'&&G.bw){ this.applySnap(m); }
+    } },
   start(seed,civ,civ2){ showScreen(null); $('bwbar')&&$('bwbar').classList.remove('hidden');
     // bản đồ phải lấy theo HẠT GIỐNG chung: trước đây mỗi máy tự bốc ngẫu nhiên một bản đồ nên hai máy thấy hai thế trận khác nhau
     G.bwCfg={p2p:true, seed, map:seed%BW_MAPS.solo.length, civ:civ||undefined, civ2:civ2||undefined, L:{name:'P2P Showdown', ai: 1e9, wave: 1e9}};
@@ -72,10 +75,10 @@ const P2P={
     if(this.role==='guest'){ bw.localFid=1; bw._updateVision(); }
   },
   // ----- đồng bộ -----
-  tick(dt){ if(!this.connected||!G.bw||!this.ch||this.ch.readyState!=='open') return;
-    if(this.role==='host'){ this.lastSnap-=dt; if(this.lastSnap<=0){ this.lastSnap=0.12; try{ this.ch.send(JSON.stringify(this.snap(G.bw))); }catch(e){} } }
+  tick(dt){ if(!this.connected||!G.bw||!(this.room||(this.ch&&this.ch.readyState==='open'))) return;
+    if(this.role==='host'){ this.lastSnap-=dt; if(this.lastSnap<=0){ this.lastSnap= this.room? 0.16 : 0.12; try{ this.out(this.snap(G.bw)); }catch(e){} } }
   },
-  snap(bw){ return {op:'snap', t:bw.time, p:G.paused?1:0, over:bw.over, win:bw.result&&bw.result.win,
+  snap(bw){ return {op:'snap', t:bw.time, p:G.paused?1:0, over:bw.over, win:bw.result&&bw.result.win, wf:(bw.result&&bw.result.winFid!=null)? bw.result.winFid : undefined, dead:bw.mpDead||undefined,
     n:bw.nodes.map(n=>[n.owner,Math.round(n.count),BW_TYPES.indexOf(n.type), n.ambush?1:0, Math.round(n.food||0), n.scoutT!=null?Math.round(bw.time-n.scoutT):-1, n.sieged?1:0, n.btl?1:0, (n.mix&&n.mixO===n.owner)? Object.keys(n.mix).map(t=>[BW_TYPES.indexOf(t),Math.round(n.mix[t]*1000)]) : 0]),
     a:bw.armies.filter(a=>!a.done).map(a=>[a.owner,Math.round(a.x),Math.round(a.y),Math.round(a.count),BW_TYPES.indexOf(a.type),a.camped?1:0,a.ambush?1:0,Math.round(a.food||0),a.btl?1:0,Math.round((a.prep||0)*10),Math.round((a.prep0||0)*10)]),
     c:(bw.convoys||[]).filter(c=>!c.done).map(c=>[c.owner,Math.round(c.x),Math.round(c.y),Math.round(c.pct),(c.hx||1)<0?1:0]),
@@ -94,15 +97,19 @@ const P2P={
     bw.battles=m.b.map((r,i)=>({id:9000+i,x:r[0],y:r[1],done:false,t:1,K:0.1,ter:'plain',nodeId:-1,
       A:{fid:r[4],mul:1,es:[{kind:'army',ref:{count:r[2],type:'spear',owner:r[4]}}]},
       B:{fid:r[5],mul:1,es:[{kind:'army',ref:{count:r[3],type:'spear',owner:r[5]}}]}}));
-    if(m.over&&!bw.over){ bw.over=true; bw.result={win: m.win===(bw.localFid===0)}; }
+    if(m.dead){ bw.mpDead=m.dead; }
+    if(m.over&&!bw.over){ bw.over=true; bw.result= m.wf!=null? {win:m.wf===bw.localFid,winFid:m.wf} : {win: m.win===(bw.localFid===0)}; }
     bw._updateVision();
   },
   // khách: gửi thao tác thay vì tự xử lý
-  sendOp(o){ if(this.ch&&this.ch.readyState==='open') this.ch.send(JSON.stringify(o)); },
+  // mọi tin gửi đi qua một cửa: phòng WiFi (Room) hoặc kênh WebRTC 2 người
+  out(o){ if(this.room){ Room.out(o); return true; } if(this.ch&&this.ch.readyState==='open'){ this.ch.send(JSON.stringify(o)); return true; } return false; },
+  sendOp(o){ this.out(o); },
   setPause(v){ if(this.role==='host'){ G.paused=!!v; } this.sendOp({op:'pause',v:v?1:0}); },
-  guestTap(wx,wy){ if(this.ch&&this.ch.readyState==='open') this.ch.send(JSON.stringify({op:'tap',wx,wy})); },
-  guestMenu(id,sel){ if(this.ch&&this.ch.readyState==='open') this.ch.send(JSON.stringify({op:'menu',id,sel:sel||undefined})); },
-  drop(msg){ this.connected=false; try{ this.pc&&this.pc.close(); }catch(e){} this.pc=null; this.ch=null;
+  guestTap(wx,wy){ this.out({op:'tap',wx,wy}); },
+  guestMenu(id,sel){ this.out({op:'menu',id,sel:sel||undefined}); },
+  drop(msg){ const room=this.room; this.connected=false; this.room=false; try{ this.pc&&this.pc.close(); }catch(e){} this.pc=null; this.ch=null;
+    if(room){ try{ Room.close(); }catch(e){} if(G.bw&&G.bw.cfg&&G.bw.cfg.mp&&!G.bw.over){ G.bw.over=true; G.bw.result={win:false,left:1}; G.bw._p2pNote=msg; } return; }
     if(G.bw&&G.bw.cfg&&G.bw.cfg.p2p&&!G.bw.over){ G.bw.over=true; G.bw.result={win:true}; G.bw._p2pNote=msg; }
   },
 };

@@ -134,7 +134,7 @@ class BigWar{
     { const M=mapList[mIdx], old=this.cfg.royale&&!this.cfg.bio; this.biomeId=(this.cfg.classic||old||(this.cfg.map52!=null&&!this.cfg.royale))? 'plain' : (M[2]||'plain'); this.biome=BW_BIOMES[this.biomeId]; }   /* ván Quần Hùng lưu từ bản cũ giữ nguyên địa hình cũ */
     this.rnd=mulberry32((this.cfg.seed||(L.seed*31+this.mapSeed))*7919+(typeof lv==='number'?lv:1));
     this.assignCivs(); // 🏛️ mỗi phe một nền văn minh (src/09c_civ.js)
-    if(this.conq) this.conqCivs(mulberry32(((this.cfg.seed||0)*977+13)|0));   /* Bộ lạc / Nội chiến: cùng một nước, tên + màu riêng từng phe */
+    if(this.conq==='mp'){ this.mpInit(); this.mpCivs(); } else if(this.conq) this.conqCivs(mulberry32(((this.cfg.seed||0)*977+13)|0));   /* Bộ lạc / Nội chiến: cùng một nước, tên + màu riêng từng phe */
     this.nodes=[]; this.armies=[]; this.fx=[]; this.texts=[]; this.rings=[];
     this.time=0; this.over=false; this.result=null; this.sel=null; this.shake=0; this.camX=0; this.nextAI=L.ai*0.9; this.aiWave=0;
     this.stats={eat:0,win:0,lose:0,peak:0}; this.regenT=0; this.reinT=0; this.enFed=true;
@@ -490,8 +490,8 @@ class BigWar{
       if(tgtArmy) opts=[{id:'hunt',s:'⚔️ Pursue'},{id:'cancel',s:'✖ Cancel'}];
       else if(tgtNode&&tgtNode.owner===F) opts=[{id:'move',s:'🛡️ Reinforce this post'},{id:'cancel',s:'✖ Cancel'}];
       else if(tgtNode&&tgtNode.owner===2&&tgtNode.count<=0) opts=[{id:'move',s:'🏃 March and capture'},{id:'cancel',s:'✖ Cancel'}];
-      else if(tgtNode&&this.royale&&tgtNode.owner>=3&&this.allied(F,tgtNode.owner)) opts=[{id:'unally',s:'✂️ Break alliance'},{id:'scout',s:'🕵️ Scout'},{id:'cancel',s:'✖ Cancel'}];
-      else if(tgtNode&&this.royale&&tgtNode.owner>=3&&tgtNode.camp) opts=[{id:'ally',s:'🤝 Propose alliance'},{id:'attack',s:'⚔️ Attack'},{id:'siege',s:'⛓️ Siege (cut supply)'},{id:'scout',s:'🕵️ Scout'},{id:'cancel',s:'✖ Cancel'}];
+      else if(tgtNode&&this.royale&&!this.cfg.mp&&tgtNode.owner>=3&&this.allied(F,tgtNode.owner)) opts=[{id:'unally',s:'✂️ Break alliance'},{id:'scout',s:'🕵️ Scout'},{id:'cancel',s:'✖ Cancel'}];
+      else if(tgtNode&&this.royale&&!this.cfg.mp&&tgtNode.owner>=3&&tgtNode.camp) opts=[{id:'ally',s:'🤝 Propose alliance'},{id:'attack',s:'⚔️ Attack'},{id:'siege',s:'⛓️ Siege (cut supply)'},{id:'scout',s:'🕵️ Scout'},{id:'cancel',s:'✖ Cancel'}];
       else if(tgtNode) opts=[{id:'attack',s:'⚔️ Attack'},{id:'siege',s:'⛓️ Siege (cut supply)'},{id:'scout',s:'🕵️ Scout'},{id:'cancel',s:'✖ Cancel'}];
       else opts=[{id:'move',s:'🏃 March here'},{id:'scoutP',s:'🕵️ Scout this way'},{id:'cancel',s:'✖ Cancel'}];
       { // ⚔️ báo trước TƯƠNG QUAN BINH CHỦNG (khi đã thấy/đã do thám loại quân địch) và chỗ kỵ binh/đại quân không vào được
@@ -690,7 +690,7 @@ class BigWar{
     if(this.shake>0) this.shake=Math.max(0,this.shake-dt*26);
   }
   note(text,x,y,icon){
-    if(this._asRemote!=null){ if(this.p2p==='host'&&typeof P2P!=='undefined') P2P.sendOp({op:'note',text,x:Math.round(x),y:Math.round(y),icon}); return; }   /* đang chạy lệnh của người chơi bên kia: tin báo gửi về máy họ, không lộ ra máy này */
+    if(this._asRemote!=null){ if(this.p2p==='host'&&typeof P2P!=='undefined') P2P.sendOp({op:'note',f:this._asRemote,text,x:Math.round(x),y:Math.round(y),icon}); return; }   /* đang chạy lệnh của người chơi bên kia: tin báo gửi về máy họ, không lộ ra máy này */
     this.notes.push({text,x,y,icon:icon||'⚔️',t:0}); if(this.notes.length>4) this.notes.shift(); audio.flag&&audio.flag(); }
   noteFor(fid,text,x,y,icon){ const rem=this._asRemote, me= rem!=null? this._meFid : this.localFid;   /* "người cầm máy này" — kể cả lúc đang chạy hộ lệnh của bên kia */
     if(fid===me){ this._asRemote=null; try{ this.note(text,x,y,icon); } finally { this._asRemote=rem; } }
@@ -981,7 +981,7 @@ class BigWar{
     // trinh sát của ĐỊCH: lùng ổ mai phục của ta
     this.nextAiScout-=dt;
     if(this.nextAiScout<=0){ this.nextAiScout=24+this.rnd()*10;
-      const foes=[...new Set(this.nodes.filter(n=>n.owner!==this.localFid&&n.owner!==2&&(n.count>0||n.camp)).map(n=>n.owner))];
+      const foes=[...new Set(this.nodes.filter(n=>n.owner!==this.localFid&&n.owner!==2&&!(this.humans&&this.humans.has(n.owner))&&(n.count>0||n.camp)).map(n=>n.owner))];
       const fid=foes[(this.rnd()*foes.length)|0];
       if(fid!=null&&(typeof this.lv!=='number'||this.lv>=2)){
         const froms=this.nodes.filter(n=>n.owner===fid&&n.count>100);
@@ -1068,7 +1068,7 @@ class BigWar{
     // AI các phe
     this.nextAI-=dt;
     if(this.nextAI<=0){
-      const foes=[...new Set(this.nodes.filter(n=>n.owner!==this.localFid&&n.owner!==2&&(n.count>0||n.camp)).map(n=>n.owner))];
+      const foes=[...new Set(this.nodes.filter(n=>n.owner!==this.localFid&&n.owner!==2&&!(this.humans&&this.humans.has(n.owner))&&(n.count>0||n.camp)).map(n=>n.owner))];
       if(this.royale){ this._rr=(this._rr||0); const Q=this._aiQ||(this._aiQ=[]);
         for(let k=0;k<Math.min(5,foes.length);k++){ const fid=foes[(this._rr+k)%foes.length]; if(Q.indexOf(fid)<0) Q.push(fid); }
         this._rr+=5; this._aiDip=true; }
@@ -1077,7 +1077,7 @@ class BigWar{
     }
     // (5.1) Quần Hùng: mỗi khung hình chỉ MỘT nước ra quyết định (trước đây 5 nước cùng nghĩ trong một khung hình → thỉnh thoảng khựng hình); xong lượt thì mới xét bang giao
     if(this._aiQ&&this._aiQ.length){ const fid=this._aiQ.shift(); if(this.nodes.some(n=>n.owner===fid&&(n.count>0||n.camp))) this.aiTurn(fid); }
-    else if(this._aiDip){ this._aiDip=false; this.aiDiplomacy(); }
+    else if(this._aiDip){ this._aiDip=false; if(!this.cfg.mp) this.aiDiplomacy(); }
     // hiệu ứng
     { let dead=false; for(const t of this.texts){ t.t+=dt; if(t.part){ t.x+=t.vx*dt; t.y+=t.vy*dt; t.vy+=260*dt; } if(!(t.t<t.max)) dead=true; } if(dead) this.texts=this.texts.filter(t=>t.t<t.max); }
     { let dead=false; for(const r of this.rings){ r.t+=dt; if(!(r.t<r.max)) dead=true; } if(dead) this.rings=this.rings.filter(r=>r.t<r.max); }
@@ -1088,6 +1088,7 @@ class BigWar{
     this.checkVictory();
   }
   checkVictory(){
+    if(this.cfg.mp){ this.mpVictory(); return; }   /* (7.0) nhiều người: còn một nước thì hết trận, người bị loại ngồi xem */
     if(this.over) return; const F=this.localFid;
     // THUA chỉ khi không còn TRẠI nào (kinh đô mất mà còn trại khác thì đã dời đô)
     if(!this.nodes.some(n=>n.camp&&n.owner===F)){ this.over=true; this.result={win:false}; audio.lose(); return; }

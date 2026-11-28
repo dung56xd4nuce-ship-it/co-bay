@@ -5,13 +5,13 @@ const mk=async(dn)=>{ const {defaultBrowserType,...o}=devices[dn]; const ctx=awa
 const tapEl=async(pg,id)=>{ const r=await pg.evaluate((id)=>{const r2=document.getElementById(id).getBoundingClientRect();return [r2.x+r2.width/2,r2.y+r2.height/2];},id); await pg.touchscreen.tap(r[0],r[1]); await pg.waitForTimeout(400); };
 const H=await mk('Pixel 7 landscape'), G2=await mk('iPhone 14 Pro landscape');
 // 1) bấm nút 📶 P2P trên menu phải mở màn P2P
-await tapEl(H,'bP2P');
+await tapEl(H,'bP2P'); await H.evaluate(()=>document.getElementById('lanOld').click()); await H.waitForTimeout(250);
 const vis=await H.evaluate(()=>!document.getElementById('p2p').classList.contains('hidden'));
 console.log('menu P2P mở được màn P2P:', vis);
 await H.locator('#p2pHost').tap(); await H.waitForTimeout(400);
 await H.waitForFunction(()=>document.getElementById('p2pOut').value.length>50,{timeout:20000});
 const offer=await H.evaluate(()=>document.getElementById('p2pOut').value);
-await tapEl(G2,'bP2P'); await G2.locator('#p2pJoin').tap(); await G2.waitForTimeout(400);
+await tapEl(G2,'bP2P'); await G2.evaluate(()=>document.getElementById('lanOld').click()); await G2.waitForTimeout(250); await G2.locator('#p2pJoin').tap(); await G2.waitForTimeout(400);
 await G2.evaluate((v)=>{ document.getElementById('p2pIn').value=v; },offer); await G2.locator('#p2pGo').tap(); await G2.waitForTimeout(400);
 await G2.waitForFunction(()=>document.getElementById('p2pOut').value.length>50,{timeout:20000});
 const ans=await G2.evaluate(()=>document.getElementById('p2pOut').value);

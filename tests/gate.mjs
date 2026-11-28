@@ -25,6 +25,8 @@ const LIST=[
   ['địa hình & đường đi','gate_terrain.mjs','exit',300],
   ['văn minh & binh chủng','gate_civ.mjs','exit',300],
   ['P2P hai máy','gate_p2p.mjs','exit',240],
+  ['phòng WiFi nhiều người (như người chơi)','gate_lan.mjs','exit',400],
+  ['cầu nối plugin LanPlay (giả lập Capacitor)','lan_native.mjs','exit',240],
   ['màn hình menu mọi cỡ máy','audit_screens.mjs','exit',300],
   ['lương thảo & đại quân','gate_supply.mjs','exit',300],
   ['quân nhu · lò rèn · xu (như người chơi)','gate_gear.mjs','exit',480],

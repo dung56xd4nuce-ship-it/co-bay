@@ -4,11 +4,11 @@ import { launch, open, ok, finish, DEVICES } from './lib.mjs';
 const b=await launch();
 const H=await open(b,DEVICES[0][1]), G=await open(b,DEVICES[1][1]);
 await H.ev(()=>{ save.civ='rome'; save.up={speed:5,power:5,armor:5,stamina:5,aura:5,weapon:5}; save.inv={bun:9,tea:9,smoke:9}; save.pack=['bun','tea','smoke']; Save.set(save); }); await G.ev(()=>{ save.civ='mongol'; Save.set(save); });   /* chủ phòng đã rèn tối đa + có đủ quân nhu: vào P2P vẫn phải ngang bằng với khách */
-let r=await H.tapEl('#bP2P'); ok(r.ok,'chủ: mở màn P2P'); await H.p.waitForTimeout(250);
+let r=await H.tapEl('#bP2P'); await H.p.waitForTimeout(250); await H.ev(()=>document.getElementById('lanOld').scrollIntoView({block:'center'})); await H.p.waitForTimeout(150); r=await H.tapEl('#lanOld'); ok(r.ok&&await H.vis('#p2p'),'chủ: 👥 MULTIPLAYER → "2 players by exchanging codes" mở màn P2P'); await H.p.waitForTimeout(250);
 ok(/Rome/.test(await H.ev(()=>document.getElementById('p2pCiv').textContent)),'chủ: màn P2P ghi nước đang chọn (Rome) và cho đổi');
 await H.tapEl('#p2pHost'); await H.p.waitForFunction(()=>document.getElementById('p2pOut').value.length>50,null,{timeout:20000});
 const offer=await H.ev(()=>document.getElementById('p2pOut').value);
-await G.tapEl('#bP2P'); await G.p.waitForTimeout(250); await G.tapEl('#p2pJoin'); await G.p.waitForTimeout(300);
+await G.tapEl('#bP2P'); await G.p.waitForTimeout(250); await G.ev(()=>document.getElementById('lanOld').click()); await G.p.waitForTimeout(250); await G.tapEl('#p2pJoin'); await G.p.waitForTimeout(300);
 await G.ev((v)=>{ document.getElementById('p2pIn').value=v; },offer); await G.tapEl('#p2pGo');
 await G.p.waitForFunction(()=>document.getElementById('p2pOut').value.length>50,null,{timeout:20000});
 const ans=await G.ev(()=>document.getElementById('p2pOut').value);

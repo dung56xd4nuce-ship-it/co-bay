@@ -207,6 +207,13 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
 @keyframes siIn{0%{opacity:0;transform:scale(1.15)}9%{opacity:1;transform:scale(1)}82%{opacity:1}100%{opacity:0}}
 #rStage{font-weight:900;font-size:17px;margin-top:4px}#rStage .unl{display:block;color:#7dffcf;font-size:15px;margin-top:2px}#rStage .rec{display:block;color:#ffd54a;font-size:13px}
 #civStage .btn.dif{width:auto;padding:0 10px;font-size:13px;opacity:.55;filter:grayscale(.6)}#civStage .btn.dif.on{opacity:1;filter:none;background:linear-gradient(#c8f7c5,#4ade80);box-shadow:0 0 0 3px rgba(255,255,255,.75)}
+#lan .lanseat{min-width:0} #lan .lanseat b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap} #lan .lanseat span{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap} #lan .lanlist{min-width:0} #lan .btn{max-width:100%;white-space:normal} #lanCiv{min-width:0}
+#lan .card{width:560px;max-width:calc(100vw - 16px - var(--safe-l,0px) - var(--safe-r,0px));box-sizing:border-box;overflow:auto;overflow-x:hidden;max-height:calc(100vh - 24px - var(--rot-h,0px) - var(--safe-t,0px) - var(--safe-b,0px));max-height:calc(100dvh - 24px - var(--rot-h,0px) - var(--safe-t,0px) - var(--safe-b,0px))}
+#lan .bphead{display:flex;align-items:center;justify-content:space-between;gap:8px} #lan h2{font-size:20px;color:#ffd54a} #lanClose{flex:none}
+@media (orientation:landscape) and (max-height:520px){ #lan .card{width:760px;padding:10px 14px} #lan h2{font-size:17px} #lanClose{width:34px !important;height:34px !important;min-height:34px !important} #lan .lanlist{display:grid !important;grid-template-columns:1fr 1fr;gap:4px 6px} #lan .lanlist>*{padding-top:4px !important;padding-bottom:4px !important;min-height:0 !important;font-size:14px} #lan_lobby #lanBots{display:inline-flex;margin:6px 10px 0 0 !important} #lan_lobby #lanBots.hidden{display:none} #lan_lobby #lanStart{display:inline-block;width:auto !important;min-height:40px;padding:6px 16px;font-size:16px;vertical-align:middle} #lan_lobby #lanStart.hidden{display:none} #lan_lobby>div:last-child{display:inline-block;margin:6px 0 0 8px !important;vertical-align:middle} #lan_home{display:grid;grid-template-columns:1fr 1fr;gap:0 8px} #lan_home>p,#lan_home>.lanrow,#lan_home>#lanNo,#lan_home>#lanOld{grid-column:1/-1} #lan .note{margin:3px 0 5px !important;font-size:12px} }
+#lan .lanrow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:6px 0} #lanName,#lanCode{flex:1 1 140px;min-width:0;font:700 16px system-ui;padding:9px 10px;border-radius:10px;border:2px solid #3a2a1c;background:#fff8ec;color:#2a1a12}
+#lan .lanlist{display:flex;flex-direction:column;gap:6px} #lan .btn.mode{display:flex;width:100%;box-sizing:border-box;margin:6px 0 0;text-align:left;padding:10px 14px} #lan .mode .mt{display:flex;flex-direction:column;gap:2px} #lan .mode small{font-size:13px;font-weight:700;opacity:.85}
+.lanseat{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.14)} .lanseat i{width:22px;height:22px;border-radius:50%;border:2px solid #fff;flex:none} .lanseat span{opacity:.8;font-size:13px;margin-left:auto;text-align:right} .lanseat.bot{opacity:.75}
 #bossPick{background:rgba(10,6,25,.9);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 #bossPick .card{width:100%;max-width:440px!important;box-sizing:border-box;display:flex;flex-direction:column;gap:10px;padding:16px}
 #bossPick .bphead{display:flex;align-items:center;justify-content:space-between} #bossPick h2{margin:0;font-size:22px;letter-spacing:2px;color:#ffd54a}
@@ -271,7 +278,7 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
     <div class="logo">LOAN THE<span class="meme">MEME!</span></div>
     <div class="sub">Chibi strategy · Fog of war · Ambushes · Sieges · Conquer the realm</div>
     <div id="menuTitle" class="mtitle" style="display:none"></div>
-    <div class="menuBtns"><button class="btn big" id="bBW" style="background:linear-gradient(#ffd0c2,#ff7a50);font-size:26px;padding:12px 30px">👑 BATTLE</button><button class="btn" id="bP2P" style="background:linear-gradient(#c9e7ff,#7db8ff)">📶 2-PLAYER P2P</button><button class="btn" id="bPlay" style="display:none">🥁 Drum Campaign</button><button class="btn" id="bMini" style="display:none">⚡ Blitz</button><button class="btn" id="bGear" style="background:linear-gradient(#fff0b8,#ffc93c)"><span class="ic" data-art="ui:coin">🪙</span> Armory</button><button class="btn" id="bForge" style="display:none"><span class="ic" data-art="ui:forge">⚒️</span> Forge</button><button class="btn" id="bLevels" style="display:none">🗺️ Stages</button><button style="display:none" class="btn" id="bArt">🎨 Art pack</button><button class="btn" id="bFull">⛶ Full screen</button><button class="btn" id="bHelp">📖 How to play</button></div>
+    <div class="menuBtns"><button class="btn big" id="bBW" style="background:linear-gradient(#ffd0c2,#ff7a50);font-size:26px;padding:12px 30px">👑 BATTLE</button><button class="btn" id="bP2P" style="background:linear-gradient(#c9e7ff,#7db8ff)">👥 MULTIPLAYER</button><button class="btn" id="bPlay" style="display:none">🥁 Drum Campaign</button><button class="btn" id="bMini" style="display:none">⚡ Blitz</button><button class="btn" id="bGear" style="background:linear-gradient(#fff0b8,#ffc93c)"><span class="ic" data-art="ui:coin">🪙</span> Armory</button><button class="btn" id="bForge" style="display:none"><span class="ic" data-art="ui:forge">⚒️</span> Forge</button><button class="btn" id="bLevels" style="display:none">🗺️ Stages</button><button style="display:none" class="btn" id="bArt">🎨 Art pack</button><button class="btn" id="bFull">⛶ Full screen</button><button class="btn" id="bHelp">📖 How to play</button></div>
     <div class="coinbar"><span class="ic" data-art="ui:coin">🪙</span> <b class="xu">0</b> Meme Coins</div>
     <button class="btn achCorner" id="bAch" aria-label="Achievements">🏆<span id="achBadge" class="achbadge"></span></button>
     <button class="btn sndBtn sndCorner" id="bMSound" aria-label="Sound on/off"><span class="ic" data-art="ui:sound">🔊</span></button>
@@ -335,6 +342,31 @@ img.aic{width:1.2em;height:1.2em;vertical-align:-0.22em;object-fit:contain}
   <div id="chronGrid" class="civgrid chrongrid"></div>
   <div class="menuBtns" style="margin-top:8px"><button class="btn" id="chronBack">← Back</button></div></div></div>
 <div id="stageIntro" class="hidden"><div class="si1" id="siTop"></div><div class="si2" id="siName"></div><div class="si3" id="siLand"></div><div class="si3" id="siBoss"></div></div>
+<div id="lan" class="screen hidden"><div class="card">
+  <div class="bphead"><h2 style="margin:0">👥 MULTIPLAYER</h2><button class="btn" id="lanClose" aria-label="Close" style="width:40px;height:40px;min-height:40px;padding:0;border-radius:50%">✕</button></div>
+  <div id="lan_home">
+    <p class="note" style="margin:6px 0 8px"><b>2–8 players on the same Wi-Fi</b> — no Internet and no server needed. No router? One phone turns on its <b>hotspot</b> and the others join it.</p>
+    <div class="lanrow"><input id="lanName" maxlength="16" aria-label="Your name" placeholder="Your name"><button class="btn" id="lanCiv">🏛️ Your civilization</button></div>
+    <button class="btn big mode" id="lanHost" style="background:linear-gradient(#fff4c9,#ffd36b)"><span class="mt"><b>🏠 Create a room</b><small>You host — friends join from their phones</small></span></button>
+    <button class="btn big mode" id="lanJoin" style="background:linear-gradient(#d9f7ff,#5cc8ff)"><span class="mt"><b>🚪 Join a room</b><small>Find a room on this Wi-Fi</small></span></button>
+    <div id="lanNo" class="fd hidden" style="margin:6px 2px;color:#ffb4a8">Wi-Fi rooms work in the installed Android app. In a browser, use the 2-player code exchange below.</div>
+    <button class="btn" id="lanOld" style="margin-top:8px;font-size:14px">📶 2 players by exchanging codes (works over the Internet)</button>
+  </div>
+  <div id="lan_browse" class="hidden">
+    <div id="lanRooms" class="lanlist"></div>
+    <div class="lanrow" style="margin-top:8px"><input id="lanCode" inputmode="decimal" maxlength="15" aria-label="Room code" placeholder="Room code (e.g. 1.23)"><button class="btn" id="lanCodeGo">Join by code</button></div>
+    <div style="margin-top:8px"><button class="btn" onclick="Room.leave();Room.view('home');Room.msg('')">◀ Back</button></div>
+  </div>
+  <div id="lan_lobby" class="hidden">
+    <div class="lanrow" style="justify-content:space-between"><b id="lanTitle" style="font-size:18px"></b><b id="lanCount"></b></div>
+    <div id="lanCodeBox" class="fd hidden" style="margin:2px 0 6px">Room code: <b id="lanCodeTxt" style="font-size:18px;letter-spacing:1px"></b> — friends can also type it if the room does not show up.</div>
+    <div id="lanSeats" class="lanlist"></div>
+    <div id="lanBots" class="lanrow hidden" style="margin-top:8px">Computer players: <button class="btn" id="lanBotMinus">−</button><b id="lanBotN">0</b><button class="btn" id="lanBotPlus">+</button></div>
+    <button class="btn big hidden" id="lanStart" style="margin-top:8px;width:100%;background:linear-gradient(#c8f7c5,#4ade80)">Start</button>
+    <div style="margin-top:8px"><button class="btn" id="lanLeave">◀ Leave room</button></div>
+  </div>
+  <div id="lanMsg" class="fd" style="margin-top:8px;min-height:18px"></div>
+</div></div>
 <div id="p2p" class="screen hidden"><div class="card" style="max-width:560px">
   <h2>📶 P2P — 2-PLAYER BATTLE</h2>
   <p style="font-size:13px;line-height:1.5">Connect two devices directly over <b>Wi-Fi (same network or Internet)</b> by exchanging codes (browsers do not allow play over Bluetooth). The host commands the <b>BLUE</b> army on the left, the guest commands the right side.</p>
