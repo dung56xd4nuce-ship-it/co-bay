@@ -266,7 +266,7 @@ const MODE_ICON={
   cal:'<svg viewBox="0 0 32 32"><g fill="none" stroke="#2a1a12" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="7" width="22" height="20" rx="4" fill="#fff8ec"/><path d="M5 13h22" /><path d="M11 4v6M21 4v6"/><path d="M11 20l4 4 7-8" stroke="#1f9d55" stroke-width="3.2"/></g></svg>',
   globe:'<svg viewBox="0 0 32 32"><g fill="none" stroke="#2a1a12" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="16" cy="16" r="11.5" fill="#bfe6ff"/><path d="M9 11c3-3 6-1 6 2s-3 3-3 6-3 2-5-1M19 8c2 1 5 3 5 6s-4 2-5 5 2 5 3 6" fill="#7bd389"/></g></svg>',
   play:'<svg viewBox="0 0 32 32"><path d="M11 6.5l14 9.5-14 9.5z" fill="#2a1a12" stroke="#2a1a12" stroke-width="3" stroke-linejoin="round"/></svg>'};
-function modeBtn(id,icon,title,sub){ const b=$(id); if(!b) return; b.classList.add('mode'); b.innerHTML=`<span class="mi">${MODE_ICON[icon]||''}</span><span class="mt"><b>${title}</b>${sub? `<small>${sub}</small>` : ''}</span>`; }
+function modeBtn(id,icon,title,sub){ const b=$(id); if(!b) return; b.classList.add('mode'); const pic=typeof ART65!=='undefined'&&ART65['ui:m-'+icon]; b.innerHTML=`<span class="mi">${pic? `<img src="${pic}" alt="">` : (MODE_ICON[icon]||'')}</span><span class="mt"><b>${title}</b>${sub? `<small>${sub}</small>` : ''}</span>`; }
 function chalSub(){ try{ const C=chalState(), dk=chalDayKey(), wk=chalWeekKey(), dd=C.d.key===dk&&C.d.done, wd=C.w.key===wk&&C.w.done, st=(C.last===dk||C.last===chalPrevDay(dk))? (C.streak|0) : 0;
     return (dd? '✔ Today done' : `Today +${BW.chal.dayXu} coins`)+' · '+(wd? '✔ week done' : `week +${BW.chal.weekXu}`)+(st>1? ` · ${st}-day streak` : ''); }catch(e){ return 'New challenge every day and every week'; } }
 function setupMenus(){
@@ -380,12 +380,13 @@ function genState(){ const g=save.gen||(save.gen={own:{},on:{},slot2:0}); if(!g.
 function genPack(civ){ const g=genState(); return (g.on[civ]||[]).map(id=>({id,lv:BW.genLevel(g.own[id])})); }
 const GEN_IMG={};
 function genPortrait(H,sz){ const k=H.id+':'+sz; if(GEN_IMG[k]) return GEN_IMG[k]; const D=BW_GEN_BY[H.skill], cv=BW_CIV[H.civ]||{}, c=document.createElement('canvas'); c.width=c.height=sz; const x=c.getContext('2d');
+  const art=ArtImages['gen:'+H.id], hasArt=typeof ART65!=='undefined'&&!!ART65['gen:'+H.id];   /* (6.5) chân dung ChatGPT vẽ cho tướng huyền thoại */
   x.fillStyle=cv.color||D.col; x.beginPath(); x.arc(sz/2,sz/2,sz/2,0,7); x.fill(); x.fillStyle='rgba(255,255,255,0.25)'; x.beginPath(); x.arc(sz/2,sz*0.38,sz*0.42,0,7); x.fill();
-  try{ x.save(); x.beginPath(); x.arc(sz/2,sz/2,sz/2-2,0,7); x.clip(); x.drawImage(makeUnitSprite('general',0,D.w),-sz*0.18,-sz*0.02,sz*1.36,sz*1.36); x.restore(); }catch(e){}
+  try{ x.save(); x.beginPath(); x.arc(sz/2,sz/2,sz/2-2,0,7); x.clip(); if(art&&art.width) x.drawImage(art,sz*0.02,sz*0.06,sz*0.96,sz*0.96); else x.drawImage(makeUnitSprite('general',0,D.w),-sz*0.18,-sz*0.02,sz*1.36,sz*1.36); x.restore(); }catch(e){}
   x.textAlign='center'; x.textBaseline='middle'; x.fillStyle='rgba(20,12,36,.85)'; x.beginPath(); x.arc(sz*0.8,sz*0.8,sz*0.2,0,7); x.fill(); x.fillStyle=D.col; x.lineWidth=2; x.strokeStyle=D.col; x.stroke();
   x.font=`${Math.round(sz*0.24)}px system-ui`; x.fillStyle='#fff'; x.fillText(D.icon,sz*0.8,sz*0.82);
-  if(H.legend){ x.font=`${Math.round(sz*0.26)}px system-ui`; x.fillText('👑',sz*0.2,sz*0.2); }
-  x.strokeStyle=H.legend? '#ffd54a' : '#2a1a12'; x.lineWidth=H.legend? 5 : 3; x.beginPath(); x.arc(sz/2,sz/2,sz/2-2,0,7); x.stroke(); return GEN_IMG[k]=c.toDataURL(); }
+  if(H.legend&&!(art&&art.width)){ x.font=`${Math.round(sz*0.26)}px system-ui`; x.fillText('👑',sz*0.2,sz*0.2); }
+  x.strokeStyle=H.legend? '#ffd54a' : '#2a1a12'; x.lineWidth=H.legend? 5 : 3; x.beginPath(); x.arc(sz/2,sz/2,sz/2-2,0,7); x.stroke(); const u=c.toDataURL(); if(!hasArt||(art&&art.width)) GEN_IMG[k]=u; return u; }
 function genCivNow(){ return BW_HEROES_OF[G.genCiv]? G.genCiv : BW_HEROES_OF[save.civ]? save.civ : 'daiviet'; }
 function renderGens(){ refreshXu(); const g=genState(), civ=genCivNow(), on=g.on[civ]||(g.on[civ]=[]), list=$('genList'), MAX=g.slot2? 2 : 1, H=BW_HEROES_OF[civ]; list.innerHTML='';
   G.genRefund=0; if(save.genRefund){ const d=document.createElement('div'); d.className='fcard on'; d.dataset.gen='refund'; d.innerHTML=`<div class="fi">🪙</div><div class="fb"><div class="fn">Generals are now real figures from history</div><div class="fd">The generals you recruited before were refunded: <b>🪙 ${save.genRefund} coins</b>. Pick new ones for each civilization below.</div></div>`; list.appendChild(d); delete save.genRefund; Save.set(save); }

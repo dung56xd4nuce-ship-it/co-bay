@@ -42,7 +42,7 @@ BigWar.prototype.drawCalZ=function(c,tm){ const Z=this.calZ; if(!Z||!Z.length) r
 // ảnh vật phẩm vẽ bằng mã (không đè ảnh đã có)
 function gearArt2(){ if(typeof setArtImage!=='function'||typeof document==='undefined') return;
   const col={horn:['#7c4a1e','#e9b872'],sandbag:['#6b5a3a','#d9c08a'],drum:['#7a1f1f','#e8a25a'],banner:['#24406e','#f0c84a'],caltrops:['#3c3c46','#c9ccd6']};
-  for(const g of BW_GEAR2){ const key='item:'+g.id; if(ArtImages[key]) continue; const S=128, cv=document.createElement('canvas'); cv.width=cv.height=S; const x=cv.getContext('2d'); if(!x) continue;
+  for(const g of BW_GEAR2){ const key='item:'+g.id; if(ArtImages[key]||(typeof ART65!=='undefined'&&ART65[key])) continue; const S=128, cv=document.createElement('canvas'); cv.width=cv.height=S; const x=cv.getContext('2d'); if(!x) continue;
     const [a,b]=col[g.id]; const gr=x.createRadialGradient(S*0.4,S*0.35,8,S/2,S/2,S*0.5); gr.addColorStop(0,b); gr.addColorStop(1,a);
     x.fillStyle=gr; x.beginPath(); x.arc(S/2,S/2,S*0.46,0,7); x.fill(); x.lineWidth=6; x.strokeStyle='#2a1a12'; x.stroke();
     x.font=`${Math.round(S*0.56)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui`; x.textAlign='center'; x.textBaseline='middle'; x.fillText(g.emoji,S/2,S*0.54);

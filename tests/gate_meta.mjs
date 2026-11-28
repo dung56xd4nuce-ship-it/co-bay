@@ -21,6 +21,7 @@ for(const [dn,dev] of [...DEVICES, PORTRAIT[1]]){ console.log(dn);
   ok(r.ok&&await T.visible('#gens')&&s.sel==='rome'&&s.n===s.nr+2&&s.names.some(t=>/^Trajan/.test(t))&&s.opt===44,`Kho → "🎖️ Generals" mở đúng nước đang chọn (Rome): ${s.n-1} tướng có thật (Trajan, …) + ô thứ 2; ô chọn có đủ ${s.opt} nước`);
   ok(await T.ev(()=>BW_CIVS.every(c=>{ const n=(BW_HEROES_OF[c.id]||[]).length; return n===1||(n>=5&&n<=8); })),'mọi nền văn minh đều có tướng: 5–8 vị, nơi ít sử liệu 1 vị');
   ok(await T.ev(()=>[...document.querySelectorAll('#genList .gport')].every(i=>i.complete&&i.naturalWidth>0)&&!!document.querySelector('#genList [data-gen="rome.trajan"] .ghist')),'mỗi tướng có chân dung và một dòng sử');
+  ok(await T.ev(()=>BW_CIVS.every(c=>!!ART65['gen:'+BW_HEROES_OF[c.id][0].id]&&!!ArtImages['gen:'+BW_HEROES_OF[c.id][0].id])&&['horn','sandbag','drum','banner','caltrops'].every(k=>!!ART65['item:'+k])),'(6.5) 44 tướng huyền thoại có chân dung vẽ riêng, 5 món quân nhu mới có ảnh vẽ riêng');
   // đổi nước bằng ô chọn
   await tapIn(T,'#genCiv'); await p.selectOption('#genCiv','daiviet'); await p.waitForTimeout(300);
   s=await T.ev(()=>[...document.querySelectorAll('#genList [data-gen]:not([data-gen="refund"]) .fn')].map(e=>e.textContent));

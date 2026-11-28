@@ -55,6 +55,9 @@ await p.evaluate(()=>{ const bw=__ltm.bw; bw.over=true; bw.result={win:false}; }
 await T.startBattle({royale:36,seed:61,map:1,civ:'rome'},5); await p.waitForFunction(()=>__ltm.bw&&__ltm.bw.lastVw>0); await wait(800);
 // thắng trận → màn kết quả
 await p.evaluate(()=>{ const bw=__ltm.bw; for(const n of bw.nodes) n.owner=bw.localFid; bw.armies.length=0; bw.checkVictory(); }); await wait(2500); await scan();
+// (6.5) chân dung tướng huyền thoại: mở Kho → Generals lần lượt từng nước; món quân nhu mới: mở Kho → Supplies
+await p.evaluate(()=>{ try{ stopBigWar&&stopBigWar(true); }catch(e){} showScreen('gens'); for(const c of BW_CIVS){ G.genCiv=c.id; renderGens(); } openGear(); });
+await p.waitForTimeout(400);
 const out=await p.evaluate(()=>{ const res=[], L=(typeof ART_LIST!=='undefined'? ART_LIST : []).map(a=>Array.isArray(a)? {code:a[0],key:a[1],name:a[4]} : a); for(const a of L){ const im=ArtImages[a.key]; res.push({code:a.code,key:a.key,name:a.name,have:!!im,canvas:!!(im&&window.__used.has(im)),dom:window.__dom.has(a.key)}); }
   const extra=Object.keys(ArtImages).filter(k=>!L.some(a=>a.key===k)).map(k=>({code:'-',key:k,name:'(ngoài danh mục)',have:true,canvas:window.__used.has(ArtImages[k]),dom:window.__dom.has(k)})); return res.concat(extra); });
 const skip=await p.evaluate(()=>Object.keys(VN_TEXT_ART));
